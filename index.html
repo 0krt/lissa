@@ -2106,6 +2106,169 @@
         </div>
       </div>
 
+      <div class="mod-group" id="frame-group">
+        <div class="vel-row"><span class="vel-label">Coordinate frame</span></div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="frame-show">
+          <label for="frame-show">Show the coordinate frame</label>
+        </div>
+        <div id="frame-controls" style="display:none">
+          <div class="param-header" style="margin-bottom:4px"><label>Looks</label></div>
+          <div class="preset-grid" id="frame-look-grid">
+            <button class="preset-btn look-btn" type="button" data-framelook="axes">AXES</button>
+            <button class="preset-btn look-btn" type="button" data-framelook="ruler">RULER</button>
+            <button class="preset-btn look-btn" type="button" data-framelook="ground">GROUND</button>
+            <button class="preset-btn look-btn" type="button" data-framelook="box">BOX</button>
+            <button class="preset-btn look-btn" type="button" data-framelook="orbit">ORBITALS</button>
+            <button class="preset-btn look-btn" type="button" data-framelook="globe">GLOBE</button>
+            <button class="preset-btn look-btn" type="button" data-framelook="lab">EVERYTHING</button>
+          </div>
+
+          <div class="param-header" style="margin:8px 0 4px"><label>Axes</label></div>
+          <div class="wave-toggle" style="margin-bottom:6px">
+            <button class="wave-btn" type="button" data-frameaxes="0" aria-pressed="false">OFF</button>
+            <button class="wave-btn" type="button" data-frameaxes="1" aria-pressed="false">RAYS</button>
+            <button class="wave-btn active" type="button" data-frameaxes="2" aria-pressed="true">FULL &plusmn;</button>
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Axis length</label><span class="val" id="frame-axis-len-val">1.15&times;</span></div>
+            <input type="range" id="frame-axis-len" min="0.2" max="2" step="0.01" value="1.15">
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="frame-arrows" checked>
+            <label for="frame-arrows">Arrowheads</label>
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="frame-axis-labels" checked>
+            <label for="frame-axis-labels">Axis labels &mdash; x / y / z</label>
+          </div>
+
+          <div class="param-header" style="margin:8px 0 4px"><label>Ticks</label></div>
+          <div class="wave-toggle" style="margin-bottom:6px">
+            <button class="wave-btn" type="button" data-frameticks="0" aria-pressed="false">OFF</button>
+            <button class="wave-btn active" type="button" data-frameticks="1" aria-pressed="true">MARKS</button>
+            <button class="wave-btn" type="button" data-frameticks="2" aria-pressed="false">NUMBERS</button>
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Tick spacing</label><span class="val" id="frame-tick-div-val">1/4</span></div>
+            <input type="range" id="frame-tick-div" min="1" max="10" step="1" value="4">
+          </div>
+
+          <div class="param-header" style="margin:8px 0 4px"><label>Planes</label></div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="frame-plane-xy">
+            <label for="frame-plane-xy">XY &mdash; the screen plane</label>
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="frame-plane-yz">
+            <label for="frame-plane-yz">YZ &mdash; the side plane</label>
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="frame-plane-zx">
+            <label for="frame-plane-zx">ZX &mdash; the ground plane</label>
+          </div>
+          <div class="wave-toggle" style="margin-bottom:6px">
+            <button class="wave-btn active" type="button" data-frameplanemode="0" aria-pressed="true">GRID</button>
+            <button class="wave-btn" type="button" data-frameplanemode="1" aria-pressed="false">FILL</button>
+            <button class="wave-btn" type="button" data-frameplanemode="2" aria-pressed="false">BOTH</button>
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Plane grid</label><span class="val" id="frame-plane-div-val">8 cells</span></div>
+            <input type="range" id="frame-plane-div" min="1" max="24" step="1" value="8">
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="frame-box">
+            <label for="frame-box">Bounding box</label>
+          </div>
+
+          <div class="param-header" style="margin:8px 0 4px"><label>Orbitals</label></div>
+          <div class="wave-toggle" style="margin-bottom:6px">
+            <button class="wave-btn" type="button" data-frameorbits="0" aria-pressed="false">OFF</button>
+            <button class="wave-btn active" type="button" data-frameorbits="1" aria-pressed="true">EQUATOR</button>
+            <button class="wave-btn" type="button" data-frameorbits="2" aria-pressed="false">ALL THREE</button>
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="frame-sphere">
+            <label for="frame-sphere">Wireframe sphere</label>
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Latitudes</label><span class="val" id="frame-sphere-lat-val">4</span></div>
+            <input type="range" id="frame-sphere-lat" min="0" max="16" step="1" value="4">
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Meridians</label><span class="val" id="frame-sphere-lon-val">6</span></div>
+            <input type="range" id="frame-sphere-lon" min="0" max="16" step="1" value="6">
+          </div>
+
+          <div class="param-header" style="margin:8px 0 4px"><label>Angles</label></div>
+          <div class="wave-toggle" style="margin-bottom:6px">
+            <button class="wave-btn active" type="button" data-frameangles="0" aria-pressed="true">OFF</button>
+            <button class="wave-btn" type="button" data-frameangles="1" aria-pressed="false">ARCS</button>
+            <button class="wave-btn" type="button" data-frameangles="2" aria-pressed="false">LABELLED</button>
+          </div>
+          <div class="wave-toggle" style="margin-bottom:6px">
+            <button class="wave-btn active" type="button" data-frameanglenames="0" aria-pressed="true">&theta; / &phi;</button>
+            <button class="wave-btn" type="button" data-frameanglenames="1" aria-pressed="false">AZ / EL</button>
+          </div>
+
+          <div class="param-header" style="margin:8px 0 4px"><label>Colour</label></div>
+          <div class="wave-toggle" style="margin-bottom:6px">
+            <button class="wave-btn active" type="button" data-framecolor="0" aria-pressed="true">RGB</button>
+            <button class="wave-btn" type="button" data-framecolor="1" aria-pressed="false">MONO</button>
+            <button class="wave-btn" type="button" data-framecolor="2" aria-pressed="false">ICE</button>
+            <button class="wave-btn" type="button" data-framecolor="3" aria-pressed="false">CUSTOM</button>
+          </div>
+          <div id="frame-custom-colors" style="display:none">
+            <div class="color-row"><label>x axis</label><input type="color" id="frame-col-x" value="#e5484d"></div>
+            <div class="color-row"><label>y axis</label><input type="color" id="frame-col-y" value="#4cc38a"></div>
+            <div class="color-row"><label>z axis</label><input type="color" id="frame-col-z" value="#5b8def"></div>
+            <div class="color-row"><label>Mesh</label><input type="color" id="frame-col-grid" value="#8b909a"></div>
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Opacity</label><span class="val" id="frame-opacity-val">55%</span></div>
+            <input type="range" id="frame-opacity" min="0" max="1" step="0.01" value="0.55">
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Line width</label><span class="val" id="frame-width-val">1.2</span></div>
+            <input type="range" id="frame-width" min="0.4" max="4" step="0.1" value="1.2">
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Frame scale</label><span class="val" id="frame-radius-val">1.00&times;</span></div>
+            <input type="range" id="frame-radius" min="0.2" max="2" step="0.01" value="1">
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="frame-follow" checked>
+            <label for="frame-follow">Frame turns with the figure</label>
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="frame-fade" checked>
+            <label for="frame-fade">Depth fade &mdash; the far side dimmer</label>
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="frame-front">
+            <label for="frame-front">Draw in front of the figure</label>
+          </div>
+        </div>
+        <div class="info-text" data-info-label="the coordinate frame">
+          The frame is drawn through the <em>same projection as the figure</em>, so it
+          is not a picture of a coordinate system laid over the curve &mdash; it is the
+          space the curve is in. Every ring, plane and tick takes the rotation, the
+          orbit tilt, the perspective and the shear the figure takes, which is why a
+          tick at <strong>0.5</strong> sits exactly where the figure's own 0.5 sits and
+          the equator stays under it as the object turns.
+          <strong>Orbitals</strong> are the great circles of the three coordinate
+          planes, each wearing the colour of the axis it is normal to, so the flat
+          horizontal ring reads as the plane the y axis stands on.
+          <strong>Angles</strong> traces the yaw and the orbit tilt as arcs by driving
+          the rotation from zero up to its live value and following where an axis
+          lands &mdash; the arc is the path the axis actually took, so it cannot
+          disagree with the picture.
+          <strong>Frame turns with the figure</strong> makes it the object's own frame;
+          switch it off and the frame is fixed to the view instead, so the figure turns
+          inside a coordinate system that stays put.
+        </div>
+      </div>
+
       <div class="subsection-label">Motion</div>
       <div class="param-row">
         <div class="param-header"><label id="phase-label">δ (phase position)</label><span class="val" id="phase-val">0.50π</span></div>
@@ -2351,6 +2514,32 @@ let params = {
   traceSpeed: 1,      // construction view: figure-tracing tempo (independent of phase anim speed)
   untracedAlpha: 0.2, // construction view: opacity of the not-yet-traced background figure
   m4Rotate: 1,        // construction view: 1 = quarter-turned scrolling generators (default)
+  // ── Coordinate frame (visual furniture — see drawCoordFrame) ───────────────
+  frameShow: 0,        // master switch for the whole reference frame
+  frameAxes: 2,        // axes: 0 = none, 1 = positive rays, 2 = full plus/minus
+  frameAxisLen: 1.15,  // axis half-length in figure units (1 = the figure's own 1.0)
+  frameArrows: 1,      // arrowheads on the positive ends
+  frameAxisLabels: 1,  // x / y / z at the tips
+  frameTicks: 1,       // 0 = none, 1 = marks, 2 = marks + numbers
+  frameTickDiv: 4,     // tick marks per unit
+  framePlanes: 0,      // coordinate planes, bitmask: 1 = XY, 2 = YZ, 4 = ZX
+  framePlaneMode: 0,   // 0 = grid, 1 = translucent fill, 2 = both
+  framePlaneDiv: 8,    // grid cells across a plane
+  frameBox: 0,         // the unit cube's twelve edges
+  frameSphere: 0,      // wireframe sphere (latitude rings + meridians)
+  frameSphereLat: 4,
+  frameSphereLon: 6,
+  frameOrbits: 1,      // great circles: 0 = none, 1 = the equator, 2 = all three
+  frameAngles: 0,      // angle arcs: 0 = none, 1 = arcs, 2 = arcs + labels
+  frameAngleNames: 0,  // 0 = theta / phi, 1 = Azimuth / Elevation
+  frameColorMode: 0,   // 0 = RGB, 1 = mono (stroke colour), 2 = ice, 3 = custom
+  frameColX: '#e5484d', frameColY: '#4cc38a', frameColZ: '#5b8def', frameColGrid: '#8b909a',
+  frameOpacity: 0.55,
+  frameWidth: 1.2,
+  frameRadius: 1,      // scales the whole frame against the figure
+  frameFade: 1,        // dim what is further from the viewer
+  frameFollow: 1,      // the frame turns with the figure (off = fixed to the view)
+  frameFront: 0,       // draw over the figure rather than under it
 };
 // Snapshot of starting values (for double-click reset / Reset All / MIDI disconnect)
 const PARAM_DEFAULTS = JSON.parse(JSON.stringify(params));
@@ -2938,7 +3127,8 @@ function liftActive() { return Math.round(params.depthSrc ?? 0) === 1; }
 let rotSpin = false;            // animate rotation (checkbox); advanced in render()
 let rotSpinPhase = 0;           // accumulated spin, degrees
 const _xf = { z: false, zAmt: 0, rot: false, c: 1, s: 0, axis: 0, K: 0, sh: 0,
-              lift: false, tilt: false, tc: 1, ts: 0, tAxis: 0, zk: 1, flat: false };
+              lift: false, tilt: false, tc: 1, ts: 0, tAxis: 0, zk: 1, flat: false,
+              yawDeg: 0, tiltDeg: 0 };
 const _Q = { x: 0, y: 0, z: 0 };  // figureXform output (normalized space; z = view depth)
 // `phase` is δ in units of π — in lift mode it drives the yaw. `flat` strips the
 // tilt and the perspective, which is what makes the shadow pass an orthographic
@@ -2952,6 +3142,9 @@ function beginFigureXform(phase, flat, zk) {   // hoist per-frame constants out 
   // instead of fighting over the same angle.
   const deg = (params.rotateAngle || 0) + rotSpinPhase + (_xf.lift ? (phase || 0) * 180 : 0);
   const a = ((deg % 360) * Math.PI) / 180;
+  // Kept for the coordinate frame's angle read-out, wrapped to the half turn the
+  // arc actually has to sweep rather than the raw accumulated spin.
+  _xf.yawDeg = ((deg % 360) + 540) % 360 - 180;
   _xf.rot = _xf.lift || Math.abs(a) > 1e-4;
   _xf.c = Math.cos(a); _xf.s = Math.sin(a);
   // The lift yaws about the axis perpendicular to the phased one — normally the
@@ -2959,6 +3152,7 @@ function beginFigureXform(phase, flat, zk) {   // hoist per-frame constants out 
   _xf.axis = _xf.lift ? (visualSwap ? 2 : 1)
                       : Math.max(0, Math.min(2, Math.round(params.rotAxis || 0)));
   const tilt = _xf.flat ? 0 : ((params.tiltAngle || 0) * Math.PI) / 180;
+  _xf.tiltDeg = (tilt * 180) / Math.PI;
   _xf.tilt = Math.abs(tilt) > 1e-4;
   _xf.tc = Math.cos(tilt); _xf.ts = Math.sin(tilt);
   // The orbit tilt has to turn about an axis PERPENDICULAR to the yaw, or it just
@@ -3007,6 +3201,396 @@ function figureXform(px, py, z, zFlip) {
   if (Math.abs(_xf.sh) > 1e-3) px += _xf.sh * py;
   _Q.x = px; _Q.y = py; _Q.z = z;
 }
+
+// ── Coordinate frame ──────────────────────────────────────────────────────────
+// A reference frame drawn through the SAME projection as the figure: every point
+// goes out through beginFigureXform/figureXform untouched, so the axes, the
+// planes and the orbital rings yaw, tilt and foreshorten exactly as the curve
+// does, and a tick at 0.5 lands where the figure's own 0.5 lands.
+//
+// Frame space is the ordinary right-handed one — x right, y up, z out of the
+// screen. The engine's space has y DOWN the screen and z AWAY from it, so both
+// flip on the way in. Flipping BOTH rather than y alone is the whole trick: y
+// alone would mirror the (y, z) tilt and the frame would tip the opposite way
+// from the figure it is there to measure.
+const _fc = { cx: 0, cy: 0, rx: 1, ry: 1 };
+const _FP = { x: 0, y: 0, z: 0 };
+function framePt(x, y, z) {
+  figureXform(x, -y, -z, false);
+  _FP.x = _fc.cx + _fc.rx * _Q.x;
+  _FP.y = _fc.cy + _fc.ry * _Q.y;
+  _FP.z = _Q.z;
+  return _FP;
+}
+function frameP(x, y, z) { const p = framePt(x, y, z); return [p.x, p.y, p.z]; }
+// Sample a parametric frame-space curve into a screen-space polyline. Straight
+// lines are sampled too: under perspective a line that changes depth bends, and
+// a two-point edge would cut the corner.
+function frameCurve(n, fn) {
+  const out = new Array(n + 1), v = [0, 0, 0];
+  for (let i = 0; i <= n; i++) { fn(i / n, v); out[i] = frameP(v[0], v[1], v[2]); }
+  return out;
+}
+// Depth cue, centred on 1: what sits in the origin plane keeps exactly the
+// opacity the slider asked for, what is nearer lifts a little and what is behind
+// drops back. Centring it means switching the cue on never dims the whole frame.
+function frameDepthK(z) { return Math.max(0.3, Math.min(1.35, 1 - 0.45 * z)); }
+function frameColors() {
+  const m = Math.round(params.frameColorMode || 0);
+  if (m === 1) { const c = params.strokeColor || '#c8f060'; return { x: c, y: c, z: c, grid: c }; }
+  if (m === 2) return { x: '#8ab4ff', y: '#7ee7d0', z: '#c5a3ff', grid: '#7c8694' };
+  if (m === 3) return { x: params.frameColX || '#e5484d', y: params.frameColY || '#4cc38a',
+                        z: params.frameColZ || '#5b8def', grid: params.frameColGrid || '#8b909a' };
+  return { x: '#e5484d', y: '#4cc38a', z: '#5b8def', grid: '#8b909a' };
+}
+// Stroke a frame polyline. With the depth cue on, each segment is shaded by its
+// own depth so a ring that passes behind the origin dims as it goes round.
+// Shading it a segment at a time would mean a stroke per segment, and a canvas
+// stroke costs far more in the style change than in the geometry — so the
+// segments are bucketed by depth and each bucket is laid down as ONE path of
+// disjoint pieces. Seven strokes per line, however finely it is sampled.
+const FRAME_BINS = 7, FRAME_K_LO = 0.35, FRAME_K_HI = 1.3;
+let _frameBin = new Int8Array(0);
+function frameStroke(g, pts, color, alpha, width, dash) {
+  const n = pts.length;
+  if (n < 2 || alpha <= 0.004) return;
+  g.lineWidth = Math.max(0.2, width);
+  g.setLineDash(dash || []);
+  const flat = !params.frameFade || n < 4;
+  if (flat) {
+    g.strokeStyle = hexToRgba(color, Math.min(1, alpha * (params.frameFade ? frameDepthK(pts[0][2]) : 1)));
+    g.beginPath();
+    g.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < n; i++) g.lineTo(pts[i][0], pts[i][1]);
+    g.stroke();
+    return;
+  }
+  if (_frameBin.length < n) _frameBin = new Int8Array(n * 2);
+  const span = FRAME_K_HI - FRAME_K_LO;
+  let lo = FRAME_BINS - 1, hi = 0;
+  for (let i = 0; i < n - 1; i++) {
+    const k = frameDepthK((pts[i][2] + pts[i + 1][2]) * 0.5);
+    const b = Math.max(0, Math.min(FRAME_BINS - 1, Math.round(((k - FRAME_K_LO) / span) * (FRAME_BINS - 1))));
+    _frameBin[i] = b;
+    if (b < lo) lo = b;
+    if (b > hi) hi = b;
+  }
+  for (let b = lo; b <= hi; b++) {
+    let started = false;
+    for (let i = 0; i < n - 1; i++) {
+      if (_frameBin[i] !== b) continue;
+      if (!started) { g.beginPath(); started = true; }
+      g.moveTo(pts[i][0], pts[i][1]);
+      g.lineTo(pts[i + 1][0], pts[i + 1][1]);
+    }
+    if (!started) continue;
+    g.strokeStyle = hexToRgba(color, Math.min(1, alpha * (FRAME_K_LO + span * (b / (FRAME_BINS - 1)))));
+    g.stroke();
+  }
+}
+function frameFillPath(g, pts, color, alpha) {
+  if (pts.length < 3 || alpha <= 0.004) return;
+  g.fillStyle = hexToRgba(color, Math.min(1, alpha));
+  g.beginPath();
+  g.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) g.lineTo(pts[i][0], pts[i][1]);
+  g.closePath();
+  g.fill();
+}
+// Arrowhead in SCREEN space, aimed along the last segment of whatever it caps —
+// which is what keeps it pointing correctly under perspective and shear.
+function frameArrowHead(g, x0, y0, x1, y1, size, color, alpha) {
+  const dx = x1 - x0, dy = y1 - y0, d = Math.hypot(dx, dy);
+  if (d < 1e-6) return;
+  const ux = dx / d, uy = dy / d, px = -uy, py = ux;
+  g.setLineDash([]);
+  g.fillStyle = hexToRgba(color, Math.min(1, alpha));
+  g.beginPath();
+  g.moveTo(x1, y1);
+  g.lineTo(x1 - ux * size + px * size * 0.42, y1 - uy * size + py * size * 0.42);
+  g.lineTo(x1 - ux * size - px * size * 0.42, y1 - uy * size - py * size * 0.42);
+  g.closePath();
+  g.fill();
+}
+// Labels sit on a thin plate of the background colour: a tick number over the
+// curve is unreadable otherwise, and boxing every label in a rule would turn the
+// frame into a table.
+function frameText(g, str, x, y, color, alpha, fs) {
+  g.setLineDash([]);
+  g.font = fs.toFixed(1) + "px 'IBM Plex Mono', ui-monospace, monospace";
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  const w = g.measureText(str).width;
+  g.fillStyle = hexToRgba(params.bgColor, Math.min(0.8, alpha));
+  g.fillRect(x - w / 2 - 2, y - fs * 0.62, w + 4, fs * 1.24);
+  g.fillStyle = hexToRgba(color, Math.min(1, alpha));
+  g.fillText(str, x, y);
+}
+
+function drawCoordFrame(target, w, h, phase, zoom) {
+  if (!params.frameShow) return;
+  let cx, cy, rx, ry, boxZoom = 1;
+  if (constructionView) {
+    // Mirrors drawMode4's layout so the frame lands on the same square the
+    // construction view draws its curve in (and takes the same box zoom, which
+    // that view applies as a transform rather than folding into rx/ry).
+    const margin = Math.round(Math.min(w, h) * (params.m4Rotate ? 0.28 : 0.2));
+    const figW = w - margin, figH = h - margin;
+    cx = margin + figW / 2; cy = margin + figH / 2;
+    rx = (figW / 2 - 12) * params.ax; ry = (figH / 2 - 12) * params.ay;
+    boxZoom = Math.max(0.05, zoom || 1);
+  } else {
+    const pad = Math.min(w, h) * 0.034;
+    const z = zoom || 1;
+    cx = w / 2; cy = h / 2;
+    rx = (w / 2 - pad) * params.ax * z;
+    ry = (h / 2 - pad) * params.ay * z;
+  }
+  const zk = rx / ry;                 // depth rides rx, height rides ry — see figureXform
+  const R = Math.max(0.05, params.frameRadius || 1);
+  _fc.cx = cx; _fc.cy = cy; _fc.rx = rx * R; _fc.ry = ry * R;
+
+  target.save();
+  if (boxZoom !== 1) {
+    target.translate(w / 2, h / 2); target.scale(boxZoom, boxZoom); target.translate(-w / 2, -h / 2);
+  }
+  target.lineJoin = 'round'; target.lineCap = 'round'; target.setLineDash([]);
+
+  beginFigureXform(phase, false, zk);
+  // A frame fixed to the VIEW keeps the yaw out of its own transform, so the
+  // figure turns inside a frame that stays put — the other half of the question
+  // the lift asks. Following it instead makes the frame the object's own.
+  if (!params.frameFollow) { _xf.rot = false; _xf.c = 1; _xf.s = 0; }
+
+  const col = frameColors();
+  const A = Math.max(0, Math.min(1, params.frameOpacity ?? 0.55));
+  const LW = Math.max(0.4, params.frameWidth || 1.2);
+  const fs = Math.max(9, Math.min(w, h) * 0.021);
+  const unit = Math.min(_fc.rx, _fc.ry);   // one figure unit in pixels, for screen-space sizes
+
+  // ── Coordinate planes ───────────────────────────────────────────────────────
+  const pmask = Math.round(params.framePlanes || 0);
+  if (pmask) {
+    const mode = Math.round(params.framePlaneMode || 0);       // 0 grid, 1 fill, 2 both
+    const div = Math.max(1, Math.round(params.framePlaneDiv || 8));
+    // [bit, (u, v) -> point, colour of the axis the plane is normal to]
+    const PLANES = [
+      [1, (u, v, o) => { o[0] = u; o[1] = v; o[2] = 0; }, col.z],   // XY — the screen plane
+      [2, (u, v, o) => { o[0] = 0; o[1] = u; o[2] = v; }, col.x],   // YZ — the side plane
+      [4, (u, v, o) => { o[0] = v; o[1] = 0; o[2] = u; }, col.y],   // ZX — the ground plane
+    ];
+    const CORNERS = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+    for (const [bit, map, c] of PLANES) {
+      if (!(pmask & bit)) continue;
+      if (mode !== 0) {
+        frameFillPath(target, frameCurve(48, (t, o) => {
+          const s4 = Math.min(3.9999, t * 4), k = s4 | 0, f = s4 - k;
+          const a = CORNERS[k], b = CORNERS[(k + 1) & 3];
+          map(a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, o);
+        }), c, A * 0.11);
+      }
+      if (mode !== 1) {
+        for (let k = 0; k <= div; k++) {
+          const t = -1 + (2 * k) / div;
+          const edge = (k === 0 || k === div) ? 1.7 : 1;
+          frameStroke(target, frameCurve(8, (u, o) => map(t, -1 + 2 * u, o)), c, A * 0.3 * edge, LW * 0.8);
+          frameStroke(target, frameCurve(8, (u, o) => map(-1 + 2 * u, t, o)), c, A * 0.3 * edge, LW * 0.8);
+        }
+      }
+    }
+  }
+
+  // ── Bounding box ────────────────────────────────────────────────────────────
+  if (params.frameBox) {
+    // (axis the edge runs along, the two it is offset on)
+    for (const [a, b, c2] of [[0, 1, 2], [1, 2, 0], [2, 0, 1]]) {
+      for (let s = 0; s < 4; s++) {
+        const p = (s & 1) ? 1 : -1, q = (s & 2) ? 1 : -1;
+        frameStroke(target, frameCurve(6, (t, o) => { o[a] = -1 + 2 * t; o[b] = p; o[c2] = q; }),
+                    col.grid, A * 0.5, LW);
+      }
+    }
+  }
+
+  // ── Wireframe sphere ────────────────────────────────────────────────────────
+  if (params.frameSphere) {
+    const lat = Math.max(0, Math.round(params.frameSphereLat || 0));
+    const lon = Math.max(0, Math.round(params.frameSphereLon || 0));
+    for (let k = 1; k <= lat; k++) {
+      const el = -Math.PI / 2 + (k * Math.PI) / (lat + 1);
+      const r = Math.cos(el), y = Math.sin(el);
+      frameStroke(target, frameCurve(56, (t, o) => {
+        const a = t * TWO_PI; o[0] = r * Math.cos(a); o[1] = y; o[2] = r * Math.sin(a);
+      }), col.grid, A * 0.42, LW * 0.9);
+    }
+    // Meridians are drawn as whole great circles, so lon of them covers the
+    // sphere without a seam at the back.
+    for (let k = 0; k < lon; k++) {
+      const th = (k * Math.PI) / lon, ct = Math.cos(th), st = Math.sin(th);
+      frameStroke(target, frameCurve(56, (t, o) => {
+        const a = t * TWO_PI; o[0] = ct * Math.cos(a); o[1] = Math.sin(a); o[2] = st * Math.cos(a);
+      }), col.grid, A * 0.42, LW * 0.9);
+    }
+  }
+
+  // ── Orbitals: the great circles of the three coordinate planes ──────────────
+  // Each wears the colour of the axis it is NORMAL to, so the flat horizontal
+  // ring reads as the plane the y axis stands on.
+  const orb = Math.round(params.frameOrbits || 0);
+  if (orb) {
+    const RINGS = [
+      [(a, o) => { o[0] = Math.cos(a); o[1] = 0; o[2] = Math.sin(a); }, col.y],
+      [(a, o) => { o[0] = Math.cos(a); o[1] = Math.sin(a); o[2] = 0; }, col.z],
+      [(a, o) => { o[0] = 0; o[1] = Math.cos(a); o[2] = Math.sin(a); }, col.x],
+    ];
+    const n = orb >= 2 ? 3 : 1;
+    for (let i = 0; i < n; i++) {
+      frameStroke(target, frameCurve(72, (t, o) => RINGS[i][0](t * TWO_PI, o)),
+                  RINGS[i][1], Math.min(1, A * 1.3), LW * 1.45);
+    }
+  }
+
+  // ── Axes, arrowheads, ticks, labels ─────────────────────────────────────────
+  const axKind = Math.round(params.frameAxes || 0);
+  if (axKind) {
+    const L = Math.max(0.05, params.frameAxisLen || 1.15);
+    const from = axKind === 2 ? -L : 0;
+    const DIRS = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+    const NAMES = ['x', 'y', 'z'];
+    const COLS = [col.x, col.y, col.z];
+    const tickKind = Math.round(params.frameTicks || 0);
+    const div = Math.max(1, Math.round(params.frameTickDiv || 4));
+    // Long ticks on whole units; numbers every half unit, so a fine division
+    // doesn't bury the axis in digits.
+    const numEvery = div >= 4 ? Math.max(1, Math.round(div / 2)) : div;
+    const asize = Math.max(5, unit * 0.075);
+    const org = frameP(0, 0, 0);
+    for (let a = 0; a < 3; a++) {
+      const d = DIRS[a], c = COLS[a];
+      const line = frameCurve(24, (t, o) => {
+        const u = from + (L - from) * t;
+        o[0] = d[0] * u; o[1] = d[1] * u; o[2] = d[2] * u;
+      });
+      frameStroke(target, line, c, Math.min(1, A * 1.3), LW * 1.15);
+      const tip = line[line.length - 1], pre = line[line.length - 2];
+      const dx = tip[0] - pre[0], dy = tip[1] - pre[1], dl = Math.hypot(dx, dy) || 1;
+      // An axis pointing straight at the viewer projects to a dot: it has no
+      // direction to aim a head or hang a label off, and both would just pile up
+      // on the origin, so they stand down until it turns far enough to read.
+      const seen = Math.hypot(tip[0] - org[0], tip[1] - org[1]) > asize * 1.2;
+      if (params.frameArrows && seen) frameArrowHead(target, pre[0], pre[1], tip[0], tip[1], asize, c, Math.min(1, A * 1.5));
+      if (params.frameAxisLabels && seen) {
+        frameText(target, NAMES[a], tip[0] + (dx / dl) * asize * 2.1, tip[1] + (dy / dl) * asize * 2.1,
+                  c, Math.min(1, A * 1.6), fs);
+      }
+      if (!tickKind) continue;
+      const kMax = Math.floor(L * div + 1e-6);
+      for (let k = -kMax; k <= kMax; k++) {
+        if (k === 0 || (axKind !== 2 && k < 0)) continue;
+        const u = k / div;
+        // The tick is laid across the axis's own SCREEN direction, read off a
+        // short step along it, so it stays perpendicular however the axis is
+        // turned, sheared or foreshortened.
+        const p = frameP(d[0] * u, d[1] * u, d[2] * u);
+        const q = frameP(d[0] * (u + 0.01), d[1] * (u + 0.01), d[2] * (u + 0.01));
+        let nx = -(q[1] - p[1]), ny = q[0] - p[0];
+        const nl = Math.hypot(nx, ny);
+        if (nl < 1e-6) continue;            // the axis is pointing straight at us
+        nx /= nl; ny /= nl;
+        const whole = Math.abs(k) % div === 0;
+        const ts = (whole ? 1 : 0.55) * Math.max(3, unit * 0.03);
+        const al = Math.min(1, A * 1.25 * (params.frameFade ? frameDepthK(p[2]) : 1));
+        target.strokeStyle = hexToRgba(c, al);
+        target.lineWidth = LW * (whole ? 1.1 : 0.85);
+        target.setLineDash([]);
+        target.beginPath();
+        target.moveTo(p[0] - nx * ts, p[1] - ny * ts);
+        target.lineTo(p[0] + nx * ts, p[1] + ny * ts);
+        target.stroke();
+        if (tickKind === 2 && Math.abs(k) % numEvery === 0) {
+          frameText(target, String(+u.toFixed(2)), p[0] + nx * ts * 2.8, p[1] + ny * ts * 2.8, c, al, fs * 0.78);
+        }
+      }
+    }
+    target.fillStyle = hexToRgba(col.grid, Math.min(1, A * 1.6));
+    target.beginPath();
+    target.arc(org[0], org[1], Math.max(1.5, LW * 1.4), 0, TWO_PI);
+    target.fill();
+  }
+
+  // ── Angle arcs ──────────────────────────────────────────────────────────────
+  // Both arcs are traced by driving the ENGINE's own rotation from zero up to the
+  // live angle and reading where the probe vector lands at each step. That is why
+  // they cannot disagree with the picture: the arc is the path the axis actually
+  // took, not a re-derivation of it that could pick up the wrong sign.
+  const angKind = Math.round(params.frameAngles || 0);
+  if (angKind) {
+    const rA = Math.max(0.12, (params.frameAxisLen || 1.15) * 0.45);
+    const names = Math.round(params.frameAngleNames || 0) === 1
+                ? ['Azimuth', 'Elevation'] : ['θ', 'φ'];
+    const keep = { rot: _xf.rot, c: _xf.c, s: _xf.s, tilt: _xf.tilt, tc: _xf.tc, ts: _xf.ts };
+    const asize = Math.max(4, unit * 0.055);
+    const drawArc = (pts, label) => {
+      if (pts.length < 2) return;
+      frameStroke(target, pts, col.grid, Math.min(1, A * 1.35), LW * 1.2);
+      const t2 = pts[pts.length - 1], t1 = pts[pts.length - 2];
+      frameArrowHead(target, t1[0], t1[1], t2[0], t2[1], asize, col.grid, Math.min(1, A * 1.45));
+      if (angKind === 2) {
+        const m = pts[Math.round((pts.length - 1) * 0.55)];
+        frameText(target, label, m[0], m[1] - fs * 1.05, col.grid, Math.min(1, A * 1.7), fs * 0.9);
+      }
+    };
+    // Azimuth: the yaw, swept in the plane perpendicular to the axis it turns
+    // about. The probe has to be off that axis or it would not move at all.
+    const yaw = _xf.yawDeg || 0;
+    if (Math.abs(yaw) >= 0.5) {
+      const probe = _xf.axis === 2 ? [0, rA, 0] : [rA, 0, 0];
+      const n = Math.max(8, Math.min(96, Math.round(Math.abs(yaw) / 3)));
+      const pts = new Array(n + 1);
+      _xf.rot = true;
+      for (let i = 0; i <= n; i++) {
+        const ang = ((yaw * i) / n * Math.PI) / 180;
+        _xf.c = Math.cos(ang); _xf.s = Math.sin(ang);
+        pts[i] = frameP(probe[0], probe[1], probe[2]);
+      }
+      _xf.rot = keep.rot; _xf.c = keep.c; _xf.s = keep.s;
+      drawArc(pts, names[0] + ' ' + Math.round(yaw) + '°');
+    }
+    // Elevation: the orbit tilt, measured from the direction facing the viewer.
+    // The yaw stands down for it — the elevation is the same however far round
+    // the object has turned, and an arc carried along by the spin would not read
+    // as one angle.
+    const ele = _xf.tiltDeg || 0;
+    if (Math.abs(ele) >= 0.5) {
+      const n = Math.max(8, Math.min(96, Math.round(Math.abs(ele) / 3)));
+      const pts = new Array(n + 1);
+      _xf.rot = false; _xf.tilt = true;
+      for (let i = 0; i <= n; i++) {
+        const ang = ((ele * i) / n * Math.PI) / 180;
+        _xf.tc = Math.cos(ang); _xf.ts = Math.sin(ang);
+        pts[i] = frameP(0, 0, rA);
+      }
+      _xf.rot = keep.rot; _xf.c = keep.c; _xf.s = keep.s;
+      _xf.tilt = keep.tilt; _xf.tc = keep.tc; _xf.ts = keep.ts;
+      drawArc(pts, names[1] + ' ' + Math.round(ele) + '°');
+    }
+  }
+
+  target.setLineDash([]);
+  target.restore();
+}
+
+// The frame is furniture, like the construction view's rulers: it is drawn
+// straight onto the canvas every frame and never into the trail layer, because a
+// smeared ruler is not a ruler.
+function drawFrameLayer(phase, zoom) {
+  if (!params.frameShow) return;
+  ctx.save();
+  ctx.translate(figBox.x, figBox.y);
+  drawCoordFrame(ctx, figBox.size, figBox.size, phase, zoom);
+  ctx.restore();
+}
+
 
 // Trail persistence → background alpha. Cubed response so the low/mid slider
 // range is already clearly visible (0.5 → alpha 0.125, long trails).
@@ -3697,6 +4281,7 @@ function render(now) {
   _m4MemoPhase = NaN; _figMemoPhase = NaN; _figMemoYRes = -1;   // the sample memos are per-frame
 
   paintBackdrop();
+  if (!params.frameFront) drawFrameLayer(drawPhase, zoom);
 
   if (trailKeeps() && (params.trailCount || 0) >= 1) {
     // Ghosts oldest-first so newer copies sit on top, then the live curve erases
@@ -3734,6 +4319,7 @@ function render(now) {
     ctx.restore();
     advanceMode4();
   }
+  if (params.frameFront) drawFrameLayer(drawPhase, zoom);
 
   if (recording) captureRecFrame(phase);
 
@@ -3951,6 +4537,7 @@ function resetAll() {
   phaseModulators = false;
   rotSpin = false;
   rotSpinPhase = 0;
+  clearFrameLook();
   animPhase = params.phase;
   strokeHSL = hexToHsl(params.strokeColor);
   refreshAllControls();
@@ -4102,7 +4689,9 @@ function applyPreset(fx, fy) {
 }
 
 function highlightActivePreset() {
-  document.querySelectorAll('.preset-btn').forEach(btn => {
+  // Scoped to the ratio pads: .preset-btn is also worn by the coordinate frame's
+  // look buttons, which carry no ratio and must keep their own highlight.
+  document.querySelectorAll('.preset-btn[data-fx]').forEach(btn => {
     const match = parseInt(btn.dataset.fx) === Math.round(params.fx * 2) / 2
                 && parseInt(btn.dataset.fy) === Math.round(params.fy * 2) / 2;
     btn.classList.toggle('active', parseInt(btn.dataset.fx) === params.fx && parseInt(btn.dataset.fy) === params.fy);
@@ -5130,6 +5719,162 @@ VISUAL_SLIDERS.forEach(([id, key, fmt]) => {
   });
 });
 
+
+// ── Coordinate frame controls ────────────────────────────────────────────────
+const FRAME_SLIDERS = [
+  ['frame-axis-len',   'frameAxisLen',   v => v.toFixed(2) + '×'],
+  ['frame-tick-div',   'frameTickDiv',   v => '1/' + Math.round(v)],
+  ['frame-plane-div',  'framePlaneDiv',  v => Math.round(v) + ' cells'],
+  ['frame-sphere-lat', 'frameSphereLat', v => String(Math.round(v))],
+  ['frame-sphere-lon', 'frameSphereLon', v => String(Math.round(v))],
+  ['frame-opacity',    'frameOpacity',   v => Math.round(v * 100) + '%'],
+  ['frame-width',      'frameWidth',     v => v.toFixed(1)],
+  ['frame-radius',     'frameRadius',    v => v.toFixed(2) + '×'],
+];
+FRAME_SLIDERS.forEach(([id, key, fmt]) => {
+  document.getElementById(id).addEventListener('input', e => {
+    params[key] = parseFloat(e.target.value);
+    document.getElementById(id + '-val').textContent = fmt(params[key]);
+    clearFrameLook();
+  });
+});
+
+const FRAME_CHECKS = [
+  ['frame-show',        'frameShow'],
+  ['frame-arrows',      'frameArrows'],
+  ['frame-axis-labels', 'frameAxisLabels'],
+  ['frame-sphere',      'frameSphere'],
+  ['frame-box',         'frameBox'],
+  ['frame-follow',      'frameFollow'],
+  ['frame-fade',        'frameFade'],
+  ['frame-front',       'frameFront'],
+];
+FRAME_CHECKS.forEach(([id, key]) => {
+  document.getElementById(id).addEventListener('change', e => {
+    params[key] = e.target.checked ? 1 : 0;
+    if (key === 'frameShow') updateFrameControls(); else clearFrameLook();
+  });
+});
+
+// The three coordinate planes live in one bitmask so a single CC or LFO can
+// sweep through the combinations, but they are checkboxes because that is what
+// picking three independent things is.
+const FRAME_PLANE_BITS = [['frame-plane-xy', 1], ['frame-plane-yz', 2], ['frame-plane-zx', 4]];
+FRAME_PLANE_BITS.forEach(([id, bit]) => {
+  document.getElementById(id).addEventListener('change', e => {
+    params.framePlanes = (Math.round(params.framePlanes || 0) & ~bit) | (e.target.checked ? bit : 0);
+    clearFrameLook();
+  });
+});
+
+// Every multi-way frame control is a data-attribute toggle row, so one setter
+// covers them all and MIDI can drive any of them by the same name.
+const FRAME_OPTS = [
+  ['frameaxes',       'frameAxes'],
+  ['frameticks',      'frameTicks'],
+  ['frameplanemode',  'framePlaneMode'],
+  ['frameorbits',     'frameOrbits'],
+  ['frameangles',     'frameAngles'],
+  ['frameanglenames', 'frameAngleNames'],
+  ['framecolor',      'frameColorMode'],
+];
+function setFrameOpt(attr, v, quiet) {
+  const entry = FRAME_OPTS.find(o => o[0] === attr);
+  if (!entry) return;
+  v = Math.round(v);
+  params[entry[1]] = v;
+  document.querySelectorAll('.wave-btn[data-' + attr + ']').forEach(b => {
+    const on = parseInt(b.dataset[attr]) === v;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  if (attr === 'framecolor') updateFrameControls();
+  if (!quiet) clearFrameLook();
+}
+FRAME_OPTS.forEach(([attr]) => {
+  document.querySelectorAll('.wave-btn[data-' + attr + ']').forEach(btn => {
+    btn.addEventListener('click', () => setFrameOpt(attr, parseInt(btn.dataset[attr])));
+  });
+});
+
+[['frame-col-x', 'frameColX'], ['frame-col-y', 'frameColY'],
+ ['frame-col-z', 'frameColZ'], ['frame-col-grid', 'frameColGrid']].forEach(([id, key]) => {
+  document.getElementById(id).addEventListener('input', e => { params[key] = e.target.value; });
+});
+
+// The looks are starting points, not modes: they write a whole set of frame
+// parameters at once and then stand aside, so the highlight drops away as soon
+// as any one of them is changed by hand.
+const FRAME_LOOKS = {
+  axes:   { frameAxes:2, frameArrows:1, frameAxisLabels:1, frameTicks:0, framePlanes:0,
+            frameBox:0, frameSphere:0, frameOrbits:0, frameAngles:0 },
+  ruler:  { frameAxes:2, frameArrows:1, frameAxisLabels:1, frameTicks:2, frameTickDiv:4,
+            framePlanes:1, framePlaneMode:0, framePlaneDiv:8, frameBox:0, frameSphere:0,
+            frameOrbits:0, frameAngles:0 },
+  ground: { frameAxes:2, frameArrows:1, frameAxisLabels:1, frameTicks:1, framePlanes:4,
+            framePlaneMode:2, framePlaneDiv:10, frameBox:0, frameSphere:0, frameOrbits:1,
+            frameAngles:1 },
+  box:    { frameAxes:1, frameArrows:1, frameAxisLabels:1, frameTicks:1, framePlanes:0,
+            frameBox:1, frameSphere:0, frameOrbits:0, frameAngles:0 },
+  orbit:  { frameAxes:2, frameArrows:1, frameAxisLabels:1, frameTicks:0, framePlanes:0,
+            frameBox:0, frameSphere:0, frameOrbits:2, frameAngles:2 },
+  globe:  { frameAxes:2, frameArrows:1, frameAxisLabels:1, frameTicks:0, framePlanes:0,
+            frameBox:0, frameSphere:1, frameSphereLat:4, frameSphereLon:6, frameOrbits:2,
+            frameAngles:2 },
+  lab:    { frameAxes:2, frameArrows:1, frameAxisLabels:1, frameTicks:2, frameTickDiv:4,
+            framePlanes:7, framePlaneMode:2, framePlaneDiv:8, frameBox:1, frameSphere:1,
+            frameSphereLat:3, frameSphereLon:4, frameOrbits:2, frameAngles:2 },
+};
+let frameLook = '';
+function clearFrameLook() {
+  if (!frameLook) return;
+  frameLook = '';
+  document.querySelectorAll('.look-btn').forEach(b => b.classList.remove('active'));
+}
+function applyFrameLook(name) {
+  const look = FRAME_LOOKS[name];
+  if (!look) return;
+  params.frameShow = 1;
+  Object.keys(look).forEach(k => { params[k] = look[k]; });
+  refreshFrameControls();
+  frameLook = name;
+  document.querySelectorAll('.look-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.framelook === name));
+}
+document.querySelectorAll('.look-btn').forEach(btn => {
+  btn.addEventListener('click', () => applyFrameLook(btn.dataset.framelook));
+});
+
+function updateFrameControls() {
+  const box = document.getElementById('frame-controls');
+  if (box) box.style.display = params.frameShow ? '' : 'none';
+  const custom = document.getElementById('frame-custom-colors');
+  if (custom) custom.style.display = Math.round(params.frameColorMode || 0) === 3 ? '' : 'none';
+}
+
+// Push the frame's parameters back into its controls — after a look, a preset
+// load, a MIDI write or Reset All.
+function refreshFrameControls() {
+  FRAME_SLIDERS.forEach(([id, key, fmt]) => {
+    const v = params[key] ?? PARAM_DEFAULTS[key];
+    const el = document.getElementById(id); if (el) el.value = v;
+    const d = document.getElementById(id + '-val'); if (d) d.textContent = fmt(v);
+  });
+  FRAME_CHECKS.forEach(([id, key]) => {
+    const el = document.getElementById(id); if (el) el.checked = !!params[key];
+  });
+  FRAME_PLANE_BITS.forEach(([id, bit]) => {
+    const el = document.getElementById(id); if (el) el.checked = !!(Math.round(params.framePlanes || 0) & bit);
+  });
+  FRAME_OPTS.forEach(([attr, key]) => setFrameOpt(attr, params[key] ?? PARAM_DEFAULTS[key] ?? 0, true));
+  [['frame-col-x', 'frameColX'], ['frame-col-y', 'frameColY'],
+   ['frame-col-z', 'frameColZ'], ['frame-col-grid', 'frameColGrid']].forEach(([id, key]) => {
+    const el = document.getElementById(id); if (el) el.value = params[key] || PARAM_DEFAULTS[key];
+  });
+  updateFrameControls();
+}
+refreshFrameControls();
+
 // Mirror mode: off / mirror-X / mirror-Y / 4-fold kaleidoscope.
 function setMirrorMode(m) {
   m = Math.max(0, Math.min(3, Math.round(m)));
@@ -5889,6 +6634,14 @@ const MAP_TARGETS = {
   constructionView: { label:'Construction View', toggle:true, apply:b => { constructionView = b; const cb=document.getElementById('construction-view'); cb.checked=b; if (b) mode4T=0; } },
   animatePhase:     { label:'Animate Phase',     toggle:true, apply:b => { animating = b; document.getElementById('animate').checked=b; document.getElementById('anim-speed-row').style.opacity = b ? '1' : '0.4'; } },
   visualSwap:       { label:'Visual X/Y Swap',   toggle:true, apply:b => { visualSwap = b; updateSwapBtn(); } },
+  frameShow:   { label:'Coord Frame',     toggle:true, apply:b => { params.frameShow = b ? 1 : 0; const cb=document.getElementById('frame-show'); if (cb) cb.checked = b; updateFrameControls(); } },
+  frameFollow: { label:'Frame Follows',   toggle:true, apply:b => { params.frameFollow = b ? 1 : 0; const cb=document.getElementById('frame-follow'); if (cb) cb.checked = b; } },
+  frameOpacity:{ label:'Frame Opacity',   min:0,   max:1,             apply:v => setSliderParam('frameOpacity','frame-opacity','frame-opacity-val',x=>Math.round(x*100)+'%',v) },
+  frameRadius: { label:'Frame Scale',     min:0.2, max:2,             apply:v => setSliderParam('frameRadius','frame-radius','frame-radius-val',x=>x.toFixed(2)+'\u00d7',v) },
+  frameAxisLen:{ label:'Frame Axis Len',  min:0.2, max:2,             apply:v => setSliderParam('frameAxisLen','frame-axis-len','frame-axis-len-val',x=>x.toFixed(2)+'\u00d7',v) },
+  frameOrbits: { label:'Frame Orbitals',  min:0,   max:2,   step:1,   apply:v => setFrameOpt('frameorbits', v) },
+  frameAngles: { label:'Frame Angles',    min:0,   max:2,   step:1,   apply:v => setFrameOpt('frameangles', v) },
+  framePlanes: { label:'Frame Planes',    min:0,   max:7,   step:1,   apply:v => { params.framePlanes = Math.round(v); FRAME_PLANE_BITS.forEach(([id, bit]) => { const el=document.getElementById(id); if (el) el.checked = !!(params.framePlanes & bit); }); } },
 };
 // The LFO target list and the remaining LFO ranges are derived from the registry
 // above, so the two can never drift apart again.
@@ -5906,6 +6659,8 @@ const MAP_DEFAULTS = {
   hue:79, sat:84, light:66, lineWidth:1.5, phase:0.5, phaseY:0, animSpeed:1, volume:0.5,
   filterCutoff:1, filterQ:0.7, dotsLine:1,
   preset:0, constructionView:0, animatePhase:1, visualSwap:0,
+  frameShow:0, frameFollow:1, frameOpacity:0.55, frameRadius:1, frameAxisLen:1.15,
+  frameOrbits:1, frameAngles:0, framePlanes:0,
 };
 
 // Return every mapped parameter to its starting value (called on MIDI disconnect).
@@ -6444,6 +7199,7 @@ function refreshAllControls() {
   applyEqLoudness();
   TRAIL_KEEP_SLIDERS.forEach(([id, key, fmt]) => setS(id, params[key] ?? 0, id + '-val', fmt));
   setRotAxis(params.rotAxis ?? 0);
+  refreshFrameControls();
   setDepthSrc(params.depthSrc ?? 0);
   document.getElementById('depth-shade').checked = !!params.depthShade;
   document.getElementById('show-shadow').checked = !!params.showShadow;
@@ -6599,12 +7355,25 @@ function captureRecFrame(phase) {
   const F = fullCanvas.width;
   // WYSIWYG: record whichever view the canvas is showing. KEEP trails are the one
   // thing that cannot be re-rendered — the picture IS the accumulated buffer — so
-  // that mode copies the figure box straight off the live canvas instead.
-  if (trailKeeps()) {
+  // that mode copies the figure box straight off the live canvas instead. A
+  // coordinate frame over a FADE trail is the same story: the frame is redrawn
+  // clean every frame while the curve behind it smears, and only the live canvas
+  // holds both at once.
+  if (trailKeeps() || (params.frameShow && trailFades())) {
     const d = viewDpr, s = Math.max(1, Math.round(figBox.size * d));
     fullCtx.fillStyle = params.bgColor;
     fullCtx.fillRect(0, 0, F, F);
     fullCtx.drawImage(canvas, Math.round(figBox.x * d), Math.round(figBox.y * d), s, s, 0, 0, F, F);
+  } else if (params.frameShow) {
+    // Re-rendered at the export's own resolution, in the order the screen uses:
+    // the frame is part of the picture, not an overlay the recording drops.
+    const z = Math.max(ZOOM_MIN, recZoom);
+    fullCtx.fillStyle = params.bgColor;
+    fullCtx.fillRect(0, 0, F, F);
+    if (!params.frameFront) drawCoordFrame(fullCtx, F, F, phase, z);
+    if (constructionView) drawMode4(fullCtx, F, F, phase, true, z);
+    else drawLissajous(fullCtx, F, F, phase, params.resolution, z, true);
+    if (params.frameFront) drawCoordFrame(fullCtx, F, F, phase, z);
   } else if (constructionView) {
     drawMode4(fullCtx, F, F, phase, false, Math.max(ZOOM_MIN, recZoom));
   } else {
@@ -6883,6 +7652,8 @@ const EVOLVE_KEYS = Object.keys(MAP_TARGETS).filter(k => k !== 'preset');
 // Default-excluded: view toggles + master volume (disruptive / non-musical).
 const EVOLVE_DEFAULT_OFF = new Set(['constructionView', 'animatePhase', 'visualSwap', 'volume', 'rotSpin',
   'depthSrc', 'depthShade', 'showShadow',
+  'frameShow', 'frameFollow', 'frameOpacity', 'frameRadius', 'frameAxisLen',
+  'frameOrbits', 'frameAngles', 'framePlanes',
                                     'm4Rotate', 'trailMode']);
 const evolveInclude = {};
 EVOLVE_KEYS.forEach(k => { evolveInclude[k] = !EVOLVE_DEFAULT_OFF.has(k); });
