@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Lissajous</title>
+<title>lissa</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400&display=swap');
 
@@ -781,6 +781,9 @@
     appearance: none;
   }
   .map-target:focus { outline: none; border-color: var(--accent); }
+  .target-picker { display: flex; gap: 5px; flex: 1 1 100%; min-width: 0; }
+  .target-picker .target-cat { flex: 0 0 38%; min-width: 0; color: var(--label); }
+  .target-picker .target-key { flex: 1 1 0; min-width: 0; }
   .map-cc-btn {
     background: var(--bg);
     border: 1px solid var(--border);
@@ -898,6 +901,34 @@
 
   /* HSL sliders accent tint */
   .hsl-row .param-header .val { color: var(--accent2); }
+
+  /* Canvas-corner view toggles + synthesis readout. The canvas area ignores the
+     pointer (so drags reach the figure); these opt back in. */
+  .view-toggles {
+    position: absolute; top: 6px; left: 6px; z-index: 2;
+    display: flex; gap: 3px; pointer-events: auto;
+  }
+  .view-tg {
+    font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.08em;
+    line-height: 1; padding: 3px 4px; min-width: 26px;
+    background: rgba(12,12,14,0.72); color: var(--muted);
+    border: 1px solid var(--border); border-radius: 2px; cursor: pointer;
+  }
+  .view-tg:hover { color: var(--text); border-color: var(--control-border); }
+  .view-tg.active { color: var(--accent); border-color: var(--accent); }
+  .view-tg:focus-visible { outline: 1px solid var(--focus); outline-offset: 1px; }
+  .synth-readout {
+    position: absolute; top: 24px; left: 6px; z-index: 2; margin: 0;
+    max-width: calc(100% - 12px); max-height: calc(100% - 30px); overflow: auto;
+    font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; line-height: 1.35;
+    color: var(--label); background: rgba(12,12,14,0.72);
+    border: 1px solid var(--border); border-radius: 2px; padding: 4px 6px;
+    pointer-events: auto; white-space: pre;
+  }
+  .synth-readout[hidden] { display: none; }
+  .synth-readout .ro-k { color: var(--muted); }
+  .synth-readout .ro-on { color: var(--text); }
+  .synth-readout .ro-off { opacity: 0.45; }
 
   /* video frame preview overlay */
   #rec-overlay {
@@ -1406,7 +1437,7 @@
 <header>
   <button class="sidebar-toggle" id="sidebar-toggle" type="button" title="Collapse / expand sidebar"
           aria-label="Collapse or expand the controls sidebar" aria-expanded="true" aria-controls="sidebar-panel"><span aria-hidden="true">☰</span></button>
-  <h1>Lissajous</h1>
+  <h1>lissa</h1>
   <span>parametric figure generator</span>
   <button class="grid-toggle" id="grid-toggle" type="button" title="Show / hide preset grid"
           aria-label="Show or hide the session preset grid" aria-expanded="false" aria-controls="preset-sidebar">PRESETS ▸</button>
@@ -1976,26 +2007,6 @@
         <input type="range" id="dots-line" min="0" max="1" step="0.01" value="1">
       </div>
 
-      <div class="subsection-label">Transform</div>
-      <div class="param-row">
-        <div class="param-header"><label>Rotate</label><span class="val" id="rotate-angle-val">0°</span></div>
-        <input type="range" id="rotate-angle" min="0" max="360" step="1" value="0">
-      </div>
-      <div class="param-header" style="margin-bottom:4px"><label>Rotation axis</label></div>
-      <div class="wave-toggle" style="margin-bottom:6px">
-        <button class="wave-btn active" data-rotaxis="0">Z (FLAT)</button>
-        <button class="wave-btn" data-rotaxis="1">Y</button>
-        <button class="wave-btn" data-rotaxis="2">X</button>
-      </div>
-      <div class="checkbox-row">
-        <input type="checkbox" id="rotate-spin">
-        <label for="rotate-spin">Animate rotation</label>
-      </div>
-      <div class="param-row">
-        <div class="param-header"><label>Shear</label><span class="val" id="shear-amt-val">0.00</span></div>
-        <input type="range" id="shear-amt" min="-1" max="1" step="0.01" value="0">
-      </div>
-
       <div class="subsection-label">Symmetry</div>
       <div class="param-header" style="margin-bottom:4px"><label>Mirror</label></div>
       <div class="wave-toggle" style="margin-bottom:8px">
@@ -2058,8 +2069,67 @@
         construction view's strips, rulers and dots are redrawn clean every frame.
       </div>
 
+      <div class="subsection-label">Motion</div>
+      <div class="param-row">
+        <div class="param-header"><label id="phase-label">δ (phase position)</label><span class="val" id="phase-val">0.50π</span></div>
+        <input type="range" id="phase" min="0" max="2" step="0.01" value="0.5">
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="phase-modulators">
+        <label for="phase-modulators">Phase rotates FM/AM modulators</label>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="animate" checked>
+        <label for="animate">Animate phase</label>
+      </div>
+      <div class="param-row" id="anim-speed-row">
+        <div class="param-header"><label>Speed</label><span class="val" id="speed-val">1.0×</span></div>
+        <input type="range" id="anim-speed" min="0.1" max="5" step="0.1" value="1">
+      </div>
+
+      <div class="subsection-label">Construction view</div>
+      <div class="checkbox-row" style="margin-top:6px">
+        <input type="checkbox" id="construction-view" checked>
+        <label for="construction-view">Construction view</label>
+      </div>
+      <div id="construction-controls" class="mod-group" style="margin-top:6px">
+        <div class="param-header" style="margin-bottom:4px"><label>Generators</label></div>
+        <div class="wave-toggle" style="margin-bottom:6px">
+          <button class="wave-btn active" data-m4rot="1">STRAIGHT</button>
+          <button class="wave-btn" data-m4rot="0">FULL LAP</button>
+        </div>
+        <div class="info-text" data-info-label="the generator strips">
+          <strong>STRAIGHT</strong> turns each generator a quarter turn, so its
+          amplitude is measured along the axis it drives, and scrolls a
+          one-cycle window that always ends at the tracer. The tracer's dot
+          therefore holds a fixed depth and moves only sideways while the wave
+          slides past, and the two lines to the moving point stay exactly
+          horizontal and vertical &mdash; the classic construction.
+          <strong>FULL LAP</strong> lays each wave along its strip and shows the
+          whole lap at once, at the cost of diagonal projections.
+        </div>
+        <div class="param-row">
+          <div class="param-header"><label>Trace tempo</label><span class="val" id="trace-speed-val">1.0×</span></div>
+          <input type="range" id="trace-speed" min="0" max="5" step="0.1" value="1">
+        </div>
+        <div class="param-row">
+          <div class="param-header"><label>Untraced opacity</label><span class="val" id="untraced-alpha-val">20%</span></div>
+          <input type="range" id="untraced-alpha" min="0" max="1" step="0.01" value="0.2">
+        </div>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="show-interval" checked>
+        <label for="show-interval">Show interval label</label>
+      </div>
+
+      <button class="btn btn-primary" id="btn-export" style="width:100%;margin-top:12px">Export SVG</button>
+    </div>
+
+    <div class="section" id="section-3d">
+      <div class="section-label">3D</div>
+
       <div class="mod-group">
-        <div class="vel-row"><span class="vel-label">3D depth</span></div>
+        <div class="vel-row"><span class="vel-label">Depth</span></div>
         <div class="param-header" style="margin-bottom:4px"><label>Depth source</label></div>
         <div class="wave-toggle" style="margin-bottom:6px">
           <button class="wave-btn active" data-depthsrc="0" aria-pressed="true">FLAT</button>
@@ -2253,7 +2323,7 @@
           The frame is drawn through the <em>same projection as the figure</em>, so it
           is not a picture of a coordinate system laid over the curve &mdash; it is the
           space the curve is in. Every ring, plane and tick takes the rotation, the
-          orbit tilt, the perspective and the shear the figure takes, which is why a
+          orbit tilt and the perspective the figure takes, which is why a
           tick at <strong>0.5</strong> sits exactly where the figure's own 0.5 sits and
           the equator stays under it as the object turns.
           <strong>Orbitals</strong> are the great circles of the three coordinate
@@ -2268,77 +2338,6 @@
           inside a coordinate system that stays put.
         </div>
       </div>
-
-      <div class="subsection-label">Motion</div>
-      <div class="param-row">
-        <div class="param-header"><label id="phase-label">δ (phase position)</label><span class="val" id="phase-val">0.50π</span></div>
-        <input type="range" id="phase" min="0" max="2" step="0.01" value="0.5">
-      </div>
-      <div class="param-row">
-        <div class="param-header"><label>δʏ (Y phase offset)</label><span class="val" id="phase-y-val">0.00π</span></div>
-        <input type="range" id="phase-y" min="0" max="2" step="0.01" value="0">
-      </div>
-      <div class="info-text" data-info-label="the Y phase offset">
-        δ offsets the <em>X</em> carrier only; animating it is what turns the figure.
-        δʏ is the same offset on <em>Y</em>, and it is not redundant: with equal
-        frequencies the two together choose <em>which</em> member of the family you
-        are looking at while the animation still runs, and with unequal frequencies
-        δʏ selects a different figure of the same ratio rather than a rotation of
-        the same one — a ratio's whole family becomes reachable while δ keeps
-        moving. It stays put while δ animates, so it is the shape control and δ is
-        the motion. Under <strong>PHASE LIFT</strong> δ becomes a rotation angle and
-        leaves the waveform alone, so δʏ is then the only phase offset still
-        reaching the sampler — it warps the lifted object itself.
-      </div>
-      <div class="checkbox-row">
-        <input type="checkbox" id="phase-modulators">
-        <label for="phase-modulators">Phase rotates FM/AM modulators</label>
-      </div>
-      <div class="checkbox-row">
-        <input type="checkbox" id="animate" checked>
-        <label for="animate">Animate phase</label>
-      </div>
-      <div class="param-row" id="anim-speed-row">
-        <div class="param-header"><label>Speed</label><span class="val" id="speed-val">1.0×</span></div>
-        <input type="range" id="anim-speed" min="0.1" max="5" step="0.1" value="1">
-      </div>
-
-      <div class="subsection-label">Construction view</div>
-      <div class="checkbox-row" style="margin-top:6px">
-        <input type="checkbox" id="construction-view" checked>
-        <label for="construction-view">Construction view</label>
-      </div>
-      <div id="construction-controls" class="mod-group" style="margin-top:6px">
-        <div class="param-header" style="margin-bottom:4px"><label>Generators</label></div>
-        <div class="wave-toggle" style="margin-bottom:6px">
-          <button class="wave-btn active" data-m4rot="1">STRAIGHT</button>
-          <button class="wave-btn" data-m4rot="0">FULL LAP</button>
-        </div>
-        <div class="info-text" data-info-label="the generator strips">
-          <strong>STRAIGHT</strong> turns each generator a quarter turn, so its
-          amplitude is measured along the axis it drives, and scrolls a
-          one-cycle window that always ends at the tracer. The tracer's dot
-          therefore holds a fixed depth and moves only sideways while the wave
-          slides past, and the two lines to the moving point stay exactly
-          horizontal and vertical &mdash; the classic construction.
-          <strong>FULL LAP</strong> lays each wave along its strip and shows the
-          whole lap at once, at the cost of diagonal projections.
-        </div>
-        <div class="param-row">
-          <div class="param-header"><label>Trace tempo</label><span class="val" id="trace-speed-val">1.0×</span></div>
-          <input type="range" id="trace-speed" min="0" max="5" step="0.1" value="1">
-        </div>
-        <div class="param-row">
-          <div class="param-header"><label>Untraced opacity</label><span class="val" id="untraced-alpha-val">20%</span></div>
-          <input type="range" id="untraced-alpha" min="0" max="1" step="0.01" value="0.2">
-        </div>
-      </div>
-      <div class="checkbox-row">
-        <input type="checkbox" id="show-interval" checked>
-        <label for="show-interval">Show interval label</label>
-      </div>
-
-      <button class="btn btn-primary" id="btn-export" style="width:100%;margin-top:12px">Export SVG</button>
     </div>
 
     <div class="section" id="section-lfos">
@@ -2377,6 +2376,13 @@
   </div>
 
   <div class="canvas-area">
+    <div class="view-toggles" role="toolbar" aria-label="View toggles">
+      <button class="view-tg" type="button" id="vt-3d" aria-pressed="false" title="3D — phase lift on / off">3D</button>
+      <button class="view-tg" type="button" id="vt-frame" aria-pressed="false" title="Coordinate frame on / off">XYZ</button>
+      <button class="view-tg" type="button" id="vt-construct" aria-pressed="false" title="Construction view on / off">CON</button>
+      <button class="view-tg" type="button" id="vt-readout" aria-pressed="false" title="Synthesis readout on / off">INFO</button>
+    </div>
+    <pre class="synth-readout" id="synth-readout" aria-live="off" hidden></pre>
     <div id="rec-overlay" data-label=""></div>
     <div id="interval-label" style="
       position:absolute;
@@ -2458,7 +2464,6 @@ let params = {
   ax: 1, fx: 3,
   ay: 1, fy: 2,
   phase: 0.5,
-  phaseY: 0,      // static phase offset on the Y carrier, in π (X's δ is `phase`)
   morphX: 0,      // X wave position along SIN→TRI→SAW→SQR (0..3, whole = exact shape)
   morphY: 0,      // Y wave position along SIN→TRI→SAW→SQR (0..3, whole = exact shape)
   strokeColor: '#c8f060',
@@ -2497,10 +2502,8 @@ let params = {
   filterCutoff: 1, // waveform filter cutoff 0..1 (1 = fully open / off)
   filterQ: 0.7,    // waveform filter resonance / Q
   dotsLine: 1,     // 1 = continuous line, <1 = dotted (lower = sparser dots)
-  rotateAngle: 0,  // figure rotation in degrees (visual)
-  rotAxis: 0,      // rotation axis: 0 = Z (in-plane), 1 = Y (vertical), 2 = X (horizontal)
+  rotateAngle: 0,  // phase-lift orbit yaw in degrees (set by dragging the figure)
   fillSurface: 0,  // 1 = fill the figure's enclosed area (front + back faces)
-  shearAmt: 0,     // horizontal shear of the figure (-1..1, visual)
   trailAmt: 0,     // frame persistence 0..0.97 (phosphor-style afterglow, visual)
   trailMode: 0,    // 0 = FADE (afterglow), 1 = KEEP (discrete phase-offset copies)
   trailCount: 4,   // KEEP: how many copies of the figure trail behind it
@@ -2845,11 +2848,10 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
   const xStale = _figMemoPhase !== memoPhase || _figMemoRes !== resolution || _figMemoLift !== lift;
   // Y carries no δ, so a KEEP trail's N copies share ONE Y build instead of
   // sampling an identical array N times.
-  const yKey = params.phaseY || 0;
-  if (_figMemoYRes !== resolution || _figMemoYKey !== yKey) {
-    _figMemoYRes = resolution; _figMemoYKey = yKey;
+  if (_figMemoYRes !== resolution) {
+    _figMemoYRes = resolution;
     for (let i = 0; i <= resolution; i++) {
-      syArr[i] = processWave(fy * ((i / resolution) * span) + yKey * Math.PI,
+      syArr[i] = processWave(fy * ((i / resolution) * span),
                              fy * ((i / resolution) * span), waveTypeY, 'y');
     }
     if (filterIsOn() && onAxis('filterAxis', 'y')) {
@@ -3050,7 +3052,7 @@ function figureMirrors() { return MIRROR_SETS[Math.max(0, Math.min(3, Math.round
 const _P = { x: 0, y: 0 };      // scratch point for drawLissajous
 let _figMemoPhase = NaN, _figMemoRes = -1;   // per-frame sample memo (see drawLissajous)
 let _figMemoLift = null;                     // ...and which depth mode built it
-let _figMemoYRes = -1, _figMemoYKey = NaN;   // Y is independent of δ — its own key
+let _figMemoYRes = -1;   // Y is independent of δ — its own key
 let _unisonDrift = 0;           // unison ghost precession (cycles); advanced in render()
 // How far the unison ghosts sit from the main figure, in cycles. A small baseline
 // makes the doubling visible from Mix alone; Detune widens the separation and (via
@@ -3120,13 +3122,10 @@ function applyDotDash(c, dl, lineWidth) {
 function liftActive() { return Math.round(params.depthSrc ?? 0) === 1; }
 
 // ── Shared figure transform (main view AND construction view) ─────────────────
-// depth (lift quadrature or z oscillator) → yaw about the chosen axis (Z in-plane
-// / Y vertical / X horizontal) → orbit tilt → perspective → shear. Y/X-axis yaw
-// implies depth even with the z oscillator off, so a flat figure spins like a
-// real 3D object.
-let rotSpin = false;            // animate rotation (checkbox); advanced in render()
-let rotSpinPhase = 0;           // accumulated spin, degrees
-const _xf = { z: false, zAmt: 0, rot: false, c: 1, s: 0, axis: 0, K: 0, sh: 0,
+// depth (lift quadrature or z oscillator) → lift yaw (about the vertical, or the
+// horizontal under visual swap) → orbit tilt → perspective. Outside the lift there
+// is no yaw: the only in-plane rotation the figure ever gets is the orbit drag.
+const _xf = { z: false, zAmt: 0, rot: false, c: 1, s: 0, axis: 0, K: 0,
               lift: false, tilt: false, tc: 1, ts: 0, tAxis: 0, zk: 1, flat: false,
               yawDeg: 0, tiltDeg: 0 };
 const _Q = { x: 0, y: 0, z: 0 };  // figureXform output (normalized space; z = view depth)
@@ -3137,10 +3136,10 @@ function beginFigureXform(phase, flat, zk) {   // hoist per-frame constants out 
   _xf.zAmt = params.az || 0;
   _xf.lift = liftActive();
   _xf.flat = !!flat;
-  // Lift mode adds δ·180° to the yaw. Rotate/spin stay live on top of it as a
-  // manual orbit offset, so dragging the view and animating the phase compose
-  // instead of fighting over the same angle.
-  const deg = (params.rotateAngle || 0) + rotSpinPhase + (_xf.lift ? (phase || 0) * 180 : 0);
+  // Lift mode adds δ·180° to the yaw. The drag-set orbit yaw (rotateAngle) rides
+  // on top of it, so dragging the view and animating the phase compose instead of
+  // fighting over the same angle.
+  const deg = _xf.lift ? (params.rotateAngle || 0) + (phase || 0) * 180 : 0;
   const a = ((deg % 360) * Math.PI) / 180;
   // Kept for the coordinate frame's angle read-out, wrapped to the half turn the
   // arc actually has to sweep rather than the raw accumulated spin.
@@ -3149,8 +3148,7 @@ function beginFigureXform(phase, flat, zk) {   // hoist per-frame constants out 
   _xf.c = Math.cos(a); _xf.s = Math.sin(a);
   // The lift yaws about the axis perpendicular to the phased one — normally the
   // vertical, but visualSwap puts the phased axis on screen-Y, so it becomes X.
-  _xf.axis = _xf.lift ? (visualSwap ? 2 : 1)
-                      : Math.max(0, Math.min(2, Math.round(params.rotAxis || 0)));
+  _xf.axis = visualSwap ? 2 : 1;
   const tilt = _xf.flat ? 0 : ((params.tiltAngle || 0) * Math.PI) / 180;
   _xf.tiltDeg = (tilt * 180) / Math.PI;
   _xf.tilt = Math.abs(tilt) > 1e-4;
@@ -3161,18 +3159,13 @@ function beginFigureXform(phase, flat, zk) {   // hoist per-frame constants out 
   _xf.tAxis = (_xf.lift && visualSwap) ? 1 : 0;
   // Depth rides the HORIZONTAL scale (rx), height rides the vertical one (ry), so
   // any rotation mixing the two has to convert between them — otherwise a tilted
-  // figure shears the moment ax ≠ ay. (The pre-existing rotAxis = X path has always
-  // skipped this; correcting it there would change how saved presets look.)
+  // figure shears the moment ax ≠ ay.
   _xf.zk = zk || 1;
-  // Perspective strength: an implied depth when rotating about Y/X, so the
-  // rotation reads as 3D. The lift takes neither — it
-  // defaults to orthographic, because an orthographic projection is precisely
-  // what makes the picture the figure. `az` then dials perspective in by hand,
-  // and it costs you the identity knowingly rather than behind your back.
-  _xf.K = _xf.flat ? 0
-        : _xf.lift ? 0.45 * _xf.zAmt
-        : 0.45 * Math.max(_xf.zAmt, (_xf.rot && _xf.axis !== 0) ? 0.6 : 0);
-  _xf.sh = params.shearAmt || 0;
+  // Perspective strength. The lift defaults to orthographic, because an
+  // orthographic projection is precisely what makes the picture the figure. `az`
+  // then dials perspective in by hand, and it costs you the identity knowingly
+  // rather than behind your back.
+  _xf.K = _xf.flat ? 0 : 0.45 * _xf.zAmt;
 }
 // The lift has genuine depth even with the perspective off, so the back face and
 // the depth cueing still apply — K alone would call an orthographic view flat.
@@ -3198,7 +3191,6 @@ function figureXform(px, py, z, zFlip) {
     else { const k = _xf.zk; const ny = py * c + z * k * s; z = -py * s / k + z * c; py = ny; }
   }
   if (_xf.K > 0.001 && z !== 0) { const pf = 1 / Math.max(0.35, 1 + _xf.K * z); px *= pf; py *= pf; }
-  if (Math.abs(_xf.sh) > 1e-3) px += _xf.sh * py;
   _Q.x = px; _Q.y = py; _Q.z = z;
 }
 
@@ -3722,14 +3714,11 @@ function blitLayer(which) {
 // Ghosts also wind the spin back in proportion, so a rotating figure leaves a
 // rotational trail rather than a stack of copies at the same angle.
 function drawFigureInto(target, phase, res, zoom, phaseBack, resCap) {
-  const spinSave = rotSpinPhase;
-  if (phaseBack && rotSpin) rotSpinPhase = rotSpinPhase - phaseBack * 62.5;   // deg per phase unit
   target.save();
   target.translate(figBox.x, figBox.y);
   if (constructionView) drawMode4(target, figBox.size, figBox.size, phase, true, zoom, M4_FIGURE, resCap);
   else drawLissajous(target, figBox.size, figBox.size, phase, res, zoom, true, resCap);
   target.restore();
-  rotSpinPhase = spinSave;
 }
 
 // Clear whatever a copy is about to be drawn over, so a newer line visibly cuts
@@ -3935,13 +3924,13 @@ function drawMode4(ctx, w, h, phase, noBg, zoom, part, resCap) {  // w,h are log
   // phase they were built at, reset once per frame by render(), so drawing the
   // view in two passes costs one build rather than two — while a ghost at a
   // different phase still gets its own.
-  const m4MemoPhase = (m4Lift ? -1 : phase) + 1000 * (params.phaseY || 0);   // lift mode: δ is a yaw, not a sample offset
+  const m4MemoPhase = m4Lift ? -1 : phase;   // lift mode: δ is a yaw, not a sample offset
   if (_m4MemoPhase !== m4MemoPhase || _m4MemoRes !== res || _m4MemoLift !== m4Lift) {
     _m4MemoPhase = m4MemoPhase; _m4MemoRes = res; _m4MemoLift = m4Lift;
     for (let i = 0; i <= res; i++) {
       const τ = (i / res) * T;
       ampXArr[i] = processWave(fx * τ + (m4Lift ? 0 : phase * Math.PI), fx * τ, waveTypeX, 'x');
-      ampYArr[i] = processWave(fy * τ + params.phaseY * Math.PI, fy * τ, waveTypeY, 'y');
+      ampYArr[i] = processWave(fy * τ, fy * τ, waveTypeY, 'y');
     }
     if (m4Lift) {
       for (let i = 0; i <= res; i++) {
@@ -4122,7 +4111,7 @@ function woBuild() {
   for (let i = 0; i <= WO_N; i++) {
     const τ = (i / WO_N) * T;
     _woBufX[i] = processWave(fx * τ + params.phase * Math.PI, fx * τ, waveTypeX, 'x');
-    _woBufY[i] = processWave(fy * τ + params.phaseY * Math.PI, fy * τ, waveTypeY, 'y');
+    _woBufY[i] = processWave(fy * τ, fy * τ, waveTypeY, 'y');
   }
   if (filterIsOn()) {
     const g = gcd(fx, fy), HC = filterHarmonics();
@@ -4271,8 +4260,7 @@ function render(now) {
     phase = params.phase;
   }
 
-  // Frame-advance the visual animators: rotation spin + unison ghost drift.
-  if (rotSpin) rotSpinPhase = (rotSpinPhase + 0.25 * animSpeed) % 360;
+  // Frame-advance the unison ghost drift.
   if ((params.unisonMix || 0) > 0.01) _unisonDrift = (_unisonDrift + (params.unisonDetune || 0) * 0.0008) % 1;
 
   if (constructionView && animating) animPhase = (animPhase + 0.004 * animSpeed) % 2;
@@ -4501,7 +4489,7 @@ document.getElementById('btn-export').addEventListener('click', () => {
   for (let i = 0; i <= steps; i++) {
     const t = (i / steps) * T;
     const sx = processWave(fx * t + phase * Math.PI, fx * t, waveTypeX, 'x');
-    const sy = processWave(fy * t + params.phaseY * Math.PI, fy * t, waveTypeY, 'y');
+    const sy = processWave(fy * t, fy * t, waveTypeY, 'y');
     const x = cx + rx * (visualSwap ? sy : sx);
     const y = cy + ry * (visualSwap ? sx : sy);
     points.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(3)},${y.toFixed(3)}`);
@@ -4535,8 +4523,6 @@ function resetAll() {
   syncHard = true;
   filterType = 'lowpass';
   phaseModulators = false;
-  rotSpin = false;
-  rotSpinPhase = 0;
   clearFrameLook();
   animPhase = params.phase;
   strokeHSL = hexToHsl(params.strokeColor);
@@ -4564,7 +4550,7 @@ let viewW = 0, viewH = 0, viewDpr = 1;
 // drag is refused over the chrome instead. Move/up ride the window so a drag
 // that leaves the figure area still tracks.
 let orbitDrag = null;
-const ORBIT_CHROME = '.sidebar, header, .preset-sidebar, input, button, select, textarea, label, a';
+const ORBIT_CHROME = '.sidebar, header, .preset-sidebar, .view-toggles, .synth-readout, input, button, select, textarea, label, a';
 function orbitSet(key, id, value) {
   params[key] = value;
   const el = document.getElementById(id); if (el) el.value = value;
@@ -4837,12 +4823,9 @@ const VEL_RANGES = {
   ax:        [0.1, 1],
   ay:        [0.1, 1],
   phase:     [0, 2],
-  phaseY:    [0, 2],
   lineWidth: [0.5, 8],
   dotsLine:  [0, 1],
-  rotateAngle: [0, 360],
   tiltAngle: [-89, 89],
-  shearAmt:  [-1, 1],
   trailAmt:  [0, 0.97],
   az:        [0, 1],
   traceSpeed:    [0, 5],
@@ -4857,8 +4840,7 @@ function completeVelRanges() {
     const t = MAP_TARGETS[k];
     VEL_RANGES[k] = t.toggle ? [0, 1] : [t.min, t.max];
   });
-  LFO_TARGET_OPTIONS = Object.keys(MAP_TARGETS)
-    .filter(k => k !== 'preset')
+  LFO_TARGET_OPTIONS = orderedTargetKeys(Object.keys(MAP_TARGETS).filter(k => k !== 'preset'))
     .map(k => [k, MAP_TARGETS[k].label]);
 }
 // Steps, so a quantised parameter (frequency, mirror mode, wave type) lands on
@@ -4894,14 +4876,11 @@ const PARAM_UI = {
   crushRate: { slider: 'crush-rate', disp: 'crush-rate-val', fmt: v => (v < 0.005 ? 'off' : Math.round(v*100) + '%') },
   unisonDetune: { slider: 'unison-detune', disp: 'unison-detune-val', fmt: v => v.toFixed(1) + '¢' },
   unisonMix: { slider: 'unison-mix', disp: 'unison-mix-val', fmt: v => Math.round(v*100) + '%' },
-  rotateAngle: { slider: 'rotate-angle', disp: 'rotate-angle-val', fmt: v => Math.round(v) + '°' },
-  shearAmt:  { slider: 'shear-amt',  disp: 'shear-amt-val',  fmt: v => v.toFixed(2) },
   trailAmt:  { slider: 'trail-amt',  disp: 'trail-amt-val',  fmt: v => (v < 0.01 ? 'off' : Math.round(v*100) + '%') },
   az:        { slider: 'az',         disp: 'az-val',         fmt: v => Math.round(v*100) + '%' },
   ax:        { slider: 'ax',         disp: 'ax-val',         fmt: v => v.toFixed(2) },
   ay:        { slider: 'ay',         disp: 'ay-val',         fmt: v => v.toFixed(2) },
   phase:     { slider: 'phase',      disp: 'phase-val',      fmt: v => v.toFixed(2) + 'π' },
-  phaseY:    { slider: 'phase-y',    disp: 'phase-y-val',    fmt: v => v.toFixed(2) + 'π' },
   lineWidth: { slider: 'line-width', disp: 'line-width-val', fmt: v => v.toFixed(1) },
 };
 
@@ -4928,7 +4907,6 @@ const LFO_BINDINGS = {
   lfo0Depth: { get: () => lfos[0].depth, set: v => { lfos[0].depth = v; } },
   lfo1Rate:  { get: () => lfos[1].freq,  set: v => { lfos[1].freq = v; } },
   lfo1Depth: { get: () => lfos[1].depth, set: v => { lfos[1].depth = v; } },
-  rotSpin:          { get: () => rotSpin ? 1 : 0,          set: v => { rotSpin = v >= 0.5; } },
   constructionView: { get: () => constructionView ? 1 : 0, set: v => { constructionView = v >= 0.5; } },
   animatePhase:     { get: () => animating ? 1 : 0,        set: v => { animating = v >= 0.5; } },
   visualSwap:       { get: () => visualSwap ? 1 : 0,       set: v => { visualSwap = v >= 0.5; } },
@@ -5094,15 +5072,7 @@ function renderLFOTargets(lfo) {
     const row = document.createElement('div');
     row.className = 'map-row';
     row.style.cssText = 'padding:5px 6px;margin:5px 0 0';
-    const sel = document.createElement('select');
-    sel.className = 'map-target';
-    LFO_TARGET_OPTIONS.forEach(([k, label]) => {
-      const o = document.createElement('option');
-      o.value = k; o.textContent = label;
-      if (k === key) o.selected = true;
-      sel.appendChild(o);
-    });
-    sel.addEventListener('change', () => { lfo.assignments[idx] = sel.value; });
+    const sel = makeTargetPicker(LFO_TARGET_OPTIONS.map(o => o[0]), key, k => { lfo.assignments[idx] = k; });
     const rm = document.createElement('button');
     rm.className = 'map-remove'; rm.textContent = '×';
     rm.addEventListener('click', () => { lfo.assignments.splice(idx, 1); renderLFOTargets(lfo); });
@@ -5183,7 +5153,9 @@ function elcGain(f) {
 }
 let eqGainX = null, eqGainY = null;
 function applyEqLoudness() {
-  const on = eqLoudness && eqLoudDepth > 0.001;
+  // Only the checkbox gates the Amount slider. Gating on the depth too disabled
+  // the slider the moment it reached 0, and a disabled slider can't be moved back.
+  const on = eqLoudness;
   const row = document.getElementById('eq-loud-depth-row');
   if (row) row.style.opacity = on ? 1 : 0.4;
   const dEl = document.getElementById('eq-loud-depth'); if (dEl) dEl.disabled = !on;
@@ -5706,8 +5678,6 @@ const fmtDeg   = v => Math.round(v) + '°';
 const fmtTrail = v => v < 0.01 ? 'off' : Math.round(v * 100) + '%';
 const fmtPct   = v => Math.round(v * 100) + '%';
 const VISUAL_SLIDERS = [
-  ['rotate-angle', 'rotateAngle', fmtDeg],
-  ['shear-amt',    'shearAmt',    v => v.toFixed(2)],
   ['trail-amt',    'trailAmt',    fmtTrail],
   ['az',           'az',          v => Math.round(v * 100) + '%'],
   ['tilt-angle',   'tiltAngle',   fmtDeg],
@@ -5929,18 +5899,6 @@ TRAIL_KEEP_SLIDERS.forEach(([id, key, fmt]) => {
   });
 });
 
-// Rotation axis: Z (in-plane) / Y (vertical) / X (horizontal).
-function setRotAxis(a) {
-  a = Math.max(0, Math.min(2, Math.round(a)));
-  params.rotAxis = a;
-  document.querySelectorAll('.wave-btn[data-rotaxis]').forEach(b =>
-    b.classList.toggle('active', parseInt(b.dataset.rotaxis) === a));
-}
-document.querySelectorAll('.wave-btn[data-rotaxis]').forEach(btn => {
-  btn.addEventListener('click', () => setRotAxis(parseInt(btn.dataset.rotaxis)));
-});
-
-document.getElementById('rotate-spin').addEventListener('change', e => { rotSpin = e.target.checked; });
 
 // Depth source: flat / phase lift. The lift makes δ a rotation angle rather than
 // a waveform offset, so the panel relabels itself around it — `az` stops being a
@@ -6115,14 +6073,6 @@ function updateMorphLabels() {
   });
 });
 
-// ── The Y carrier's own phase offset ────────────────────────────────────────
-// δ moves X only. δʏ is the same offset on Y and is deliberately NOT animated:
-// it picks the figure, δ turns it.
-document.getElementById('phase-y').addEventListener('input', e => {
-  params.phaseY = parseFloat(e.target.value);
-  document.getElementById('phase-y-val').textContent = params.phaseY.toFixed(2) + 'π';
-  drawWavePreview();
-});
 
 // ── Sync mode checkboxes (hard/soft + single axis) ───────────────────────────
 document.getElementById('sync-hard').addEventListener('change', e => {
@@ -6596,12 +6546,8 @@ const MAP_TARGETS = {
   crushRate: { label:'Decimate',      min:0,    max:1,              apply:_synthApply('crushRate','crush-rate','crush-rate-val',fmtDecimate) },
   unisonDetune: { label:'Unison Detune', min:0, max:50,             apply:v => { setSliderParam('unisonDetune','unison-detune','unison-detune-val',x=>x.toFixed(1)+'¢',v); applyUnisonAudio(); } },
   unisonMix: { label:'Unison Mix',    min:0,    max:1,              apply:v => { setSliderParam('unisonMix','unison-mix','unison-mix-val',x=>Math.round(x*100)+'%',v); applyUnisonAudio(); } },
-  rotateAngle: { label:'Rotate',      min:0,    max:360,            apply:v => setSliderParam('rotateAngle','rotate-angle','rotate-angle-val',x=>Math.round(x)+'°',v) },
-  rotAxis:   { label:'Rotation Axis', min:0,    max:2,   step:1,    apply:v => setRotAxis(v) },
-  rotSpin:   { label:'Rotate Spin',   toggle:true, apply:b => { rotSpin = b; const cb=document.getElementById('rotate-spin'); if (cb) cb.checked = b; } },
   fillSurface:{ label:'Fill Surface', toggle:true, apply:b => { params.fillSurface = b ? 1 : 0; const cb=document.getElementById('fill-surface'); if (cb) cb.checked = b; } },
 
-  shearAmt:  { label:'Shear',         min:-1,   max:1,              apply:v => setSliderParam('shearAmt','shear-amt','shear-amt-val',x=>x.toFixed(2),v) },
   trailAmt:  { label:'Trail',         min:0,    max:0.97,           apply:v => setSliderParam('trailAmt','trail-amt','trail-amt-val',x=>(x<0.01?'off':Math.round(x*100)+'%'),v) },
   mirrorMode:{ label:'Mirror Mode',   min:0,    max:3,   step:1,    apply:v => setMirrorMode(v) },
   m4Rotate:{ label:'Straight Generators', toggle:true, apply:b => setM4Rotate(b) },
@@ -6624,7 +6570,6 @@ const MAP_TARGETS = {
   light:     { label:'Colour Light',  min:0,    max:100,            apply:v => { strokeHSL.l = v; applyStrokeHSL(); } },
   lineWidth: { label:'Line Width',    min:0.5,  max:8,              apply:v => { params.lineWidth = v; document.getElementById('line-width').value=v; document.getElementById('line-width-val').textContent=v.toFixed(1); } },
   phase:     { label:'Phase δ',       min:0,    max:2,              apply:v => { params.phase = v; animPhase = v; document.getElementById('phase').value=v; document.getElementById('phase-val').textContent=v.toFixed(2)+'π'; updateStatus(); } },
-  phaseY:    { label:'Y Phase δʏ',    min:0,    max:2,              apply:v => { params.phaseY = v; const e=document.getElementById('phase-y'); if(e)e.value=v; const d=document.getElementById('phase-y-val'); if(d)d.textContent=v.toFixed(2)+'π'; } },
   animSpeed: { label:'Anim Speed',    min:0.1,  max:5,              apply:v => { animSpeed = v; document.getElementById('anim-speed').value=v; document.getElementById('speed-val').textContent=v.toFixed(1)+'×'; } },
   volume:    { label:'Volume',        min:0,    max:1,              apply:v => { document.getElementById('audio-vol').value=v; document.getElementById('vol-val').textContent=Math.round(v*100)+'%'; if (masterGain) masterGain.gain.setTargetAtTime(v, audioCtx.currentTime, 0.02); } },
   filterCutoff:{ label:'Filter Cutoff', min:0, max:1,              apply:v => { params.filterCutoff=v; const e=document.getElementById('filter-freq'); if(e)e.value=v; const d=document.getElementById('filter-freq-val'); if(d)d.textContent=fmtCutoff(v); drawWavePreview(); schedulePeriodicWaveUpdate(); } },
@@ -6643,6 +6588,73 @@ const MAP_TARGETS = {
   frameAngles: { label:'Frame Angles',    min:0,   max:2,   step:1,   apply:v => setFrameOpt('frameangles', v) },
   framePlanes: { label:'Frame Planes',    min:0,   max:7,   step:1,   apply:v => { params.framePlanes = Math.round(v); FRAME_PLANE_BITS.forEach(([id, bit]) => { const el=document.getElementById(id); if (el) el.checked = !!(params.framePlanes & bit); }); } },
 };
+// Target categories for the CC-mapping and LFO pickers, in sidebar order: the
+// sections top to bottom, and within each the order the controls appear. The
+// pickers show the category first and then only that category's parameters.
+// Anything in MAP_TARGETS not listed here still shows up, under "Other".
+const TARGET_CATEGORIES = [
+  ['Synthesis', ['morphX', 'waveX', 'morphY', 'waveY',
+                 'amAmt', 'amRatio', 'amAxis', 'fmAmount', 'fmRatio', 'fmAxis',
+                 'crossFm', 'ringAmt', 'crossAxis', 'shapeAmt', 'shapeAxis', 'fbAmt', 'fbAxis',
+                 'warp', 'foldDrive', 'foldBias', 'warpAxis', 'crushBits', 'crushRate', 'crushAxis',
+                 'noiseAmt', 'noiseAxis', 'filterCutoff', 'filterQ', 'filterAxis',
+                 'syncAmt', 'syncAxis', 'unisonDetune', 'unisonMix']],
+  ['Frequency', ['ax', 'fx', 'ay', 'fy', 'visualSwap', 'preset']],
+  ['Audio',     ['volume']],
+  ['Figure',    ['hue', 'sat', 'light', 'lineWidth', 'dotsLine', 'mirrorMode', 'fillSurface',
+                 'trailMode', 'trailAmt', 'trailCount', 'trailSpacing',
+                 'phase', 'animatePhase', 'animSpeed', 'constructionView', 'm4Rotate']],
+  ['3D',        ['depthSrc', 'az', 'tiltAngle', 'depthShade', 'showShadow',
+                 'frameShow', 'frameAxisLen', 'framePlanes', 'frameOrbits', 'frameAngles',
+                 'frameOpacity', 'frameRadius', 'frameFollow']],
+  ['LFOs',      ['lfo0Rate', 'lfo0Depth', 'lfo1Rate', 'lfo1Depth']],
+];
+// [[category, [keys…]], …] restricted to `keys`, empty categories dropped.
+function targetGroups(keys) {
+  const pool = new Set(keys), seen = new Set(), out = [];
+  TARGET_CATEGORIES.forEach(([cat, list]) => {
+    const ks = list.filter(k => pool.has(k) && MAP_TARGETS[k]);
+    ks.forEach(k => seen.add(k));
+    if (ks.length) out.push([cat, ks]);
+  });
+  const rest = keys.filter(k => !seen.has(k));
+  if (rest.length) out.push(['Other', rest]);
+  return out;
+}
+function orderedTargetKeys(keys) { return targetGroups(keys).flatMap(([, ks]) => ks); }
+// Two chained selects: category, then that category's parameters. Switching the
+// category picks its first parameter, so the row always holds a real target.
+function makeTargetPicker(keys, current, onPick) {
+  const groups = targetGroups(keys);
+  const wrap = document.createElement('div');
+  wrap.className = 'target-picker';
+  const catSel = document.createElement('select');
+  catSel.className = 'map-target target-cat';
+  catSel.setAttribute('aria-label', 'Target category');
+  const keySel = document.createElement('select');
+  keySel.className = 'map-target target-key';
+  keySel.setAttribute('aria-label', 'Target parameter');
+  groups.forEach(([cat]) => {
+    const o = document.createElement('option'); o.value = cat; o.textContent = cat; catSel.appendChild(o);
+  });
+  const fillKeys = cat => {
+    keySel.innerHTML = '';
+    const g = groups.find(x => x[0] === cat);
+    (g ? g[1] : []).forEach(k => {
+      const o = document.createElement('option'); o.value = k; o.textContent = MAP_TARGETS[k].label; keySel.appendChild(o);
+    });
+  };
+  const curGroup = groups.find(([, ks]) => ks.includes(current)) || groups[0];
+  if (curGroup) { catSel.value = curGroup[0]; fillKeys(curGroup[0]); keySel.value = current; }
+  catSel.addEventListener('change', () => {
+    fillKeys(catSel.value);
+    if (keySel.options.length) { keySel.selectedIndex = 0; onPick(keySel.value); }
+  });
+  keySel.addEventListener('change', () => onPick(keySel.value));
+  wrap.appendChild(catSel);
+  wrap.appendChild(keySel);
+  return wrap;
+}
 // The LFO target list and the remaining LFO ranges are derived from the registry
 // above, so the two can never drift apart again.
 completeVelRanges();
@@ -6654,9 +6666,9 @@ const MAP_DEFAULTS = {
   syncAmt:1, foldDrive:1, amAmt:0, amRatio:2, noiseAmt:0, waveX:0, waveY:0,
   crossFm:0, ringAmt:0, fbAmt:0, foldBias:0, crushBits:16, crushRate:0,
   unisonDetune:0, unisonMix:0,
-  rotateAngle:0, rotAxis:0, rotSpin:0, fillSurface:0, shearAmt:0, trailAmt:0, trailMode:0, trailCount:4, trailSpacing:0.08, mirrorMode:0, m4Rotate:1, az:0,
+  fillSurface:0, trailAmt:0, trailMode:0, trailCount:4, trailSpacing:0.08, mirrorMode:0, m4Rotate:1, az:0,
   lfo0Rate:0.5, lfo0Depth:0.5, lfo1Rate:1.0, lfo1Depth:0.5,
-  hue:79, sat:84, light:66, lineWidth:1.5, phase:0.5, phaseY:0, animSpeed:1, volume:0.5,
+  hue:79, sat:84, light:66, lineWidth:1.5, phase:0.5, animSpeed:1, volume:0.5,
   filterCutoff:1, filterQ:0.7, dotsLine:1,
   preset:0, constructionView:0, animatePhase:1, visualSwap:0,
   frameShow:0, frameFollow:1, frameOpacity:0.55, frameRadius:1, frameAxisLen:1.15,
@@ -6801,23 +6813,14 @@ function renderMapList() {
     const row = document.createElement('div');
     row.className = 'map-row' + (mapLearnId === m.id ? ' learning' : '');
 
-    // target select
-    const sel = document.createElement('select');
-    sel.className = 'map-target';
-    Object.keys(MAP_TARGETS).forEach(k => {
-      const o = document.createElement('option');
-      o.value = k; o.textContent = MAP_TARGETS[k].label;
-      if (k === m.key) o.selected = true;
-      sel.appendChild(o);
-    });
-    sel.addEventListener('change', e => {
-      m.key = e.target.value;
+    // target picker: category → parameter
+    row.appendChild(makeTargetPicker(Object.keys(MAP_TARGETS), m.key, k => {
+      m.key = k;
       const nt = MAP_TARGETS[m.key];
       m.lo = nt.min ?? 0; m.hi = nt.max ?? 1;
       m.smooth = undefined; m.target01 = undefined;
       renderMapList();
-    });
-    row.appendChild(sel);
+    }));
 
     // learn button
     const learn = document.createElement('button');
@@ -7137,7 +7140,7 @@ function serializePreset() {
     params: { ...params },
     waveTypeX, waveTypeY, visualSwap, audioStereo, syncHard,
     filterType, phaseModulators,
-    animating, animSpeed, constructionView, rotSpin, mapSlewTau, trailQuality,
+    animating, animSpeed, constructionView, mapSlewTau, trailQuality,
     eqLoudness, eqLoudDepth, recFadeIn, recFadeOut, wavRootNote,
     baseFreq, baseFreqMode,
     strokeHSL: { ...strokeHSL },
@@ -7161,7 +7164,6 @@ function refreshAllControls() {
   setS('fx', params.fx, 'fx-val', v => Number.isInteger(v) ? v : v.toFixed(1));
   setS('fy', params.fy, 'fy-val', v => Number.isInteger(v) ? v : v.toFixed(1));
   setS('phase', params.phase, 'phase-val', v => v.toFixed(2) + 'π');
-  setS('phase-y', params.phaseY ?? 0, 'phase-y-val', v => v.toFixed(2) + 'π');
   document.getElementById('bg-color').value = params.bgColor;
   applyPageBg();
   setS('line-width', params.lineWidth, 'line-width-val', v => v.toFixed(1));
@@ -7198,12 +7200,10 @@ function refreshAllControls() {
   setWavRoot(wavRootNote);
   applyEqLoudness();
   TRAIL_KEEP_SLIDERS.forEach(([id, key, fmt]) => setS(id, params[key] ?? 0, id + '-val', fmt));
-  setRotAxis(params.rotAxis ?? 0);
   refreshFrameControls();
   setDepthSrc(params.depthSrc ?? 0);
   document.getElementById('depth-shade').checked = !!params.depthShade;
   document.getElementById('show-shadow').checked = !!params.showShadow;
-  document.getElementById('rotate-spin').checked = rotSpin;
   setM4Rotate(!!params.m4Rotate);
   document.getElementById('fill-surface').checked = !!params.fillSurface;
   setS('map-slew', mapSlewTau, 'map-slew-val', fmtSlew);
@@ -7254,7 +7254,6 @@ function applyPresetData(d) {
   if (typeof d.animating === 'boolean') animating = d.animating;
   if (typeof d.animSpeed === 'number') animSpeed = d.animSpeed;
   if (typeof d.constructionView === 'boolean') constructionView = d.constructionView;
-  rotSpin = typeof d.rotSpin === 'boolean' ? d.rotSpin : false;
   if (typeof d.mapSlewTau === 'number') mapSlewTau = d.mapSlewTau;
   if (typeof d.trailQuality === 'string') trailQuality = d.trailQuality;
   if (typeof d.eqLoudness === 'boolean') eqLoudness = d.eqLoudness;
@@ -7648,9 +7647,9 @@ document.addEventListener('dblclick', e => {
 // parameters, so anything you can map to a CC can also be evolved. Each parameter
 // has an include checkbox; "Mutate" nudges every included parameter toward a random
 // value within its range by the Deviation amount (1 = fully random).
-const EVOLVE_KEYS = Object.keys(MAP_TARGETS).filter(k => k !== 'preset');
+const EVOLVE_KEYS = orderedTargetKeys(Object.keys(MAP_TARGETS).filter(k => k !== 'preset'));
 // Default-excluded: view toggles + master volume (disruptive / non-musical).
-const EVOLVE_DEFAULT_OFF = new Set(['constructionView', 'animatePhase', 'visualSwap', 'volume', 'rotSpin',
+const EVOLVE_DEFAULT_OFF = new Set(['constructionView', 'animatePhase', 'visualSwap', 'volume',
   'depthSrc', 'depthShade', 'showShadow',
   'frameShow', 'frameFollow', 'frameOpacity', 'frameRadius', 'frameAxisLen',
   'frameOrbits', 'frameAngles', 'framePlanes',
@@ -7676,7 +7675,6 @@ function readTarget(key) {
     case 'constructionView': return constructionView ? 1 : 0;
     case 'animatePhase':     return animating ? 1 : 0;
     case 'visualSwap':       return visualSwap ? 1 : 0;
-    case 'rotSpin':          return rotSpin ? 1 : 0;
     default:
       return (params[key] !== undefined) ? params[key]
            : (MAP_DEFAULTS[key] !== undefined ? MAP_DEFAULTS[key] : 0);
@@ -7892,13 +7890,13 @@ function setMorphStepMode(m) {
 // wave types are derived from them — so they belong with the stepped set, or a
 // recall would slide the timbre through two other shapes on its way and IGNORE
 // would stop protecting the waveform it promises to leave alone.
-const MORPH_DISCRETE = new Set(['fx', 'fy', 'mirrorMode', 'rotAxis', 'fillSurface', 'trailMode', 'trailCount', 'm4Rotate', 'phase',
+const MORPH_DISCRETE = new Set(['fx', 'fy', 'mirrorMode', 'fillSurface', 'trailMode', 'trailCount', 'm4Rotate', 'phase',
                                 'depthSrc', 'depthShade', 'showShadow', 'morphX', 'morphY']);
 // The rest of a patch's stepped state lives outside `params` — the waveforms, the
 // filter type, the view toggles. Same treatment, same list.
 const MORPH_DISCRETE_TOP = ['waveTypeX', 'waveTypeY', 'visualSwap', 'audioStereo', 'syncHard',
                             'filterType', 'phaseModulators', 'animating',
-                            'constructionView', 'rotSpin'];
+                            'constructionView'];
 // A copy of `target` whose stepped fields are taken from `source` instead. Both
 // arguments are serializePreset()-shaped, so this composes a patch out of one
 // patch's continuous half and another's stepped half.
@@ -8069,6 +8067,86 @@ applyPageBg();
 document.querySelectorAll('.section').forEach(s => {
   if (s.id !== 'section-waveform') s.classList.add('collapsed');
 });
+
+// ── Canvas-corner view toggles + synthesis readout ───────────────────────────
+// The four buttons mirror the sidebar controls rather than owning any state, so
+// they go through the same paths (checkbox change events, setDepthSrc) and a
+// preset load, MIDI write or LFO flip shows up on them on the next tick.
+function clickCheckbox(id, on) {
+  const cb = document.getElementById(id);
+  if (!cb || cb.checked === on) return;
+  cb.checked = on;
+  cb.dispatchEvent(new Event('change', { bubbles: true }));
+}
+let readoutOn = false;
+try { readoutOn = localStorage.getItem('lissa.readout') === '1'; } catch (e) {}
+document.getElementById('vt-3d').addEventListener('click', () => setDepthSrc(liftActive() ? 0 : 1));
+document.getElementById('vt-frame').addEventListener('click', () => clickCheckbox('frame-show', !params.frameShow));
+document.getElementById('vt-construct').addEventListener('click', () => clickCheckbox('construction-view', !constructionView));
+document.getElementById('vt-readout').addEventListener('click', () => {
+  readoutOn = !readoutOn;
+  try { localStorage.setItem('lissa.readout', readoutOn ? '1' : '0'); } catch (e) {}
+  syncViewToggles();
+});
+
+const AXIS_TAG = ['XY', 'X', 'Y'];
+const FILTER_TAG = { lowpass: 'LP', highpass: 'HP', bandpass: 'BP', notch: 'NOTCH' };
+const MODW_TAG = { sine: 'sin', triangle: 'tri', sawtooth: 'saw', square: 'sqr' };
+function roEsc(t) { return String(t).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
+function roNum(v) { return Number.isInteger(v) ? String(v) : v.toFixed(1); }
+function roRatio(v) { return RATIO_LABELS[ratioNearestIndex(v)]; }
+// One line per stage: key, values, target axis. Stages sitting at their neutral
+// setting are dimmed so the active part of the patch reads at a glance.
+function buildSynthReadout() {
+  // Old patches can lack newer keys; read through the defaults so nothing is undefined.
+  const P = {};
+  Object.keys(PARAM_DEFAULTS).forEach(k => { P[k] = params[k] ?? PARAM_DEFAULTS[k]; });
+  const ax = k => AXIS_TAG[P[k] | 0] || 'XY';
+  const rows = [
+    ['wave',  `X ${fmtMorph(P.morphX)}  Y ${fmtMorph(P.morphY)}`, true],
+    ['freq',  `${roNum(P.fx)}:${roNum(P.fy)}  ${Math.round(baseFreq)}Hz  amp ${P.ax.toFixed(2)}/${P.ay.toFixed(2)}`, true],
+    ['am',    `${P.amAmt.toFixed(2)} ×${roRatio(P.amRatio)} ${MODW_TAG[P.amWave] || P.amWave} ${ax('amAxis')}`, P.amAmt > 0],
+    ['fm',    `${P.fmAmount.toFixed(1)} ×${roRatio(P.fmRatio)} ${MODW_TAG[P.fmWave] || P.fmWave} ${ax('fmAxis')}`, P.fmAmount > 0],
+    ['cross', `fm ${P.crossFm.toFixed(2)} ring ${P.ringAmt.toFixed(2)} ${ax('crossAxis')}`, P.crossFm > 0 || P.ringAmt > 0],
+    ['shape', `${P.shapeAmt.toFixed(2)} ${ax('shapeAxis')}`, P.shapeAmt > 0],
+    ['fb',    `${P.fbAmt.toFixed(2)} ${ax('fbAxis')}`, P.fbAmt > 0],
+    ['warp',  `${fmtWarp(P.warp)} fold ${fmtFold(P.foldDrive)} bias ${P.foldBias.toFixed(2)} ${ax('warpAxis')}`,
+              P.warp !== 0 || P.foldDrive > 1 || P.foldBias !== 0],
+    ['crush', `${fmtBits(P.crushBits)} dec ${fmtDecimate(P.crushRate)} ${ax('crushAxis')}`, P.crushBits < 15.5 || P.crushRate >= 0.005],
+    ['noise', `${P.noiseAmt.toFixed(3)} ${ax('noiseAxis')}`, P.noiseAmt > 0],
+    ['filt',  `${FILTER_TAG[filterType] || filterType} ${fmtCutoff(P.filterCutoff)} Q${P.filterQ.toFixed(1)} ${ax('filterAxis')}`, filterIsOn()],
+    ['sync',  `${P.syncAmt.toFixed(2)} ${syncHard ? 'hard' : 'soft'} ${ax('syncAxis')}`, Math.abs(P.syncAmt - 1) > 1e-3],
+    ['uni',   `${P.unisonDetune.toFixed(1)}¢ mix ${Math.round(P.unisonMix * 100)}%`, P.unisonMix > 0],
+  ];
+  lfos.forEach(l => {
+    const tg = l.assignments.map(k => (MAP_TARGETS[k] ? MAP_TARGETS[k].label : k)).join(', ');
+    rows.push(['lfo' + (l.i + 1), `${MODW_TAG[l.wave]} ${l.freq.toFixed(2)}Hz ${Math.round(l.depth * 100)}%${tg ? ' → ' + tg : ''}`,
+               l.assignments.length > 0 && l.depth > 0]);
+  });
+  return rows.map(([k, v, on]) =>
+    `<span class="${on ? 'ro-on' : 'ro-off'}"><span class="ro-k">${k.padEnd(5)}</span> ${roEsc(v)}</span>`).join('\n');
+}
+function setViewTg(id, on) {
+  const b = document.getElementById(id);
+  if (!b || b.classList.contains('active') === on) return;
+  b.classList.toggle('active', on);
+  b.setAttribute('aria-pressed', on ? 'true' : 'false');
+}
+let _roLast = '';
+function syncViewToggles() {
+  setViewTg('vt-3d', liftActive());
+  setViewTg('vt-frame', !!params.frameShow);
+  setViewTg('vt-construct', !!constructionView);
+  setViewTg('vt-readout', readoutOn);
+  const ro = document.getElementById('synth-readout');
+  ro.hidden = !readoutOn;
+  if (readoutOn) {
+    const html = buildSynthReadout();
+    if (html !== _roLast) { ro.innerHTML = html; _roLast = html; }
+  }
+}
+syncViewToggles();
+setInterval(syncViewToggles, 150);
 
 requestAnimationFrame(render);
 updateIntervalLabel();
