@@ -160,6 +160,180 @@
     border-radius: 7px;
   }
 
+  /* ── Task tabs across the top of the sidebar ─────────────────────────────
+     The bar sits in the sidebar's own scroll box and sticks to its top edge,
+     so the negative margins pull it over the sidebar padding. */
+  .sidebar { --sb-pt: 20px; --sb-px: 16px; }
+  .tab-bar {
+    position: sticky;
+    top: calc(-1 * var(--sb-pt));
+    z-index: 6;
+    display: flex;
+    gap: 2px;
+    margin: calc(-1 * var(--sb-pt)) calc(-1 * var(--sb-px)) 0;
+    padding: 8px calc(var(--sb-px) - 6px) 0;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+  }
+  .tab-btn {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 7px 2px 8px;
+    background: none;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    color: var(--label);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .tab-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+  /* SETUP is once-per-session work: a gap sets it apart from the four you play. */
+  .tab-btn[data-tab="setup"] { margin-left: 8px; }
+  .tab-btn[data-tab="setup"]::before {
+    content: ''; position: absolute; left: -5px; top: 9px; bottom: 11px; width: 1px; background: var(--border);
+  }
+  .tab-panel { display: flex; flex-direction: column; gap: 16px; }
+  .tab-panel[hidden], .sidebar .section[hidden], .view-tg[hidden] { display: none !important; }
+  .tab-panel:focus { outline: none; }
+  /* ── Parameter search ( / ) ───────────────────────────────────────────── */
+  .search-toggle {
+    margin-left: auto;
+    background: none; border: 1px solid var(--border); border-radius: var(--radius);
+    color: var(--label); font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em;
+    padding: 4px 9px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .search-toggle:hover { color: var(--text); border-color: var(--muted); }
+  .search-toggle + .grid-toggle { margin-left: 0; }
+  kbd {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 3px; padding: 0 4px;
+  }
+  .param-search {
+    position: fixed; inset: 0; z-index: 50;
+    display: flex; justify-content: center; align-items: flex-start;
+    padding: min(12vh, 90px) 16px 16px;
+    background: rgba(6,6,8,0.55);
+  }
+  .param-search[hidden] { display: none; }
+  .ps-box {
+    width: min(520px, 100%); max-height: calc(100% - 20px);
+    display: flex; flex-direction: column;
+    background: #15151b; border: 1px solid var(--control-border); border-radius: 7px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6); overflow: hidden;
+  }
+  .ps-q { display: flex; align-items: center; gap: 10px; padding: 11px 13px; border-bottom: 1px solid var(--border); color: var(--muted); }
+  .ps-q input {
+    flex: 1; min-width: 0; background: none; border: 0; outline: none;
+    color: var(--text); font-family: 'IBM Plex Mono', monospace; font-size: 14px;
+  }
+  .ps-results { overflow-y: auto; min-height: 0; }
+  .ps-row {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 4px 10px; align-items: center;
+    padding: 9px 13px; border-bottom: 1px solid var(--border); cursor: pointer;
+  }
+  .ps-row.sel { background: #1b1b21; box-shadow: inset 2px 0 0 var(--accent); }
+  .ps-name { color: var(--text); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ps-name mark { background: none; color: var(--accent); }
+  .ps-where { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent2); white-space: nowrap; }
+  .ps-val { color: var(--accent); font-size: 11px; font-variant-numeric: tabular-nums; min-width: 5ch; text-align: right; }
+  .ps-row .ps-ctl { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; }
+  .ps-row .ps-ctl input[type=range] { flex: 1; }
+  .ps-empty { padding: 14px 13px; color: var(--muted); font-size: 12px; }
+  .ps-foot { padding: 7px 13px; border-top: 1px solid var(--border); color: var(--muted); font-size: 10.5px; }
+
+  /* ── Pins, the canvas dock and the clickable readout ───────────────────── */
+  .pin-btn {
+    background: none; border: 0; padding: 0 3px; margin-left: auto; margin-right: 6px;
+    color: var(--track); font-size: 12px; line-height: 1; cursor: pointer;
+  }
+  .param-header .pin-btn { order: 1; }
+  .param-header .val { order: 2; }
+  .pin-btn:hover { color: var(--label); }
+  .pin-btn[aria-pressed="true"] { color: var(--accent); }
+  .checkbox-row .pin-btn { margin-right: 0; }
+  .pin-dock {
+    position: absolute; left: 12px; right: 12px; bottom: 10px; z-index: 3;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px 14px;
+    padding: 8px 11px; pointer-events: auto;
+    background: rgba(17,17,21,0.86); border: 1px solid var(--border); border-radius: 6px;
+    font-size: 10.5px;
+  }
+  .pin-dock[hidden] { display: none; }
+  .pin-dock .dk { display: grid; gap: 3px; min-width: 0; }
+  .pin-dock .dk-h { display: flex; gap: 6px; align-items: baseline; color: var(--label); }
+  .pin-dock .dk-h span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pin-dock .dk-v { margin-left: auto; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .pin-dock .dk-x { background: none; border: 0; color: var(--muted); cursor: pointer; padding: 0 2px; font-size: 11px; opacity: 0; }
+  .pin-dock .dk:hover .dk-x, .pin-dock .dk-x:focus-visible { opacity: 1; }
+  .pin-dock .dk-tg {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em;
+    background: none; border: 1px solid var(--border); border-radius: 3px; color: var(--label); padding: 3px 0; cursor: pointer;
+  }
+  .pin-dock .dk-tg.on { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  body.has-dock #interval-label { bottom: calc(var(--dock-h, 60px) + 18px) !important; }
+  .synth-readout .ro-row {
+    display: inline; font: inherit; color: inherit; background: none; border: 0; padding: 0 2px; margin: 0 -2px;
+    text-align: left; cursor: pointer; border-radius: 2px; white-space: pre;
+  }
+  .synth-readout .ro-row:hover, .synth-readout .ro-row.open { background: rgba(200,240,96,0.12); color: var(--accent); }
+  .synth-readout .ro-row:focus-visible { outline: 1px solid var(--focus); }
+  .ro-pop {
+    position: absolute; z-index: 4; width: 230px; max-width: calc(100% - 12px);
+    display: grid; gap: 7px; padding: 10px 11px; pointer-events: auto;
+    background: #15151b; border: 1px solid var(--control-border); border-radius: 6px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.55); font-size: 11px;
+  }
+  .ro-pop[hidden] { display: none; }
+  .ro-pop .rp-t { display: flex; justify-content: space-between; align-items: center; color: var(--accent2); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; }
+  .ro-pop .rp-t button { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 12px; }
+  .param-header .val { cursor: text; }
+  .wave-icon {
+    display: block; width: 22px; height: 11px; margin: 0 auto;
+    fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+    overflow: visible;
+  }
+  .val-edit {
+    width: 7ch; padding: 0 3px; text-align: right;
+    background: var(--bg); color: var(--accent); border: 1px solid var(--accent2); border-radius: 2px;
+    font: inherit;
+  }
+  .val-edit:focus { outline: none; }
+  /* One help switch per section, sitting left of the fold arrow. */
+  .section { position: relative; }
+  .sec-help {
+    position: absolute; top: 7px; right: 34px; z-index: 1;
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 22px; padding: 0 8px 0 6px;
+    background: none; border: 1px solid var(--control-border); border-radius: 11px;
+    color: var(--label); font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase; cursor: pointer;
+  }
+  .sec-help:hover { color: var(--accent2); border-color: var(--accent2); }
+  .sec-help[aria-expanded="true"] { color: var(--accent2); border-color: var(--accent2); background: rgba(96,176,240,0.12); }
+  .sec-help .info-mark {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 13px; height: 13px; border: 1px solid currentColor; border-radius: 50%;
+    font-size: 9px; font-style: italic; line-height: 1;
+  }
+  .section.collapsed > .sec-help { display: none; }
+  .flash-find { animation: flash-find 1.5s ease-out; border-radius: 4px; }
+  @keyframes flash-find {
+    0%, 30% { box-shadow: 0 0 0 2px var(--accent), 0 0 0 6px rgba(200,240,96,0.18); }
+    100% { box-shadow: 0 0 0 2px transparent, 0 0 0 6px transparent; }
+  }
+  @media (prefers-reduced-motion: reduce) { .flash-find { animation: none; outline: 2px solid var(--accent); } }
+
   .lfo-cc-row {
     display: flex;
     align-items: center;
@@ -1137,6 +1311,7 @@
       min-height: 0;
       gap: 12px;
       padding: 12px 12px calc(20px + env(safe-area-inset-bottom, 0px));
+      --sb-pt: 12px; --sb-px: 12px;
       border-right: none;
       border-top: 1px solid var(--border);
       overscroll-behavior: contain;       /* don't chain to the page/pull-to-refresh */
@@ -1240,6 +1415,7 @@
       width: 232px;
       min-width: 232px;
       padding: 12px 10px calc(16px + env(safe-area-inset-bottom, 0px));
+      --sb-pt: 12px; --sb-px: 10px;
       gap: 12px;
       overscroll-behavior: contain;
     }
@@ -1439,974 +1615,1008 @@
           aria-label="Collapse or expand the controls sidebar" aria-expanded="true" aria-controls="sidebar-panel"><span aria-hidden="true">☰</span></button>
   <h1>lissa</h1>
   <span>parametric figure generator</span>
+  <button class="search-toggle" id="search-toggle" type="button" title="Find a parameter ( / )"
+          aria-label="Find a parameter" aria-haspopup="dialog" aria-controls="param-search"><span aria-hidden="true">⌕</span> find <kbd>/</kbd></button>
   <button class="grid-toggle" id="grid-toggle" type="button" title="Show / hide preset grid"
           aria-label="Show or hide the session preset grid" aria-expanded="false" aria-controls="preset-sidebar">PRESETS ▸</button>
 </header>
 
 <div class="layout grid-hidden" id="layout">
   <div class="sidebar" id="sidebar-panel">
-
-    <div class="section" id="section-waveform">
-      <div class="section-label">Synthesis</div>
-      <div class="param-row" style="margin-bottom:6px">
-        <div class="param-header"><label>X wave</label></div>
-        <div class="wave-toggle">
-          <button class="wave-btn active" data-axis="x" data-bwave="sine">SIN</button>
-          <button class="wave-btn" data-axis="x" data-bwave="triangle">TRI</button>
-          <button class="wave-btn" data-axis="x" data-bwave="sawtooth">SAW</button>
-          <button class="wave-btn" data-axis="x" data-bwave="square">SQR</button>
-        </div>
-        <div class="param-row" style="margin-top:5px">
-          <div class="param-header"><label>Morph</label><span class="val" id="morph-x-val">SIN</span></div>
-          <input type="range" id="morph-x" min="0" max="3" step="0.01" value="0">
-        </div>
-      </div>
-      <div class="param-row" style="margin-bottom:6px">
-        <div class="param-header"><label>Y wave</label></div>
-        <div class="wave-toggle">
-          <button class="wave-btn active" data-axis="y" data-bwave="sine">SIN</button>
-          <button class="wave-btn" data-axis="y" data-bwave="triangle">TRI</button>
-          <button class="wave-btn" data-axis="y" data-bwave="sawtooth">SAW</button>
-          <button class="wave-btn" data-axis="y" data-bwave="square">SQR</button>
-        </div>
-        <div class="param-row" style="margin-top:5px">
-          <div class="param-header"><label>Morph</label><span class="val" id="morph-y-val">SIN</span></div>
-          <input type="range" id="morph-y" min="0" max="3" step="0.01" value="0">
-        </div>
-        <div class="info-text" data-info-label="the waveform morph">
-          <strong>Morph</strong> is a continuous position along the whole chain —
-          SIN → TRI → SAW → SQR — crossfading between each neighbouring pair as it
-          travels, so the four shapes are the landmarks on one sweep rather than
-          four separate choices. The buttons are shortcuts that jump the slider to
-          an exact shape, and a button lights up whenever the slider is sitting
-          precisely on it, so you can always see whether you are on a named
-          waveform or somewhere between two.
-        </div>
-      </div>
-      <canvas class="wave-preview" id="wave-preview" width="208" height="28"></canvas>
-
-      <div class="mod-group" data-axis="amAxis">
-        <div class="vel-row"><span class="vel-label">AM</span></div>
-        <div class="param-row">
-          <div class="param-header"><label>Depth</label><span class="val" id="am-amt-val">0.0</span></div>
-          <input type="range" id="am-amt" min="0" max="1" step="0.01" value="0">
-        </div>
-        <div class="param-row">
-          <div class="param-header"><label>Ratio</label><span class="val" id="am-ratio-val">2/1</span></div>
-          <input type="range" id="am-ratio" min="0" max="30" step="1" value="6">
-        </div>
-        <div class="param-header" style="margin-bottom:4px"><label>Mod shape</label></div>
-        <div class="lfo-wave-toggle">
-          <button class="mod-wave-btn active" data-mod="am" data-mwave="sine">SIN</button>
-          <button class="mod-wave-btn" data-mod="am" data-mwave="triangle">TRI</button>
-          <button class="mod-wave-btn" data-mod="am" data-mwave="sawtooth">SAW</button>
-          <button class="mod-wave-btn" data-mod="am" data-mwave="square">SQR</button>
-        </div>
-      </div>
-
-      <div class="mod-group" data-axis="fmAxis">
-        <div class="vel-row"><span class="vel-label">FM</span></div>
-        <div class="param-row">
-          <div class="param-header"><label>Amount</label><span class="val" id="fm-amount-val">0.0</span></div>
-          <input type="range" id="fm-amount" min="0" max="8" step="0.1" value="0">
-        </div>
-        <div class="param-row">
-          <div class="param-header"><label>Ratio</label><span class="val" id="fm-ratio-val">2/1</span></div>
-          <input type="range" id="fm-ratio" min="0" max="30" step="1" value="6">
-        </div>
-        <div class="param-header" style="margin-bottom:4px"><label>Mod shape</label></div>
-        <div class="lfo-wave-toggle">
-          <button class="mod-wave-btn active" data-mod="fm" data-mwave="sine">SIN</button>
-          <button class="mod-wave-btn" data-mod="fm" data-mwave="triangle">TRI</button>
-          <button class="mod-wave-btn" data-mod="fm" data-mwave="sawtooth">SAW</button>
-          <button class="mod-wave-btn" data-mod="fm" data-mwave="square">SQR</button>
-        </div>
-      </div>
-
-      <div class="mod-group" data-axis="crossAxis">
-        <div class="vel-row"><span class="vel-label">Cross (X ↔ Y)</span></div>
-        <div class="param-row">
-          <div class="param-header"><label>Cross FM</label><span class="val" id="cross-fm-val">0.00</span></div>
-          <input type="range" id="cross-fm" min="0" max="2" step="0.01" value="0">
-        </div>
-        <div class="param-row">
-          <div class="param-header"><label>Ring mod</label><span class="val" id="ring-amt-val">0.00</span></div>
-          <input type="range" id="ring-amt" min="0" max="1" step="0.01" value="0">
-        </div>
-      </div>
-
-      <div class="mod-group" data-axis="shapeAxis">
-        <div class="vel-row"><span class="vel-label">Waveshape</span></div>
-        <div class="param-row">
-          <div class="param-header"><label>Drive</label><span class="val" id="shape-amt-val">0.00</span></div>
-          <input type="range" id="shape-amt" min="0" max="1" step="0.01" value="0">
-        </div>
-      </div>
-
-      <div class="mod-group" data-axis="fbAxis">
-        <div class="vel-row"><span class="vel-label">Feedback</span></div>
-        <div class="param-row">
-          <div class="param-header"><label>Amount</label><span class="val" id="fb-amt-val">0.00</span></div>
-          <input type="range" id="fb-amt" min="0" max="1" step="0.01" value="0">
-        </div>
-      </div>
-
-      <div class="mod-group" data-axis="warpAxis">
-        <div class="vel-row"><span class="vel-label">Warp &amp; Fold</span></div>
-        <div class="param-row">
-          <div class="param-header"><label>Warp</label><span class="val" id="warp-val">0.0 %</span></div>
-          <input type="range" id="warp" min="-1" max="1" step="0.01" value="0">
-        </div>
-        <div class="param-row">
-          <div class="param-header"><label>Fold</label><span class="val" id="fold-drive-val">0 %</span></div>
-          <input type="range" id="fold-drive" min="1" max="8" step="0.1" value="1">
-        </div>
-        <div class="param-row">
-          <div class="param-header"><label>Bias</label><span class="val" id="fold-bias-val">0.00</span></div>
-          <input type="range" id="fold-bias" min="-1" max="1" step="0.01" value="0">
-        </div>
-        <div class="info-text" data-info-label="warp and fold">
-          The two shapers from Ableton Wavetable's oscillator.
-          <strong>Warp</strong> bends the cycle's own clock rather than its
-          amplitude: at <em>+100%</em> the entire cycle is crammed into its opening
-          and the rest of the period is a flat tail; at <em>−100%</em> it lies flat
-          and then fires off at the very end. Both ends of the cycle are fixed
-          points of the bend, so the wave stays periodic and continuous at any
-          setting — on a square it reads as PWM, on a saw as a bent ramp.
-          <strong>Fold</strong> drives the wave into a reflecting folder: past ±1 the
-          signal turns back on itself instead of clipping, so each extra decibel of
-          drive buys another lobe per cycle and the harmonics grow without the
-          shape ever leaving the rails. <strong>Bias</strong> offsets the signal into
-          the folder, so the two halves fold differently and the result loses its
-          symmetry (and gains even harmonics).
-        </div>
-      </div>
-
-      <div class="mod-group" data-axis="crushAxis">
-        <div class="vel-row"><span class="vel-label">Crush</span></div>
-        <div class="param-row">
-          <div class="param-header"><label>Bits</label><span class="val" id="crush-bits-val">off</span></div>
-          <input type="range" id="crush-bits" min="1" max="16" step="0.5" value="16">
-        </div>
-        <div class="param-row">
-          <div class="param-header"><label>Decimate</label><span class="val" id="crush-rate-val">off</span></div>
-          <input type="range" id="crush-rate" min="0" max="1" step="0.01" value="0">
-        </div>
-      </div>
-
-      <div class="mod-group" data-axis="noiseAxis">
-        <div class="vel-row"><span class="vel-label">Noise (waveform)</span></div>
-        <div class="param-row">
-          <div class="param-header"><label>Amount</label><span class="val" id="noise-amt-val">0.000</span></div>
-          <input type="range" id="noise-amt" min="0" max="0.1" step="0.001" value="0">
-        </div>
-      </div>
-
-      <div class="mod-group" data-axis="filterAxis">
-        <div class="vel-row"><span class="vel-label">Filter (final stage)</span></div>
-        <div class="wave-toggle" style="margin-bottom:8px">
-          <button class="wave-btn active" data-filter="lowpass">LP</button>
-          <button class="wave-btn" data-filter="highpass">HP</button>
-          <button class="wave-btn" data-filter="bandpass">BP</button>
-          <button class="wave-btn" data-filter="notch">NOTCH</button>
-        </div>
-        <div class="param-row">
-          <div class="param-header"><label>Cutoff</label><span class="val" id="filter-freq-val">open</span></div>
-          <input type="range" id="filter-freq" min="0" max="1" step="0.001" value="1">
-        </div>
-        <div class="param-row">
-          <div class="param-header"><label>Resonance</label><span class="val" id="filter-res-val">0.7</span></div>
-          <input type="range" id="filter-res" min="0.1" max="20" step="0.1" value="0.7">
-        </div>
-      </div>
-
-      <div class="mod-group" data-axis="syncAxis">
-        <div class="vel-row"><span class="vel-label">Sync</span></div>
-        <div class="param-row">
-          <div class="param-header"><label>Ratio</label><span class="val" id="sync-amt-val">1.00</span></div>
-          <input type="range" id="sync-amt" min="0.1" max="2" step="0.05" value="1">
-        </div>
-        <div style="display:flex;gap:16px;margin-top:2px">
-          <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--label);cursor:pointer"><input type="checkbox" id="sync-hard" checked style="accent-color:var(--accent2);cursor:pointer">hard sync</label>
-        </div>
-      </div>
-
-      <div class="mod-group">
-        <div class="vel-row"><span class="vel-label">Unison</span></div>
-        <div class="param-row">
-          <div class="param-header"><label>Detune</label><span class="val" id="unison-detune-val">0.0¢</span></div>
-          <input type="range" id="unison-detune" min="0" max="50" step="0.5" value="0">
-        </div>
-        <div class="param-row">
-          <div class="param-header"><label>Mix</label><span class="val" id="unison-mix-val">0%</span></div>
-          <input type="range" id="unison-mix" min="0" max="1" step="0.01" value="0">
-        </div>
-      </div>
-
-      <div class="subsection-label">Patch</div>
-      <div style="display:flex;gap:6px">
-        <button class="map-add-btn" id="preset-save" style="margin-top:0">⤓ export</button>
-        <button class="map-add-btn" id="preset-load" style="margin-top:0">⤒ import</button>
-      </div>
-      <input type="file" id="preset-file" accept="application/json,.json" style="display:none">
-      <div class="info-text" data-info-label="patch export and import">
-        Saves all parameters, LFOs &amp; CC mappings to a .json file.
-      </div>
-
-      <button class="btn btn-outline" id="btn-reset" style="width:100%;margin-top:14px">Reset All</button>
+    <div class="tab-bar" role="tablist" aria-label="Control groups">
+      <button class="tab-btn" type="button" role="tab" id="tabbtn-shape" data-tab="shape" aria-controls="tab-shape" aria-selected="false" title="Shape — the figure itself: geometry, ratio, waves"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12c2.2-6.5 6.8-6.5 9 0s6.8 6.5 9 0M3 12c2.2 6.5 6.8 6.5 9 0s6.8-6.5 9 0"/></svg><span>Shape</span></button>
+      <button class="tab-btn" type="button" role="tab" id="tabbtn-sound" data-tab="sound" aria-controls="tab-sound" aria-selected="false" title="Sound — how the waves are processed"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12h3l2.5-7 4 14 3-10 2 3H22"/></svg><span>Sound</span></button>
+      <button class="tab-btn" type="button" role="tab" id="tabbtn-look" data-tab="look" aria-controls="tab-look" aria-selected="false" title="Look — how the figure is drawn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 0 0 17z" fill="currentColor" stroke="none"/></svg><span>Look</span></button>
+      <button class="tab-btn" type="button" role="tab" id="tabbtn-motion" data-tab="motion" aria-controls="tab-motion" aria-selected="false" title="Motion — what changes over time"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4.5V9h-4.5"/></svg><span>Motion</span></button>
+      <button class="tab-btn" type="button" role="tab" id="tabbtn-setup" data-tab="setup" aria-controls="tab-setup" aria-selected="false" title="Setup — devices, recording and files"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg><span>Setup</span></button>
     </div>
 
-    <div class="section" id="section-axes">
-      <div class="section-label">Frequency &amp; MIDI</div>
-      <div class="param-header" style="margin-bottom:4px"><label>Geometry</label></div>
-      <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="Figure geometry">
-        <button class="wave-btn active" data-geo="0" style="padding:5px 2px" title="Lateral — X horizontal, Y vertical (Lissajous)">LATERAL</button>
-        <button class="wave-btn" data-geo="1" style="padding:5px 2px" title="Rotary, con-current — two circles turning the same way">CON</button>
-        <button class="wave-btn" data-geo="2" style="padding:5px 2px" title="Rotary, counter-current — two circles turning opposite ways">COUNTER</button>
-        <button class="wave-btn" data-geo="3" style="padding:5px 2px" title="Rose — r(θ) = cos(n/d · θ)">ROSE</button>
-      </div>
-      <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="Solid figure geometry">
-        <button class="wave-btn" data-geo="4" style="padding:5px 2px" title="Torus knot — X round the ring, Y through the hole (3D)">TORUS KNOT</button>
-        <button class="wave-btn" data-geo="5" style="padding:5px 2px" title="Spherical Lissajous — X longitude, Y latitude (3D)">SPHERE</button>
-      </div>
-      <div id="geo-hint" style="font-size:10.5px;color:var(--label);margin-bottom:10px;line-height:1.45"></div>
-      <div class="info-text" data-info-label="figure geometry">
-        <strong>Lateral</strong> is the Lissajous figure: the X oscillator moves the
-        point left–right, the Y oscillator up–down.
-        The other three treat each oscillator as a <strong>rotor</strong> — its wave
-        paired with the same wave a quarter period ahead, which for a sine is a
-        point going round a circle — and add the two circles together.
-        <strong>Con-current</strong> rotors turn the same way and draw looped rings;
-        <strong>counter-current</strong> rotors turn opposite ways and draw
-        |fx + fy|-petalled stars. Amplitude is each rotor's radius, and δ shifts X's
-        rotor against Y's, which turns the figure (at 1:1 it opens a point into a
-        circle). <strong>Rose</strong> draws r(θ) = cos(n/d · θ): X's frequency is
-        <em>n</em>, Y's is <em>d</em>, so the ratio presets walk the classic n/d
-        table. Every synthesis stage still shapes the waves: a square Y wave snaps
-        the rose's angle to four directions, FM bends the petals.
-        <strong>Torus knot</strong> and <strong>Sphere</strong> are solid: X winds
-        round a torus the long way and Y through its hole, so p:q draws the (p, q)
-        torus knot; or X sets longitude and Y latitude on a sphere (1:2 is the
-        tennis-ball seam). Amplitude X sets their size, amplitude Y the tube
-        thickness or how far the path swings towards the poles. Drag the canvas
-        to orbit them; Tilt, Perspective and depth shading in the 3D section apply.
-        Construction view and the 3D lift explain the lateral figure only and stand
-        down in the rotary geometries; the audio is the same two oscillators in
-        every geometry.
-      </div>
-      <div class="mod-group">
-        <div class="vel-row"><span class="vel-label">X Axis</span></div>
-        <div class="param-row">
-          <div class="param-header"><label>Amplitude</label><span class="val" id="ax-val">1.00</span></div>
-          <input type="range" id="ax" min="0.1" max="1" step="0.01" value="1">
+    <div class="tab-panel" id="tab-shape" data-tab="shape" role="tabpanel" aria-labelledby="tabbtn-shape" tabindex="-1">
+      <div class="section" id="section-axes">
+        <div class="section-label">Figure</div>
+        <div class="param-header" style="margin-bottom:4px"><label>Geometry</label></div>
+        <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="Figure geometry">
+          <button class="wave-btn active" data-geo="0" style="padding:5px 2px" title="Lateral — X horizontal, Y vertical (Lissajous)">LATERAL</button>
+          <button class="wave-btn" data-geo="1" style="padding:5px 2px" title="Rotary, con-current — two circles turning the same way">CON</button>
+          <button class="wave-btn" data-geo="2" style="padding:5px 2px" title="Rotary, counter-current — two circles turning opposite ways">COUNTER</button>
+          <button class="wave-btn" data-geo="3" style="padding:5px 2px" title="Rose — r(θ) = cos(n/d · θ)">ROSE</button>
         </div>
-        <div class="param-row" id="fx-slider-row">
-          <div class="param-header"><label>Frequency</label><span class="val" id="fx-val">3</span></div>
-          <input type="range" id="fx" min="1" max="16" step="0.5" value="3">
+        <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="Solid figure geometry">
+          <button class="wave-btn" data-geo="4" style="padding:5px 2px" title="Torus knot — X round the ring, Y through the hole (3D)">TORUS KNOT</button>
+          <button class="wave-btn" data-geo="5" style="padding:5px 2px" title="Spherical Lissajous — X longitude, Y latitude (3D)">SPHERE</button>
         </div>
-      </div>
-      <div class="mod-group">
-        <div class="vel-row"><span class="vel-label">Y Axis</span></div>
-        <div class="param-row">
-          <div class="param-header"><label>Amplitude</label><span class="val" id="ay-val">1.00</span></div>
-          <input type="range" id="ay" min="0.1" max="1" step="0.01" value="1">
+        <div id="geo-hint" style="font-size:10.5px;color:var(--label);margin-bottom:10px;line-height:1.45"></div>
+        <div class="info-text" data-info-label="figure geometry">
+          <strong>Lateral</strong> is the Lissajous figure: the X oscillator moves the
+          point left–right, the Y oscillator up–down.
+          The other three treat each oscillator as a <strong>rotor</strong> — its wave
+          paired with the same wave a quarter period ahead, which for a sine is a
+          point going round a circle — and add the two circles together.
+          <strong>Con-current</strong> rotors turn the same way and draw looped rings;
+          <strong>counter-current</strong> rotors turn opposite ways and draw
+          |fx + fy|-petalled stars. Amplitude is each rotor's radius, and δ shifts X's
+          rotor against Y's, which turns the figure (at 1:1 it opens a point into a
+          circle). <strong>Rose</strong> draws r(θ) = cos(n/d · θ): X's frequency is
+          <em>n</em>, Y's is <em>d</em>, so the ratio presets walk the classic n/d
+          table. Every synthesis stage still shapes the waves: a square Y wave snaps
+          the rose's angle to four directions, FM bends the petals.
+          <strong>Torus knot</strong> and <strong>Sphere</strong> are solid: X winds
+          round a torus the long way and Y through its hole, so p:q draws the (p, q)
+          torus knot; or X sets longitude and Y latitude on a sphere (1:2 is the
+          tennis-ball seam). Amplitude X sets their size, amplitude Y the tube
+          thickness or how far the path swings towards the poles. Drag the canvas
+          to orbit them; Tilt, Perspective and depth shading in the 3D section apply.
+          Construction view and the 3D lift explain the lateral figure only and stand
+          down in the rotary geometries; the audio is the same two oscillators in
+          every geometry.
         </div>
-        <div class="param-row" id="fy-slider-row">
-          <div class="param-header"><label>Frequency</label><span class="val" id="fy-val">2</span></div>
-          <input type="range" id="fy" min="1" max="16" step="0.5" value="2">
-        </div>
-      </div>
-      <button class="wave-btn" id="xy-swap-btn" style="width:100%;border:1px solid var(--border);border-radius:var(--radius);padding:7px;margin-top:4px">⇄ Swap X / Y</button>
-
-      <div class="subsection-label">Ratio Presets</div>
-      <div class="preset-grid" id="preset-grid"></div>
-
-      <div class="subsection-label">Note Input</div>
-      <div class="wave-toggle" style="margin-bottom:8px">
-        <button class="wave-btn active" id="input-manual-btn">MANUAL</button>
-        <button class="wave-btn" id="input-dual-btn">MIDI</button>
-      </div>
-      <div id="x-note-panel" style="display:none">
-        <div class="midi-ch-row" style="margin-bottom:5px">
-          <label>X MIDI ch</label>
-          <select class="midi-ch-select" id="note-x-ch">
-            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-            <option value="7">7</option><option value="8">8</option>
-          </select>
-        </div>
-        <div class="param-row">
-          <div class="param-header"><label>X note</label><span class="val" id="x-note-val" style="color:var(--accent2)">—</span></div>
-          <input type="range" id="x-note-slider" min="0" max="11" step="1" value="0">
-        </div>
-      </div>
-      <div id="y-note-panel" style="display:none">
-        <div class="midi-ch-row" style="margin-bottom:5px">
-          <label>Y MIDI ch</label>
-          <select class="midi-ch-select" id="note-y-ch">
-            <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option>
-            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-            <option value="7">7</option><option value="8">8</option>
-          </select>
-        </div>
-        <div class="param-row">
-          <div class="param-header"><label>Y note</label><span class="val" id="y-note-val" style="color:var(--accent2)">C</span></div>
-          <input type="range" id="y-note-slider" min="0" max="11" step="1" value="0">
-        </div>
-      </div>
-      <div id="octave-mode-panel" style="display:none;margin-top:8px">
-        <div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Octave</div>
-        <div class="wave-toggle">
-          <button class="wave-btn active" id="oct-none-btn" style="padding:5px 3px">NONE</button>
-          <button class="wave-btn" id="oct-full-btn" style="padding:5px 3px">FULL</button>
-          <button class="wave-btn" id="oct-unison-btn" style="padding:5px 3px">8VE</button>
-        </div>
-      </div>
-      <div id="note-status-panel" style="display:none;margin-top:8px">
-        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-          <span style="color:var(--label);font-size:11px">Interval</span>
-          <span id="note-interval-display" style="color:var(--label);font-size:11px">—</span>
-        </div>
-        <div style="display:flex;justify-content:space-between">
-          <span style="color:var(--label);font-size:11px">Ratio</span>
-          <span id="note-ratio-display" style="color:var(--accent);font-size:11px">—</span>
-        </div>
-      </div>
-
-      <div class="subsection-label">MIDI Input</div>
-      <div class="midi-status">
-        <div class="midi-dot" id="midi-dot"></div>
-        <span class="midi-status-text" id="midi-status-text">not connected</span>
-      </div>
-      <div style="font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Note / main input</div>
-      <select class="midi-select" id="midi-input-select"><option value="">— no input —</option></select>
-      <div style="margin-top:8px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-          <span style="color:var(--label);font-size:11px">Base freq</span>
-          <span id="midi-note-display" style="color:var(--accent);font-size:11px">100 Hz</span>
-        </div>
-        <div class="wave-toggle" style="margin-bottom:8px">
-          <button class="wave-btn active" id="basefreq-midi-btn">MIDI</button>
-          <button class="wave-btn" id="basefreq-slider-btn">SLIDER</button>
-        </div>
-        <div id="basefreq-midi-panel">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <span style="color:var(--label);font-size:11px">Last note</span>
-            <span id="midi-note-name" style="color:var(--accent2);font-size:11px">—</span>
-          </div>
-          <div class="info-text" data-info-label="the MIDI note read-out">
-            Follows notes on the X-axis channel set in Note Input.
-          </div>
-        </div>
-        <div id="basefreq-slider-panel" style="display:none">
+        <div class="mod-group">
+          <div class="vel-row"><span class="vel-label">X Axis</span></div>
           <div class="param-row">
-            <div class="param-header"><label>Base Hz</label><span class="val" id="basefreq-val">100 Hz</span></div>
-            <input type="range" id="basefreq-slider" min="10" max="500" step="1" value="100">
+            <div class="param-header"><label>Amplitude</label><span class="val" id="ax-val">1.00</span></div>
+            <input type="range" id="ax" min="0.1" max="1" step="0.01" value="1">
           </div>
+          <div class="param-row" id="fx-slider-row">
+            <div class="param-header"><label>Frequency</label><span class="val" id="fx-val">3</span></div>
+            <input type="range" id="fx" min="1" max="16" step="0.5" value="3">
+          </div>
+        </div>
+        <div class="mod-group">
+          <div class="vel-row"><span class="vel-label">Y Axis</span></div>
+          <div class="param-row">
+            <div class="param-header"><label>Amplitude</label><span class="val" id="ay-val">1.00</span></div>
+            <input type="range" id="ay" min="0.1" max="1" step="0.01" value="1">
+          </div>
+          <div class="param-row" id="fy-slider-row">
+            <div class="param-header"><label>Frequency</label><span class="val" id="fy-val">2</span></div>
+            <input type="range" id="fy" min="1" max="16" step="0.5" value="2">
+          </div>
+        </div>
+        <button class="wave-btn" id="xy-swap-btn" style="width:100%;border:1px solid var(--border);border-radius:var(--radius);padding:7px;margin-top:4px">⇄ Swap X / Y</button>
+
+        <div class="subsection-label">Ratio Presets</div>
+        <div class="preset-grid" id="preset-grid"></div>
+      </div>
+
+      <div class="section" id="section-waves">
+        <div class="section-label">Waves</div>
+        <div class="param-row" style="margin-bottom:6px">
+          <div class="param-header"><label>X wave</label></div>
+          <div class="wave-toggle">
+            <button class="wave-btn active" data-axis="x" data-bwave="sine">SIN</button>
+            <button class="wave-btn" data-axis="x" data-bwave="triangle">TRI</button>
+            <button class="wave-btn" data-axis="x" data-bwave="sawtooth">SAW</button>
+            <button class="wave-btn" data-axis="x" data-bwave="square">SQR</button>
+          </div>
+          <div class="param-row" style="margin-top:5px">
+            <div class="param-header"><label>Morph</label><span class="val" id="morph-x-val">SIN</span></div>
+            <input type="range" id="morph-x" min="0" max="3" step="0.01" value="0">
+          </div>
+        </div>
+        <div class="param-row" style="margin-bottom:6px">
+          <div class="param-header"><label>Y wave</label></div>
+          <div class="wave-toggle">
+            <button class="wave-btn active" data-axis="y" data-bwave="sine">SIN</button>
+            <button class="wave-btn" data-axis="y" data-bwave="triangle">TRI</button>
+            <button class="wave-btn" data-axis="y" data-bwave="sawtooth">SAW</button>
+            <button class="wave-btn" data-axis="y" data-bwave="square">SQR</button>
+          </div>
+          <div class="param-row" style="margin-top:5px">
+            <div class="param-header"><label>Morph</label><span class="val" id="morph-y-val">SIN</span></div>
+            <input type="range" id="morph-y" min="0" max="3" step="0.01" value="0">
+          </div>
+          <div class="info-text" data-info-label="the waveform morph">
+            <strong>Morph</strong> is a continuous position along the whole chain —
+            SIN → TRI → SAW → SQR — crossfading between each neighbouring pair as it
+            travels, so the four shapes are the landmarks on one sweep rather than
+            four separate choices. The buttons are shortcuts that jump the slider to
+            an exact shape, and a button lights up whenever the slider is sitting
+            precisely on it, so you can always see whether you are on a named
+            waveform or somewhere between two.
+          </div>
+        </div>
+        <canvas class="wave-preview" id="wave-preview" width="208" height="28"></canvas>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-sound" data-tab="sound" role="tabpanel" aria-labelledby="tabbtn-sound" tabindex="-1">
+      <div class="section" id="section-waveform">
+        <div class="section-label">Synthesis</div>
+        <div class="mod-group" data-axis="amAxis">
+          <div class="vel-row"><span class="vel-label">AM</span></div>
+          <div class="param-row">
+            <div class="param-header"><label>Depth</label><span class="val" id="am-amt-val">0.0</span></div>
+            <input type="range" id="am-amt" min="0" max="1" step="0.01" value="0">
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Ratio</label><span class="val" id="am-ratio-val">2/1</span></div>
+            <input type="range" id="am-ratio" min="0" max="30" step="1" value="6">
+          </div>
+          <div class="param-header" style="margin-bottom:4px"><label>Mod shape</label></div>
+          <div class="lfo-wave-toggle">
+            <button class="mod-wave-btn active" data-mod="am" data-mwave="sine">SIN</button>
+            <button class="mod-wave-btn" data-mod="am" data-mwave="triangle">TRI</button>
+            <button class="mod-wave-btn" data-mod="am" data-mwave="sawtooth">SAW</button>
+            <button class="mod-wave-btn" data-mod="am" data-mwave="square">SQR</button>
+          </div>
+        </div>
+
+        <div class="mod-group" data-axis="fmAxis">
+          <div class="vel-row"><span class="vel-label">FM</span></div>
+          <div class="param-row">
+            <div class="param-header"><label>Amount</label><span class="val" id="fm-amount-val">0.0</span></div>
+            <input type="range" id="fm-amount" min="0" max="8" step="0.1" value="0">
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Ratio</label><span class="val" id="fm-ratio-val">2/1</span></div>
+            <input type="range" id="fm-ratio" min="0" max="30" step="1" value="6">
+          </div>
+          <div class="param-header" style="margin-bottom:4px"><label>Mod shape</label></div>
+          <div class="lfo-wave-toggle">
+            <button class="mod-wave-btn active" data-mod="fm" data-mwave="sine">SIN</button>
+            <button class="mod-wave-btn" data-mod="fm" data-mwave="triangle">TRI</button>
+            <button class="mod-wave-btn" data-mod="fm" data-mwave="sawtooth">SAW</button>
+            <button class="mod-wave-btn" data-mod="fm" data-mwave="square">SQR</button>
+          </div>
+        </div>
+
+        <div class="mod-group" data-axis="crossAxis">
+          <div class="vel-row"><span class="vel-label">Cross (X ↔ Y)</span></div>
+          <div class="param-row">
+            <div class="param-header"><label>Cross FM</label><span class="val" id="cross-fm-val">0.00</span></div>
+            <input type="range" id="cross-fm" min="0" max="2" step="0.01" value="0">
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Ring mod</label><span class="val" id="ring-amt-val">0.00</span></div>
+            <input type="range" id="ring-amt" min="0" max="1" step="0.01" value="0">
+          </div>
+        </div>
+
+        <div class="mod-group" data-axis="shapeAxis">
+          <div class="vel-row"><span class="vel-label">Waveshape</span></div>
+          <div class="param-row">
+            <div class="param-header"><label>Drive</label><span class="val" id="shape-amt-val">0.00</span></div>
+            <input type="range" id="shape-amt" min="0" max="1" step="0.01" value="0">
+          </div>
+        </div>
+
+        <div class="mod-group" data-axis="fbAxis">
+          <div class="vel-row"><span class="vel-label">Feedback</span></div>
+          <div class="param-row">
+            <div class="param-header"><label>Amount</label><span class="val" id="fb-amt-val">0.00</span></div>
+            <input type="range" id="fb-amt" min="0" max="1" step="0.01" value="0">
+          </div>
+        </div>
+
+        <div class="mod-group" data-axis="warpAxis">
+          <div class="vel-row"><span class="vel-label">Warp &amp; Fold</span></div>
+          <div class="param-row">
+            <div class="param-header"><label>Warp</label><span class="val" id="warp-val">0.0 %</span></div>
+            <input type="range" id="warp" min="-1" max="1" step="0.01" value="0">
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Fold</label><span class="val" id="fold-drive-val">0 %</span></div>
+            <input type="range" id="fold-drive" min="1" max="8" step="0.1" value="1">
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Bias</label><span class="val" id="fold-bias-val">0.00</span></div>
+            <input type="range" id="fold-bias" min="-1" max="1" step="0.01" value="0">
+          </div>
+          <div class="info-text" data-info-label="warp and fold">
+            The two shapers from Ableton Wavetable's oscillator.
+            <strong>Warp</strong> bends the cycle's own clock rather than its
+            amplitude: at <em>+100%</em> the entire cycle is crammed into its opening
+            and the rest of the period is a flat tail; at <em>−100%</em> it lies flat
+            and then fires off at the very end. Both ends of the cycle are fixed
+            points of the bend, so the wave stays periodic and continuous at any
+            setting — on a square it reads as PWM, on a saw as a bent ramp.
+            <strong>Fold</strong> drives the wave into a reflecting folder: past ±1 the
+            signal turns back on itself instead of clipping, so each extra decibel of
+            drive buys another lobe per cycle and the harmonics grow without the
+            shape ever leaving the rails. <strong>Bias</strong> offsets the signal into
+            the folder, so the two halves fold differently and the result loses its
+            symmetry (and gains even harmonics).
+          </div>
+        </div>
+
+        <div class="mod-group" data-axis="crushAxis">
+          <div class="vel-row"><span class="vel-label">Crush</span></div>
+          <div class="param-row">
+            <div class="param-header"><label>Bits</label><span class="val" id="crush-bits-val">off</span></div>
+            <input type="range" id="crush-bits" min="1" max="16" step="0.5" value="16">
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Decimate</label><span class="val" id="crush-rate-val">off</span></div>
+            <input type="range" id="crush-rate" min="0" max="1" step="0.01" value="0">
+          </div>
+        </div>
+
+        <div class="mod-group" data-axis="noiseAxis">
+          <div class="vel-row"><span class="vel-label">Noise (waveform)</span></div>
+          <div class="param-row">
+            <div class="param-header"><label>Amount</label><span class="val" id="noise-amt-val">0.000</span></div>
+            <input type="range" id="noise-amt" min="0" max="0.1" step="0.001" value="0">
+          </div>
+        </div>
+
+        <div class="mod-group" data-axis="filterAxis">
+          <div class="vel-row"><span class="vel-label">Filter (final stage)</span></div>
+          <div class="wave-toggle" style="margin-bottom:8px">
+            <button class="wave-btn active" data-filter="lowpass">LP</button>
+            <button class="wave-btn" data-filter="highpass">HP</button>
+            <button class="wave-btn" data-filter="bandpass">BP</button>
+            <button class="wave-btn" data-filter="notch">NOTCH</button>
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Cutoff</label><span class="val" id="filter-freq-val">open</span></div>
+            <input type="range" id="filter-freq" min="0" max="1" step="0.001" value="1">
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Resonance</label><span class="val" id="filter-res-val">0.7</span></div>
+            <input type="range" id="filter-res" min="0.1" max="20" step="0.1" value="0.7">
+          </div>
+        </div>
+
+        <div class="mod-group" data-axis="syncAxis">
+          <div class="vel-row"><span class="vel-label">Sync</span></div>
+          <div class="param-row">
+            <div class="param-header"><label>Ratio</label><span class="val" id="sync-amt-val">1.00</span></div>
+            <input type="range" id="sync-amt" min="0.1" max="2" step="0.05" value="1">
+          </div>
+          <div style="display:flex;gap:16px;margin-top:2px">
+            <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--label);cursor:pointer"><input type="checkbox" id="sync-hard" checked style="accent-color:var(--accent2);cursor:pointer">hard sync</label>
+          </div>
+        </div>
+
+        <div class="mod-group">
+          <div class="vel-row"><span class="vel-label">Unison</span></div>
+          <div class="param-row">
+            <div class="param-header"><label>Detune</label><span class="val" id="unison-detune-val">0.0¢</span></div>
+            <input type="range" id="unison-detune" min="0" max="50" step="0.5" value="0">
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Mix</label><span class="val" id="unison-mix-val">0%</span></div>
+            <input type="range" id="unison-mix" min="0" max="1" step="0.01" value="0">
+          </div>
+        </div>
+      </div>
+
+      <div class="section" id="section-audio">
+        <div class="section-label">Audio output</div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="audio-enable">
+          <label for="audio-enable">Enable output</label>
+        </div>
+
+        <div class="subsection-label">Source</div>
+        <div class="wave-toggle" style="margin-bottom:8px">
+          <button class="wave-btn active" id="ain-internal-btn">INTERNAL</button>
+          <button class="wave-btn" id="ain-external-btn">EXTERNAL IN</button>
+        </div>
+
+        <!-- Internal generator controls (hidden when external input is selected) -->
+        <div id="ain-internal-controls">
+          <div style="font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Channel mode</div>
+          <div class="wave-toggle" style="margin-bottom:8px">
+            <button class="wave-btn active" id="audio-stereo-btn">STEREO (X / Y)</button>
+            <button class="wave-btn" id="audio-mono-btn">MONO (X+Y)</button>
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Volume</label><span class="val" id="vol-val">50%</span></div>
+            <input type="range" id="audio-vol" min="0" max="1" step="0.01" value="0.5">
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:2px">
+            <span style="color:var(--muted);font-size:10px;letter-spacing:0.06em">L &nbsp;<span id="audio-fx-hz" style="color:var(--label)">300 Hz</span></span>
+            <span style="color:var(--muted);font-size:10px;letter-spacing:0.06em">R &nbsp;<span id="audio-fy-hz" style="color:var(--label)">200 Hz</span></span>
+          </div>
+          <div class="checkbox-row" style="margin-top:10px">
+            <input type="checkbox" id="eq-loudness" checked>
+            <label for="eq-loudness">Equal-loudness weighting</label>
+          </div>
+          <div class="param-row" id="eq-loud-depth-row">
+            <div class="param-header"><label>Amount</label><span class="val" id="eq-loud-depth-val">100%</span></div>
+            <input type="range" id="eq-loud-depth" min="0" max="1" step="0.01" value="1">
+          </div>
+          <div class="info-text" data-info-label="equal-loudness weighting">
+            The ear is far less sensitive at the bottom of its range than in the
+            middle, so sweeping a ratio from 1 to 16 over a 100 Hz base walks from
+            nearly inaudible to piercing without the Volume slider moving. Each
+            oscillator is weighted by its own fundamental against the
+            <strong>ISO 226 60-phon contour</strong>, which flattens that out: the
+            two axes of a wide interval arrive at comparable loudness, and sweeping
+            a frequency no longer sweeps the level with it.
+            The curve only ever <em>attenuates</em> — the correction is normalised so
+            nothing is ever boosted above unity — so switching it on cannot clip the
+            output. It costs headroom instead, which Volume gets back.
+            It weights the <em>fundamental</em>, not each harmonic, so it evens out
+            the pitch of a note rather than the spectrum inside it.
+          </div>
+        </div>
+
+        <!-- External input controls (hidden when the internal generator is selected) -->
+        <div id="ain-external-controls" style="display:none">
+          <select class="midi-select" id="audio-input-select"><option value="">— select device —</option></select>
+          <button class="map-add-btn" id="ain-refresh" style="margin-top:6px">grant access &amp; list devices</button>
+          <button class="map-add-btn" id="ain-reset" style="margin-top:6px">↻ reset audio engine</button>
+          <div class="midi-status" style="margin-top:8px">
+            <div class="midi-dot" id="ain-dot"></div>
+            <span class="midi-status-text" id="ain-status">internal synth</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px;margin-top:8px">
+            <span style="font-size:11px;letter-spacing:0.08em;color:var(--muted)">IN</span>
+            <div class="ain-meter"><div class="ain-meter-fill" id="ain-meter-fill"></div></div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5" id="ain-diag" role="status"></div>
+          <div class="param-row" style="margin-top:8px">
+            <div class="param-header"><label>Monitor level</label><span class="val" id="ain-gain-val">100%</span></div>
+            <input type="range" id="ain-gain" min="0" max="1" step="0.01" value="1">
+          </div>
+          <div class="checkbox-row" style="margin-top:4px">
+            <input type="checkbox" id="ain-monitor" checked>
+            <label for="ain-monitor">Monitor (hear through speakers)</label>
+          </div>
+          <div class="info-text" data-info-label="the external audio input">
+            External input <strong>replaces</strong> the internal generator (exclusive — no
+            mixing) and is captured in video recordings. <strong>Volume</strong> now
+            shapes the recording as well as the speakers; Monitor level and mute still
+            affect the speakers alone, so you can record with them silent. For
+            system/desktop audio pick a loopback device (e.g. BlackHole, Loopback).
+          </div>
+          <div id="ain-protocol-note" style="font-size:11px;color:var(--warn);margin-top:6px;line-height:1.55;display:none" role="status"></div>
         </div>
       </div>
     </div>
 
-    <div class="section" id="section-midi-map">
-      <div class="section-label">CC Mapping</div>
-      <div style="font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Mapping input <span style="text-transform:none">(optional)</span></div>
-      <select class="midi-select" id="midi-map-input-select"><option value="">— same as main —</option></select>
-      <div class="param-row" style="margin-top:8px">
-        <div class="param-header"><label>Smoothing</label><span class="val" id="map-slew-val">45ms</span></div>
-        <input type="range" id="map-slew" min="0" max="1" step="0.005" value="0.045">
-      </div>
-      <div class="info-text" data-info-label="CC smoothing">
-        Interpolates incoming CC values so 7-bit steps don't jitter the parameters.
-      </div>
-      <div id="map-list"></div>
-      <button class="map-add-btn" id="map-add">+ add CC mapping</button>
+    <div class="tab-panel" id="tab-look" data-tab="look" role="tabpanel" aria-labelledby="tabbtn-look" tabindex="-1">
+      <div class="section" id="section-render">
+        <div class="section-label">Drawing</div>
+        <div class="subsection-label">View</div>
+        <div class="param-row">
+          <div class="param-header"><label>Zoom</label><span class="val" id="rec-zoom-val">1.00×</span></div>
+          <input type="range" id="rec-zoom" min="0.1" max="4" step="0.01" value="1">
+        </div>
+        <div class="info-text" data-info-label="zoom">
+          Scales the figure inside its frame, on screen and in a recording alike.
+          You can also <strong>pinch with two fingers</strong> or hold
+          <strong>Shift</strong> (or ⌘/Ctrl) and scroll anywhere over the figure.
+        </div>
+        <div class="number-input"><label>Resolution</label><input type="number" id="resolution" value="2000" min="100" max="10000" step="100"></div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="show-interval" checked>
+          <label for="show-interval">Show interval label</label>
+        </div>
 
-      <div class="subsection-label">Wave Out</div>
-      <div class="checkbox-row">
-        <input type="checkbox" id="wo-on">
-        <label for="wo-on">Send X &amp; Y as MIDI CC</label>
-      </div>
-      <div id="wo-controls">
-        <div style="font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Output</div>
-        <select class="midi-select" id="wo-port"><option value="">— no MIDI output —</option></select>
-        <div class="midi-ch-row">
-          <label for="wo-ch">Channel</label>
-          <select class="midi-ch-select" id="wo-ch"></select>
+        <div class="subsection-label">Colour</div>
+        <div class="color-row"><label>Stroke</label><input type="color" id="stroke-color" value="#c8f060"></div>
+        <div class="param-row hsl-row">
+          <div class="param-header"><label>Hue</label><span class="val" id="hsl-h-val">79</span></div>
+          <input type="range" id="hsl-h" min="0" max="360" step="1" value="79">
         </div>
-        <div class="midi-ch-row">
-          <label for="wo-cc-x">X axis CC</label>
-          <input type="number" class="map-cc-num" id="wo-cc-x" min="0" max="119" step="1" value="16">
+        <div class="param-row hsl-row">
+          <div class="param-header"><label>Saturation</label><span class="val" id="hsl-s-val">84</span></div>
+          <input type="range" id="hsl-s" min="0" max="100" step="1" value="84">
         </div>
-        <div class="midi-ch-row">
-          <label for="wo-cc-y">Y axis CC</label>
-          <input type="number" class="map-cc-num" id="wo-cc-y" min="0" max="119" step="1" value="17">
+        <div class="param-row hsl-row">
+          <div class="param-header"><label>Lightness</label><span class="val" id="hsl-l-val">66</span></div>
+          <input type="range" id="hsl-l" min="0" max="100" step="1" value="66">
+        </div>
+        <div class="color-row"><label>Background</label><input type="color" id="bg-color" value="#0c0c0e"></div>
+
+        <div class="subsection-label">Stroke</div>
+        <div class="param-row">
+          <div class="param-header"><label>Line width</label><span class="val" id="line-width-val">1.5</span></div>
+          <input type="range" id="line-width" min="0.5" max="8" step="0.1" value="1.5">
         </div>
         <div class="param-row">
-          <div class="param-header"><label>Rate</label><span class="val" id="wo-rate-val">1.00 laps/s</span></div>
-          <input type="range" id="wo-rate" min="0.01" max="20" step="0.01" value="1">
+          <div class="param-header"><label>Dots ↔ Line</label><span class="val" id="dots-line-val">line</span></div>
+          <input type="range" id="dots-line" min="0" max="1" step="0.01" value="1">
+        </div>
+
+        <div class="subsection-label">Symmetry</div>
+        <div class="param-header" style="margin-bottom:4px"><label>Mirror</label></div>
+        <div class="wave-toggle" style="margin-bottom:8px">
+          <button class="wave-btn active" data-mirror="0">OFF</button>
+          <button class="wave-btn" data-mirror="1">X</button>
+          <button class="wave-btn" data-mirror="2">Y</button>
+          <button class="wave-btn" data-mirror="3">X+Y</button>
         </div>
         <div class="checkbox-row">
-          <input type="checkbox" id="wo-follow" checked>
-          <label for="wo-follow">Follow the construction tracer when it's showing</label>
+          <input type="checkbox" id="fill-surface">
+          <label for="fill-surface">Fill surface (front &amp; back)</label>
         </div>
-        <div class="grid-hint" id="wo-status">X — · Y —</div>
+
+        <div class="subsection-label">Trail</div>
+        <div class="wave-toggle" style="margin-bottom:6px">
+          <button class="wave-btn active" data-trailmode="0">FADE</button>
+          <button class="wave-btn" data-trailmode="1">KEEP</button>
+        </div>
+        <div class="param-row" id="trail-amt-row">
+          <div class="param-header"><label>Persistence</label><span class="val" id="trail-amt-val">off</span></div>
+          <input type="range" id="trail-amt" min="0" max="0.97" step="0.01" value="0">
+        </div>
+        <div id="trail-keep-row" style="display:none">
+          <div class="param-row">
+            <div class="param-header"><label>Count</label><span class="val" id="trail-count-val">4</span></div>
+            <input type="range" id="trail-count" min="0" max="16" step="1" value="4">
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Spacing</label><span class="val" id="trail-spacing-val">0.08π</span></div>
+            <input type="range" id="trail-spacing" min="0.005" max="0.5" step="0.005" value="0.08">
+          </div>
+        </div>
+        <div id="trail-quality-row" style="display:none">
+          <div class="param-header" style="margin-bottom:4px"><label>Ghost detail</label></div>
+          <div class="wave-toggle" style="margin-bottom:6px">
+            <button class="wave-btn active" data-trailq="auto" title="Full detail while the frame rate allows it, coarser when it doesn't">AUTO</button>
+            <button class="wave-btn" data-trailq="full" title="Always full resolution, however slow">FULL</button>
+            <button class="wave-btn" data-trailq="fast" title="Always coarse — fastest">FAST</button>
+          </div>
+          <div class="info-text" data-info-label="ghost detail">
+            A KEEP trail's cost is the ink it lays down, not the arithmetic: every
+            copy is stroked twice (once to clear its own path, once to draw it), so
+            a long figure at sixteen copies fills the frame many times over. The
+            copies are therefore rasterised into their own smaller layer and scaled
+            back up — half the linear size is a quarter of the work — while the live
+            curve is drawn straight onto the canvas at full resolution and stays
+            sharp. <strong>AUTO</strong> keeps the copies pixel-sharp while the
+            frame rate allows it and steps them down only when frames actually run
+            long, so you pay for detail only where it is affordable.
+          </div>
+        </div>
+        <div class="info-text" data-info-label="trail modes">
+          <strong>FADE</strong> is an afterglow: each frame's curve is kept and eaten
+          away over the next few, at a rate set by <em>Persistence</em>.
+          <strong>KEEP</strong> does not fade at all — it draws <em>Count</em> extra
+          copies of the figure, each <em>Spacing</em> further back in phase, so the
+          trail is a set of standing copies rather than a smear. The live curve
+          erases whatever it crosses, so it always reads solid and the copies give
+          way to it. Either way the trail applies to the figure alone; the
+          construction view's strips, rulers and dots are redrawn clean every frame.
+        </div>
+
       </div>
-      <div class="info-text" data-info-label="the wave outputs">
-        Streams the two axis waveforms out as continuous controllers, so the same
-        shapes that draw the figure can modulate something in a DAW. The rate is
-        the <strong>visual</strong> one, not the audible one: <em>Rate</em> sets how
-        many laps of the figure go by per second, and each axis then runs at its own
-        side of the ratio — a 3:2 figure at 1 lap/s sends 3&nbsp;Hz on X and 2&nbsp;Hz
-        on Y. The values carry the whole waveform chain, filter included, and are
-        sent only when the 7-bit value actually changes.
+
+      <div class="section" id="section-3d">
+        <div class="section-label">3D</div>
+        <div class="mod-group">
+          <div class="vel-row"><span class="vel-label">Depth</span></div>
+          <div class="param-header" style="margin-bottom:4px"><label>Depth source</label></div>
+          <div class="wave-toggle" style="margin-bottom:6px">
+            <button class="wave-btn active" data-depthsrc="0" aria-pressed="true">FLAT</button>
+            <button class="wave-btn" data-depthsrc="1" aria-pressed="false">PHASE LIFT</button>
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label id="az-label">Depth</label><span class="val" id="az-val">0%</span></div>
+            <input type="range" id="az" min="0" max="1" step="0.01" value="0">
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Tilt</label><span class="val" id="tilt-angle-val">0°</span></div>
+            <input type="range" id="tilt-angle" min="-89" max="89" step="1" value="0">
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="depth-shade" checked>
+            <label for="depth-shade">Depth shading &mdash; far strokes dimmer, thinner (lift only)</label>
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="show-shadow">
+            <label for="show-shadow">Show the flat shadow</label>
+          </div>
+          <div class="info-text" data-info-label="the phase lift">
+            The animated figure reads as a wire object turning about a central axis
+            because it is one. <strong>sin(fx·t + δ)</strong> expands to
+            <strong>sin(fx·t)·cos δ + cos(fx·t)·sin δ</strong> — the x of the
+            <em>fixed</em> curve <em>(sin fx·t, sin fy·t, cos fx·t)</em>, wound on a
+            vertical cylinder of radius <em>ax</em>, turned by δ about that cylinder's
+            axis. The flat figure is its shadow, and animating δ is spinning it.
+            <strong>PHASE LIFT</strong> stops discarding the third coordinate.
+            With <strong>Tilt</strong> and <strong>Depth</strong> at zero the picture is
+            unchanged to the pixel — that is the proof, not a bug. Raise
+            <strong>Tilt</strong> to look at it from off-axis (or drag on the figure),
+            <strong>Depth</strong> to add perspective, and <strong>Show the flat
+            shadow</strong> to keep the original figure visible underneath.
+            <strong>The identity is exact for sine only.</strong> Setting δ = 0 and then
+            δ = π/2 pins both coordinates, and nothing but a sinusoid satisfies what is
+            left: a phase shift moves harmonic <em>n</em> by <em>n</em>·δ, which no single
+            rotation can do. With a triangle, saw or square base wave, or with FM, sync,
+            fold, crush or feedback in play, the lifted object is a close relative of the
+            animation rather than the same thing. The waveform filter is the exception
+            — it is linear, so it commutes with the rotation exactly. While the lift is
+            on, δ no longer moves the waveform, so <em>Phase rotates FM/AM
+            modulators</em> has nothing to act on.
+          </div>
+        </div>
+
+        <div class="mod-group" id="frame-group">
+          <div class="vel-row"><span class="vel-label">Coordinate frame</span></div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="frame-show">
+            <label for="frame-show">Show the coordinate frame</label>
+          </div>
+          <div id="frame-controls" style="display:none">
+            <div class="param-header" style="margin-bottom:4px"><label>Looks</label></div>
+            <div class="preset-grid" id="frame-look-grid">
+              <button class="preset-btn look-btn" type="button" data-framelook="axes">AXES</button>
+              <button class="preset-btn look-btn" type="button" data-framelook="ruler">RULER</button>
+              <button class="preset-btn look-btn" type="button" data-framelook="ground">GROUND</button>
+              <button class="preset-btn look-btn" type="button" data-framelook="box">BOX</button>
+              <button class="preset-btn look-btn" type="button" data-framelook="orbit">ORBITALS</button>
+              <button class="preset-btn look-btn" type="button" data-framelook="globe">GLOBE</button>
+              <button class="preset-btn look-btn" type="button" data-framelook="lab">EVERYTHING</button>
+            </div>
+
+            <div class="param-header" style="margin:8px 0 4px"><label>Axes</label></div>
+            <div class="wave-toggle" style="margin-bottom:6px">
+              <button class="wave-btn" type="button" data-frameaxes="0" aria-pressed="false">OFF</button>
+              <button class="wave-btn" type="button" data-frameaxes="1" aria-pressed="false">RAYS</button>
+              <button class="wave-btn active" type="button" data-frameaxes="2" aria-pressed="true">FULL &plusmn;</button>
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>Axis length</label><span class="val" id="frame-axis-len-val">1.15&times;</span></div>
+              <input type="range" id="frame-axis-len" min="0.2" max="2" step="0.01" value="1.15">
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="frame-arrows" checked>
+              <label for="frame-arrows">Arrowheads</label>
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="frame-axis-labels" checked>
+              <label for="frame-axis-labels">Axis labels &mdash; x / y / z</label>
+            </div>
+
+            <div class="param-header" style="margin:8px 0 4px"><label>Ticks</label></div>
+            <div class="wave-toggle" style="margin-bottom:6px">
+              <button class="wave-btn" type="button" data-frameticks="0" aria-pressed="false">OFF</button>
+              <button class="wave-btn active" type="button" data-frameticks="1" aria-pressed="true">MARKS</button>
+              <button class="wave-btn" type="button" data-frameticks="2" aria-pressed="false">NUMBERS</button>
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>Tick spacing</label><span class="val" id="frame-tick-div-val">1/4</span></div>
+              <input type="range" id="frame-tick-div" min="1" max="10" step="1" value="4">
+            </div>
+
+            <div class="param-header" style="margin:8px 0 4px"><label>Planes</label></div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="frame-plane-xy">
+              <label for="frame-plane-xy">XY &mdash; the screen plane</label>
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="frame-plane-yz">
+              <label for="frame-plane-yz">YZ &mdash; the side plane</label>
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="frame-plane-zx">
+              <label for="frame-plane-zx">ZX &mdash; the ground plane</label>
+            </div>
+            <div class="wave-toggle" style="margin-bottom:6px">
+              <button class="wave-btn active" type="button" data-frameplanemode="0" aria-pressed="true">GRID</button>
+              <button class="wave-btn" type="button" data-frameplanemode="1" aria-pressed="false">FILL</button>
+              <button class="wave-btn" type="button" data-frameplanemode="2" aria-pressed="false">BOTH</button>
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>Plane grid</label><span class="val" id="frame-plane-div-val">8 cells</span></div>
+              <input type="range" id="frame-plane-div" min="1" max="24" step="1" value="8">
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="frame-box">
+              <label for="frame-box">Bounding box</label>
+            </div>
+
+            <div class="param-header" style="margin:8px 0 4px"><label>Orbitals</label></div>
+            <div class="wave-toggle" style="margin-bottom:6px">
+              <button class="wave-btn" type="button" data-frameorbits="0" aria-pressed="false">OFF</button>
+              <button class="wave-btn active" type="button" data-frameorbits="1" aria-pressed="true">EQUATOR</button>
+              <button class="wave-btn" type="button" data-frameorbits="2" aria-pressed="false">ALL THREE</button>
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="frame-sphere">
+              <label for="frame-sphere">Wireframe sphere</label>
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>Latitudes</label><span class="val" id="frame-sphere-lat-val">4</span></div>
+              <input type="range" id="frame-sphere-lat" min="0" max="16" step="1" value="4">
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>Meridians</label><span class="val" id="frame-sphere-lon-val">6</span></div>
+              <input type="range" id="frame-sphere-lon" min="0" max="16" step="1" value="6">
+            </div>
+
+            <div class="param-header" style="margin:8px 0 4px"><label>Angles</label></div>
+            <div class="wave-toggle" style="margin-bottom:6px">
+              <button class="wave-btn active" type="button" data-frameangles="0" aria-pressed="true">OFF</button>
+              <button class="wave-btn" type="button" data-frameangles="1" aria-pressed="false">ARCS</button>
+              <button class="wave-btn" type="button" data-frameangles="2" aria-pressed="false">LABELLED</button>
+            </div>
+            <div class="wave-toggle" style="margin-bottom:6px">
+              <button class="wave-btn active" type="button" data-frameanglenames="0" aria-pressed="true">&theta; / &phi;</button>
+              <button class="wave-btn" type="button" data-frameanglenames="1" aria-pressed="false">AZ / EL</button>
+            </div>
+
+            <div class="param-header" style="margin:8px 0 4px"><label>Colour</label></div>
+            <div class="wave-toggle" style="margin-bottom:6px">
+              <button class="wave-btn active" type="button" data-framecolor="0" aria-pressed="true">RGB</button>
+              <button class="wave-btn" type="button" data-framecolor="1" aria-pressed="false">MONO</button>
+              <button class="wave-btn" type="button" data-framecolor="2" aria-pressed="false">ICE</button>
+              <button class="wave-btn" type="button" data-framecolor="3" aria-pressed="false">CUSTOM</button>
+            </div>
+            <div id="frame-custom-colors" style="display:none">
+              <div class="color-row"><label>x axis</label><input type="color" id="frame-col-x" value="#e5484d"></div>
+              <div class="color-row"><label>y axis</label><input type="color" id="frame-col-y" value="#4cc38a"></div>
+              <div class="color-row"><label>z axis</label><input type="color" id="frame-col-z" value="#5b8def"></div>
+              <div class="color-row"><label>Mesh</label><input type="color" id="frame-col-grid" value="#8b909a"></div>
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>Opacity</label><span class="val" id="frame-opacity-val">55%</span></div>
+              <input type="range" id="frame-opacity" min="0" max="1" step="0.01" value="0.55">
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>Line width</label><span class="val" id="frame-width-val">1.2</span></div>
+              <input type="range" id="frame-width" min="0.4" max="4" step="0.1" value="1.2">
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>Frame scale</label><span class="val" id="frame-radius-val">1.00&times;</span></div>
+              <input type="range" id="frame-radius" min="0.2" max="2" step="0.01" value="1">
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="frame-follow" checked>
+              <label for="frame-follow">Frame turns with the figure</label>
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="frame-fade" checked>
+              <label for="frame-fade">Depth fade &mdash; the far side dimmer</label>
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="frame-front">
+              <label for="frame-front">Draw in front of the figure</label>
+            </div>
+          </div>
+          <div class="info-text" data-info-label="the coordinate frame">
+            The frame is drawn through the <em>same projection as the figure</em>, so it
+            is not a picture of a coordinate system laid over the curve &mdash; it is the
+            space the curve is in. Every ring, plane and tick takes the rotation, the
+            orbit tilt and the perspective the figure takes, which is why a
+            tick at <strong>0.5</strong> sits exactly where the figure's own 0.5 sits and
+            the equator stays under it as the object turns.
+            <strong>Orbitals</strong> are the great circles of the three coordinate
+            planes, each wearing the colour of the axis it is normal to, so the flat
+            horizontal ring reads as the plane the y axis stands on.
+            <strong>Angles</strong> traces the yaw and the orbit tilt as arcs by driving
+            the rotation from zero up to its live value and following where an axis
+            lands &mdash; the arc is the path the axis actually took, so it cannot
+            disagree with the picture.
+            <strong>Frame turns with the figure</strong> makes it the object's own frame;
+            switch it off and the frame is fixed to the view instead, so the figure turns
+            inside a coordinate system that stays put.
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="section" id="section-audio">
-      <div class="section-label">Audio &amp; Video</div>
-      <div class="checkbox-row">
-        <input type="checkbox" id="audio-enable">
-        <label for="audio-enable">Enable output</label>
-      </div>
-
-      <div class="subsection-label">Source</div>
-      <div class="wave-toggle" style="margin-bottom:8px">
-        <button class="wave-btn active" id="ain-internal-btn">INTERNAL</button>
-        <button class="wave-btn" id="ain-external-btn">EXTERNAL IN</button>
-      </div>
-
-      <!-- Internal generator controls (hidden when external input is selected) -->
-      <div id="ain-internal-controls">
-        <div style="font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Channel mode</div>
-        <div class="wave-toggle" style="margin-bottom:8px">
-          <button class="wave-btn active" id="audio-stereo-btn">STEREO (X / Y)</button>
-          <button class="wave-btn" id="audio-mono-btn">MONO (X+Y)</button>
-        </div>
+    <div class="tab-panel" id="tab-motion" data-tab="motion" role="tabpanel" aria-labelledby="tabbtn-motion" tabindex="-1">
+      <div class="section" id="section-motion">
+        <div class="section-label">Motion</div>
         <div class="param-row">
-          <div class="param-header"><label>Volume</label><span class="val" id="vol-val">50%</span></div>
-          <input type="range" id="audio-vol" min="0" max="1" step="0.01" value="0.5">
+          <div class="param-header"><label id="phase-label">δ (phase position)</label><span class="val" id="phase-val">0.50π</span></div>
+          <input type="range" id="phase" min="0" max="2" step="0.01" value="0.5">
         </div>
-        <div style="display:flex;justify-content:space-between;margin-top:2px">
-          <span style="color:var(--muted);font-size:10px;letter-spacing:0.06em">L &nbsp;<span id="audio-fx-hz" style="color:var(--label)">300 Hz</span></span>
-          <span style="color:var(--muted);font-size:10px;letter-spacing:0.06em">R &nbsp;<span id="audio-fy-hz" style="color:var(--label)">200 Hz</span></span>
+        <div class="checkbox-row">
+          <input type="checkbox" id="phase-modulators">
+          <label for="phase-modulators">Phase rotates FM/AM modulators</label>
         </div>
-        <div class="checkbox-row" style="margin-top:10px">
-          <input type="checkbox" id="eq-loudness" checked>
-          <label for="eq-loudness">Equal-loudness weighting</label>
+        <div class="checkbox-row">
+          <input type="checkbox" id="animate" checked>
+          <label for="animate">Animate phase</label>
         </div>
-        <div class="param-row" id="eq-loud-depth-row">
-          <div class="param-header"><label>Amount</label><span class="val" id="eq-loud-depth-val">100%</span></div>
-          <input type="range" id="eq-loud-depth" min="0" max="1" step="0.01" value="1">
-        </div>
-        <div class="info-text" data-info-label="equal-loudness weighting">
-          The ear is far less sensitive at the bottom of its range than in the
-          middle, so sweeping a ratio from 1 to 16 over a 100 Hz base walks from
-          nearly inaudible to piercing without the Volume slider moving. Each
-          oscillator is weighted by its own fundamental against the
-          <strong>ISO 226 60-phon contour</strong>, which flattens that out: the
-          two axes of a wide interval arrive at comparable loudness, and sweeping
-          a frequency no longer sweeps the level with it.
-          The curve only ever <em>attenuates</em> — the correction is normalised so
-          nothing is ever boosted above unity — so switching it on cannot clip the
-          output. It costs headroom instead, which Volume gets back.
-          It weights the <em>fundamental</em>, not each harmonic, so it evens out
-          the pitch of a note rather than the spectrum inside it.
+        <div class="param-row" id="anim-speed-row">
+          <div class="param-header"><label>Speed</label><span class="val" id="speed-val">1.0×</span></div>
+          <input type="range" id="anim-speed" min="0.1" max="5" step="0.1" value="1">
         </div>
       </div>
 
-      <!-- External input controls (hidden when the internal generator is selected) -->
-      <div id="ain-external-controls" style="display:none">
-        <select class="midi-select" id="audio-input-select"><option value="">— select device —</option></select>
-        <button class="map-add-btn" id="ain-refresh" style="margin-top:6px">grant access &amp; list devices</button>
-        <button class="map-add-btn" id="ain-reset" style="margin-top:6px">↻ reset audio engine</button>
-        <div class="midi-status" style="margin-top:8px">
-          <div class="midi-dot" id="ain-dot"></div>
-          <span class="midi-status-text" id="ain-status">internal synth</span>
+      <div class="section" id="section-construct">
+        <div class="section-label">Construction view</div>
+        <div class="checkbox-row" style="margin-top:6px">
+          <input type="checkbox" id="construction-view" checked>
+          <label for="construction-view">Construction view</label>
         </div>
-        <div style="display:flex;align-items:center;gap:7px;margin-top:8px">
-          <span style="font-size:11px;letter-spacing:0.08em;color:var(--muted)">IN</span>
-          <div class="ain-meter"><div class="ain-meter-fill" id="ain-meter-fill"></div></div>
+        <div id="construction-controls" class="mod-group" style="margin-top:6px">
+          <div class="param-header" style="margin-bottom:4px"><label>Generators</label></div>
+          <div class="wave-toggle" style="margin-bottom:6px">
+            <button class="wave-btn active" data-m4rot="1">STRAIGHT</button>
+            <button class="wave-btn" data-m4rot="0">FULL LAP</button>
+          </div>
+          <div class="info-text" data-info-label="the generator strips">
+            <strong>STRAIGHT</strong> turns each generator a quarter turn, so its
+            amplitude is measured along the axis it drives, and scrolls a
+            one-cycle window that always ends at the tracer. The tracer's dot
+            therefore holds a fixed depth and moves only sideways while the wave
+            slides past, and the two lines to the moving point stay exactly
+            horizontal and vertical &mdash; the classic construction.
+            <strong>FULL LAP</strong> lays each wave along its strip and shows the
+            whole lap at once, at the cost of diagonal projections.
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Trace tempo</label><span class="val" id="trace-speed-val">1.0×</span></div>
+            <input type="range" id="trace-speed" min="0" max="5" step="0.1" value="1">
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Untraced opacity</label><span class="val" id="untraced-alpha-val">20%</span></div>
+            <input type="range" id="untraced-alpha" min="0" max="1" step="0.01" value="0.2">
+          </div>
         </div>
-        <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5" id="ain-diag" role="status"></div>
+      </div>
+
+      <div class="section" id="section-lfos">
+        <div class="section-label">LFOs</div>
+        <div id="lfo-list"></div>
+      </div>
+
+      <div class="section" id="section-evolve">
+        <div class="section-label">Evolve</div>
+        <button class="btn btn-primary" id="evolve-mutate" style="width:100%">⚇ Mutate</button>
+        <div class="param-row" style="margin-top:10px">
+          <div class="param-header"><label>Deviation</label><span class="val" id="evolve-dev-val">30%</span></div>
+          <input type="range" id="evolve-dev" min="0" max="1" step="0.01" value="0.3">
+        </div>
+        <div class="info-text" data-info-label="mutation deviation">
+          How far each mutation strays from the current value. At 100% every included
+          parameter is fully randomised.
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:6px">
+          <button class="map-add-btn" id="evolve-all" style="margin-top:0">select all</button>
+          <button class="map-add-btn" id="evolve-none" style="margin-top:0">deselect all</button>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:8px">
+          <button class="map-add-btn" id="evolve-rand3" style="margin-top:0">3 at random</button>
+          <button class="map-add-btn" id="evolve-rand6" style="margin-top:0">6 at random</button>
+        </div>
+        <div class="info-text" data-info-label="the random parameter draw">
+          <strong>3 / 6 at random</strong> clears the list and picks that many
+          parameters at random to include &mdash; a small, legible mutation instead of
+          moving everything at once. The view toggles are left out of the draw.
+        </div>
+        <div class="evolve-list" id="evolve-list"></div>
+        <button class="btn btn-outline" id="evolve-reset" style="width:100%;margin-top:12px">↺ Reset to defaults</button>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-setup" data-tab="setup" role="tabpanel" aria-labelledby="tabbtn-setup" tabindex="-1">
+      <div class="section" id="section-midi">
+        <div class="section-label">Notes &amp; MIDI</div>
+        <div class="subsection-label">Note Input</div>
+        <div class="wave-toggle" style="margin-bottom:8px">
+          <button class="wave-btn active" id="input-manual-btn">MANUAL</button>
+          <button class="wave-btn" id="input-dual-btn">MIDI</button>
+        </div>
+        <div id="x-note-panel" style="display:none">
+          <div class="midi-ch-row" style="margin-bottom:5px">
+            <label>X MIDI ch</label>
+            <select class="midi-ch-select" id="note-x-ch">
+              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+              <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+              <option value="7">7</option><option value="8">8</option>
+            </select>
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>X note</label><span class="val" id="x-note-val" style="color:var(--accent2)">—</span></div>
+            <input type="range" id="x-note-slider" min="0" max="11" step="1" value="0">
+          </div>
+        </div>
+        <div id="y-note-panel" style="display:none">
+          <div class="midi-ch-row" style="margin-bottom:5px">
+            <label>Y MIDI ch</label>
+            <select class="midi-ch-select" id="note-y-ch">
+              <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option>
+              <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+              <option value="7">7</option><option value="8">8</option>
+            </select>
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Y note</label><span class="val" id="y-note-val" style="color:var(--accent2)">C</span></div>
+            <input type="range" id="y-note-slider" min="0" max="11" step="1" value="0">
+          </div>
+        </div>
+        <div id="octave-mode-panel" style="display:none;margin-top:8px">
+          <div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Octave</div>
+          <div class="wave-toggle">
+            <button class="wave-btn active" id="oct-none-btn" style="padding:5px 3px">NONE</button>
+            <button class="wave-btn" id="oct-full-btn" style="padding:5px 3px">FULL</button>
+            <button class="wave-btn" id="oct-unison-btn" style="padding:5px 3px">8VE</button>
+          </div>
+        </div>
+        <div id="note-status-panel" style="display:none;margin-top:8px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="color:var(--label);font-size:11px">Interval</span>
+            <span id="note-interval-display" style="color:var(--label);font-size:11px">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <span style="color:var(--label);font-size:11px">Ratio</span>
+            <span id="note-ratio-display" style="color:var(--accent);font-size:11px">—</span>
+          </div>
+        </div>
+
+        <div class="subsection-label">MIDI Input</div>
+        <div class="midi-status">
+          <div class="midi-dot" id="midi-dot"></div>
+          <span class="midi-status-text" id="midi-status-text">not connected</span>
+        </div>
+        <div style="font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Note / main input</div>
+        <select class="midi-select" id="midi-input-select"><option value="">— no input —</option></select>
+        <div style="margin-top:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="color:var(--label);font-size:11px">Base freq</span>
+            <span id="midi-note-display" style="color:var(--accent);font-size:11px">100 Hz</span>
+          </div>
+          <div class="wave-toggle" style="margin-bottom:8px">
+            <button class="wave-btn active" id="basefreq-midi-btn">MIDI</button>
+            <button class="wave-btn" id="basefreq-slider-btn">SLIDER</button>
+          </div>
+          <div id="basefreq-midi-panel">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="color:var(--label);font-size:11px">Last note</span>
+              <span id="midi-note-name" style="color:var(--accent2);font-size:11px">—</span>
+            </div>
+            <div class="info-text" data-info-label="the MIDI note read-out">
+              Follows notes on the X-axis channel set in Note Input.
+            </div>
+          </div>
+          <div id="basefreq-slider-panel" style="display:none">
+            <div class="param-row">
+              <div class="param-header"><label>Base Hz</label><span class="val" id="basefreq-val">100 Hz</span></div>
+              <input type="range" id="basefreq-slider" min="10" max="500" step="1" value="100">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section" id="section-midi-map">
+        <div class="section-label">CC Mapping</div>
+        <div style="font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Mapping input <span style="text-transform:none">(optional)</span></div>
+        <select class="midi-select" id="midi-map-input-select"><option value="">— same as main —</option></select>
         <div class="param-row" style="margin-top:8px">
-          <div class="param-header"><label>Monitor level</label><span class="val" id="ain-gain-val">100%</span></div>
-          <input type="range" id="ain-gain" min="0" max="1" step="0.01" value="1">
+          <div class="param-header"><label>Smoothing</label><span class="val" id="map-slew-val">45ms</span></div>
+          <input type="range" id="map-slew" min="0" max="1" step="0.005" value="0.045">
         </div>
-        <div class="checkbox-row" style="margin-top:4px">
-          <input type="checkbox" id="ain-monitor" checked>
-          <label for="ain-monitor">Monitor (hear through speakers)</label>
+        <div class="info-text" data-info-label="CC smoothing">
+          Interpolates incoming CC values so 7-bit steps don't jitter the parameters.
         </div>
-        <div class="info-text" data-info-label="the external audio input">
-          External input <strong>replaces</strong> the internal generator (exclusive — no
-          mixing) and is captured in video recordings. <strong>Volume</strong> now
-          shapes the recording as well as the speakers; Monitor level and mute still
-          affect the speakers alone, so you can record with them silent. For
-          system/desktop audio pick a loopback device (e.g. BlackHole, Loopback).
+        <div id="map-list"></div>
+        <button class="map-add-btn" id="map-add">+ add CC mapping</button>
+
+        <div class="subsection-label">Wave Out</div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="wo-on">
+          <label for="wo-on">Send X &amp; Y as MIDI CC</label>
         </div>
-        <div id="ain-protocol-note" style="font-size:11px;color:var(--warn);margin-top:6px;line-height:1.55;display:none" role="status"></div>
-      </div>
-
-      <div class="subsection-label">Video</div>
-      <div style="font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Aspect ratio</div>
-      <div class="wave-toggle" style="margin-bottom:8px">
-        <button class="wave-btn active" data-aspect="1:1">1:1</button>
-        <button class="wave-btn" data-aspect="4:5">4:5</button>
-        <button class="wave-btn" data-aspect="16:9">16:9</button>
-        <button class="wave-btn" data-aspect="9:16">9:16</button>
-      </div>
-      <div class="checkbox-row">
-        <input type="checkbox" id="rec-show-frame">
-        <label for="rec-show-frame">Show frame preview</label>
-      </div>
-      <div class="param-row">
-        <div class="param-header"><label>Fade in</label><span class="val" id="rec-fade-in-val">off</span></div>
-        <input type="range" id="rec-fade-in" min="0" max="10" step="0.1" value="0">
-      </div>
-      <div class="param-row">
-        <div class="param-header"><label>Fade out</label><span class="val" id="rec-fade-out-val">off</span></div>
-        <input type="range" id="rec-fade-out" min="0" max="10" step="0.1" value="0">
-      </div>
-      <div class="info-text" data-info-label="the recording fades">
-        The clip opens out of, and closes back into, the
-        <strong>background colour</strong> — not black — so it starts and ends on
-        the same flat field the figure sits on. The audio rides the same ramp.
-        A fade-out means <strong>stop is not instant</strong>: the recording has to
-        keep rolling for the length of the fade, so the button shows
-        <em>fading</em> and saves the file when it lands.
-      </div>
-      <button class="map-add-btn" id="rec-toggle" style="margin-top:8px">● record</button>
-      <div class="info-text" data-info-label="video recording">
-        Recording captures exactly what the canvas shows — construction view included
-        when it's on. The framing's <strong>Zoom</strong> lives with the rest of the
-        figure's view controls, under <em>Figure ▸ View</em>, and <strong>Volume</strong>
-        now applies to the recorded audio as well as the speakers (the monitor level
-        and mute still do not — you can record with the speakers silent).
-      </div>
-      <div id="rec-status" style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5" role="status"></div>
-
-      <div class="subsection-label">Wavetable Export</div>
-      <div class="param-row">
-        <div class="param-header"><label>Root note</label><span class="val" id="wav-root-val">C0 · 33.5 kHz</span></div>
-        <input type="range" id="wav-root" min="0" max="48" step="1" value="12">
-      </div>
-      <button class="map-add-btn" id="btn-export-wav" style="margin-top:8px">⤓ Export Single Cycle WAV</button>
-      <div class="info-text" data-info-label="the single-cycle export">
-        Writes <strong>one cycle</strong> of each axis's processed waveform as a
-        2048-sample WAV — the format wavetable synths and samplers expect. A
-        single cycle has no pitch of its own; what fixes it is the file's sample
-        rate, so the <strong>Root note</strong> sets that rate
-        (2048 × the note's frequency) and the file plays back at that pitch at
-        normal speed. <strong>C0</strong> is the usual convention for
-        single-cycle libraries; pick the note your sampler expects, or the one you
-        want the table to sound at untransposed.
-      </div>
-    </div>
-
-    <div class="section" id="section-render">
-      <div class="section-label">Figure</div>
-
-      <div class="subsection-label">View</div>
-      <div class="param-row">
-        <div class="param-header"><label>Zoom</label><span class="val" id="rec-zoom-val">1.00×</span></div>
-        <input type="range" id="rec-zoom" min="0.1" max="4" step="0.01" value="1">
-      </div>
-      <div class="info-text" data-info-label="zoom">
-        Scales the figure inside its frame, on screen and in a recording alike.
-        You can also <strong>pinch with two fingers</strong> or hold
-        <strong>Shift</strong> (or ⌘/Ctrl) and scroll anywhere over the figure.
-      </div>
-      <div class="number-input"><label>Resolution</label><input type="number" id="resolution" value="2000" min="100" max="10000" step="100"></div>
-
-      <div class="subsection-label">Colour</div>
-      <div class="color-row"><label>Stroke</label><input type="color" id="stroke-color" value="#c8f060"></div>
-      <div class="param-row hsl-row">
-        <div class="param-header"><label>Hue</label><span class="val" id="hsl-h-val">79</span></div>
-        <input type="range" id="hsl-h" min="0" max="360" step="1" value="79">
-      </div>
-      <div class="param-row hsl-row">
-        <div class="param-header"><label>Saturation</label><span class="val" id="hsl-s-val">84</span></div>
-        <input type="range" id="hsl-s" min="0" max="100" step="1" value="84">
-      </div>
-      <div class="param-row hsl-row">
-        <div class="param-header"><label>Lightness</label><span class="val" id="hsl-l-val">66</span></div>
-        <input type="range" id="hsl-l" min="0" max="100" step="1" value="66">
-      </div>
-      <div class="color-row"><label>Background</label><input type="color" id="bg-color" value="#0c0c0e"></div>
-
-      <div class="subsection-label">Stroke</div>
-      <div class="param-row">
-        <div class="param-header"><label>Line width</label><span class="val" id="line-width-val">1.5</span></div>
-        <input type="range" id="line-width" min="0.5" max="8" step="0.1" value="1.5">
-      </div>
-      <div class="param-row">
-        <div class="param-header"><label>Dots ↔ Line</label><span class="val" id="dots-line-val">line</span></div>
-        <input type="range" id="dots-line" min="0" max="1" step="0.01" value="1">
-      </div>
-
-      <div class="subsection-label">Symmetry</div>
-      <div class="param-header" style="margin-bottom:4px"><label>Mirror</label></div>
-      <div class="wave-toggle" style="margin-bottom:8px">
-        <button class="wave-btn active" data-mirror="0">OFF</button>
-        <button class="wave-btn" data-mirror="1">X</button>
-        <button class="wave-btn" data-mirror="2">Y</button>
-        <button class="wave-btn" data-mirror="3">X+Y</button>
-      </div>
-      <div class="checkbox-row">
-        <input type="checkbox" id="fill-surface">
-        <label for="fill-surface">Fill surface (front &amp; back)</label>
-      </div>
-
-      <div class="subsection-label">Trail</div>
-      <div class="wave-toggle" style="margin-bottom:6px">
-        <button class="wave-btn active" data-trailmode="0">FADE</button>
-        <button class="wave-btn" data-trailmode="1">KEEP</button>
-      </div>
-      <div class="param-row" id="trail-amt-row">
-        <div class="param-header"><label>Persistence</label><span class="val" id="trail-amt-val">off</span></div>
-        <input type="range" id="trail-amt" min="0" max="0.97" step="0.01" value="0">
-      </div>
-      <div id="trail-keep-row" style="display:none">
-        <div class="param-row">
-          <div class="param-header"><label>Count</label><span class="val" id="trail-count-val">4</span></div>
-          <input type="range" id="trail-count" min="0" max="16" step="1" value="4">
+        <div id="wo-controls">
+          <div style="font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Output</div>
+          <select class="midi-select" id="wo-port"><option value="">— no MIDI output —</option></select>
+          <div class="midi-ch-row">
+            <label for="wo-ch">Channel</label>
+            <select class="midi-ch-select" id="wo-ch"></select>
+          </div>
+          <div class="midi-ch-row">
+            <label for="wo-cc-x">X axis CC</label>
+            <input type="number" class="map-cc-num" id="wo-cc-x" min="0" max="119" step="1" value="16">
+          </div>
+          <div class="midi-ch-row">
+            <label for="wo-cc-y">Y axis CC</label>
+            <input type="number" class="map-cc-num" id="wo-cc-y" min="0" max="119" step="1" value="17">
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Rate</label><span class="val" id="wo-rate-val">1.00 laps/s</span></div>
+            <input type="range" id="wo-rate" min="0.01" max="20" step="0.01" value="1">
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="wo-follow" checked>
+            <label for="wo-follow">Follow the construction tracer when it's showing</label>
+          </div>
+          <div class="grid-hint" id="wo-status">X — · Y —</div>
         </div>
-        <div class="param-row">
-          <div class="param-header"><label>Spacing</label><span class="val" id="trail-spacing-val">0.08π</span></div>
-          <input type="range" id="trail-spacing" min="0.005" max="0.5" step="0.005" value="0.08">
+        <div class="info-text" data-info-label="the wave outputs">
+          Streams the two axis waveforms out as continuous controllers, so the same
+          shapes that draw the figure can modulate something in a DAW. The rate is
+          the <strong>visual</strong> one, not the audible one: <em>Rate</em> sets how
+          many laps of the figure go by per second, and each axis then runs at its own
+          side of the ratio — a 3:2 figure at 1 lap/s sends 3&nbsp;Hz on X and 2&nbsp;Hz
+          on Y. The values carry the whole waveform chain, filter included, and are
+          sent only when the 7-bit value actually changes.
         </div>
       </div>
-      <div id="trail-quality-row" style="display:none">
-        <div class="param-header" style="margin-bottom:4px"><label>Ghost detail</label></div>
-        <div class="wave-toggle" style="margin-bottom:6px">
-          <button class="wave-btn active" data-trailq="auto" title="Full detail while the frame rate allows it, coarser when it doesn't">AUTO</button>
-          <button class="wave-btn" data-trailq="full" title="Always full resolution, however slow">FULL</button>
-          <button class="wave-btn" data-trailq="fast" title="Always coarse — fastest">FAST</button>
-        </div>
-        <div class="info-text" data-info-label="ghost detail">
-          A KEEP trail's cost is the ink it lays down, not the arithmetic: every
-          copy is stroked twice (once to clear its own path, once to draw it), so
-          a long figure at sixteen copies fills the frame many times over. The
-          copies are therefore rasterised into their own smaller layer and scaled
-          back up — half the linear size is a quarter of the work — while the live
-          curve is drawn straight onto the canvas at full resolution and stays
-          sharp. <strong>AUTO</strong> keeps the copies pixel-sharp while the
-          frame rate allows it and steps them down only when frames actually run
-          long, so you pay for detail only where it is affordable.
-        </div>
-      </div>
-      <div class="info-text" data-info-label="trail modes">
-        <strong>FADE</strong> is an afterglow: each frame's curve is kept and eaten
-        away over the next few, at a rate set by <em>Persistence</em>.
-        <strong>KEEP</strong> does not fade at all — it draws <em>Count</em> extra
-        copies of the figure, each <em>Spacing</em> further back in phase, so the
-        trail is a set of standing copies rather than a smear. The live curve
-        erases whatever it crosses, so it always reads solid and the copies give
-        way to it. Either way the trail applies to the figure alone; the
-        construction view's strips, rulers and dots are redrawn clean every frame.
-      </div>
 
-      <div class="subsection-label">Motion</div>
-      <div class="param-row">
-        <div class="param-header"><label id="phase-label">δ (phase position)</label><span class="val" id="phase-val">0.50π</span></div>
-        <input type="range" id="phase" min="0" max="2" step="0.01" value="0.5">
-      </div>
-      <div class="checkbox-row">
-        <input type="checkbox" id="phase-modulators">
-        <label for="phase-modulators">Phase rotates FM/AM modulators</label>
-      </div>
-      <div class="checkbox-row">
-        <input type="checkbox" id="animate" checked>
-        <label for="animate">Animate phase</label>
-      </div>
-      <div class="param-row" id="anim-speed-row">
-        <div class="param-header"><label>Speed</label><span class="val" id="speed-val">1.0×</span></div>
-        <input type="range" id="anim-speed" min="0.1" max="5" step="0.1" value="1">
-      </div>
-
-      <div class="subsection-label">Construction view</div>
-      <div class="checkbox-row" style="margin-top:6px">
-        <input type="checkbox" id="construction-view" checked>
-        <label for="construction-view">Construction view</label>
-      </div>
-      <div id="construction-controls" class="mod-group" style="margin-top:6px">
-        <div class="param-header" style="margin-bottom:4px"><label>Generators</label></div>
-        <div class="wave-toggle" style="margin-bottom:6px">
-          <button class="wave-btn active" data-m4rot="1">STRAIGHT</button>
-          <button class="wave-btn" data-m4rot="0">FULL LAP</button>
-        </div>
-        <div class="info-text" data-info-label="the generator strips">
-          <strong>STRAIGHT</strong> turns each generator a quarter turn, so its
-          amplitude is measured along the axis it drives, and scrolls a
-          one-cycle window that always ends at the tracer. The tracer's dot
-          therefore holds a fixed depth and moves only sideways while the wave
-          slides past, and the two lines to the moving point stay exactly
-          horizontal and vertical &mdash; the classic construction.
-          <strong>FULL LAP</strong> lays each wave along its strip and shows the
-          whole lap at once, at the cost of diagonal projections.
-        </div>
-        <div class="param-row">
-          <div class="param-header"><label>Trace tempo</label><span class="val" id="trace-speed-val">1.0×</span></div>
-          <input type="range" id="trace-speed" min="0" max="5" step="0.1" value="1">
-        </div>
-        <div class="param-row">
-          <div class="param-header"><label>Untraced opacity</label><span class="val" id="untraced-alpha-val">20%</span></div>
-          <input type="range" id="untraced-alpha" min="0" max="1" step="0.01" value="0.2">
-        </div>
-      </div>
-      <div class="checkbox-row">
-        <input type="checkbox" id="show-interval" checked>
-        <label for="show-interval">Show interval label</label>
-      </div>
-
-      <button class="btn btn-primary" id="btn-export" style="width:100%;margin-top:12px">Export SVG</button>
-    </div>
-
-    <div class="section" id="section-3d">
-      <div class="section-label">3D</div>
-
-      <div class="mod-group">
-        <div class="vel-row"><span class="vel-label">Depth</span></div>
-        <div class="param-header" style="margin-bottom:4px"><label>Depth source</label></div>
-        <div class="wave-toggle" style="margin-bottom:6px">
-          <button class="wave-btn active" data-depthsrc="0" aria-pressed="true">FLAT</button>
-          <button class="wave-btn" data-depthsrc="1" aria-pressed="false">PHASE LIFT</button>
-        </div>
-        <div class="param-row">
-          <div class="param-header"><label id="az-label">Depth</label><span class="val" id="az-val">0%</span></div>
-          <input type="range" id="az" min="0" max="1" step="0.01" value="0">
-        </div>
-        <div class="param-row">
-          <div class="param-header"><label>Tilt</label><span class="val" id="tilt-angle-val">0°</span></div>
-          <input type="range" id="tilt-angle" min="-89" max="89" step="1" value="0">
+      <div class="section" id="section-video">
+        <div class="section-label">Video</div>
+        <div style="font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Aspect ratio</div>
+        <div class="wave-toggle" style="margin-bottom:8px">
+          <button class="wave-btn active" data-aspect="1:1">1:1</button>
+          <button class="wave-btn" data-aspect="4:5">4:5</button>
+          <button class="wave-btn" data-aspect="16:9">16:9</button>
+          <button class="wave-btn" data-aspect="9:16">9:16</button>
         </div>
         <div class="checkbox-row">
-          <input type="checkbox" id="depth-shade" checked>
-          <label for="depth-shade">Depth shading &mdash; far strokes dimmer, thinner (lift only)</label>
+          <input type="checkbox" id="rec-show-frame">
+          <label for="rec-show-frame">Show frame preview</label>
         </div>
-        <div class="checkbox-row">
-          <input type="checkbox" id="show-shadow">
-          <label for="show-shadow">Show the flat shadow</label>
+        <div class="param-row">
+          <div class="param-header"><label>Fade in</label><span class="val" id="rec-fade-in-val">off</span></div>
+          <input type="range" id="rec-fade-in" min="0" max="10" step="0.1" value="0">
         </div>
-        <div class="info-text" data-info-label="the phase lift">
-          The animated figure reads as a wire object turning about a central axis
-          because it is one. <strong>sin(fx·t + δ)</strong> expands to
-          <strong>sin(fx·t)·cos δ + cos(fx·t)·sin δ</strong> — the x of the
-          <em>fixed</em> curve <em>(sin fx·t, sin fy·t, cos fx·t)</em>, wound on a
-          vertical cylinder of radius <em>ax</em>, turned by δ about that cylinder's
-          axis. The flat figure is its shadow, and animating δ is spinning it.
-          <strong>PHASE LIFT</strong> stops discarding the third coordinate.
-          With <strong>Tilt</strong> and <strong>Depth</strong> at zero the picture is
-          unchanged to the pixel — that is the proof, not a bug. Raise
-          <strong>Tilt</strong> to look at it from off-axis (or drag on the figure),
-          <strong>Depth</strong> to add perspective, and <strong>Show the flat
-          shadow</strong> to keep the original figure visible underneath.
-          <strong>The identity is exact for sine only.</strong> Setting δ = 0 and then
-          δ = π/2 pins both coordinates, and nothing but a sinusoid satisfies what is
-          left: a phase shift moves harmonic <em>n</em> by <em>n</em>·δ, which no single
-          rotation can do. With a triangle, saw or square base wave, or with FM, sync,
-          fold, crush or feedback in play, the lifted object is a close relative of the
-          animation rather than the same thing. The waveform filter is the exception
-          — it is linear, so it commutes with the rotation exactly. While the lift is
-          on, δ no longer moves the waveform, so <em>Phase rotates FM/AM
-          modulators</em> has nothing to act on.
+        <div class="param-row">
+          <div class="param-header"><label>Fade out</label><span class="val" id="rec-fade-out-val">off</span></div>
+          <input type="range" id="rec-fade-out" min="0" max="10" step="0.1" value="0">
         </div>
-      </div>
-
-      <div class="mod-group" id="frame-group">
-        <div class="vel-row"><span class="vel-label">Coordinate frame</span></div>
-        <div class="checkbox-row">
-          <input type="checkbox" id="frame-show">
-          <label for="frame-show">Show the coordinate frame</label>
+        <div class="info-text" data-info-label="the recording fades">
+          The clip opens out of, and closes back into, the
+          <strong>background colour</strong> — not black — so it starts and ends on
+          the same flat field the figure sits on. The audio rides the same ramp.
+          A fade-out means <strong>stop is not instant</strong>: the recording has to
+          keep rolling for the length of the fade, so the button shows
+          <em>fading</em> and saves the file when it lands.
         </div>
-        <div id="frame-controls" style="display:none">
-          <div class="param-header" style="margin-bottom:4px"><label>Looks</label></div>
-          <div class="preset-grid" id="frame-look-grid">
-            <button class="preset-btn look-btn" type="button" data-framelook="axes">AXES</button>
-            <button class="preset-btn look-btn" type="button" data-framelook="ruler">RULER</button>
-            <button class="preset-btn look-btn" type="button" data-framelook="ground">GROUND</button>
-            <button class="preset-btn look-btn" type="button" data-framelook="box">BOX</button>
-            <button class="preset-btn look-btn" type="button" data-framelook="orbit">ORBITALS</button>
-            <button class="preset-btn look-btn" type="button" data-framelook="globe">GLOBE</button>
-            <button class="preset-btn look-btn" type="button" data-framelook="lab">EVERYTHING</button>
-          </div>
-
-          <div class="param-header" style="margin:8px 0 4px"><label>Axes</label></div>
-          <div class="wave-toggle" style="margin-bottom:6px">
-            <button class="wave-btn" type="button" data-frameaxes="0" aria-pressed="false">OFF</button>
-            <button class="wave-btn" type="button" data-frameaxes="1" aria-pressed="false">RAYS</button>
-            <button class="wave-btn active" type="button" data-frameaxes="2" aria-pressed="true">FULL &plusmn;</button>
-          </div>
-          <div class="param-row">
-            <div class="param-header"><label>Axis length</label><span class="val" id="frame-axis-len-val">1.15&times;</span></div>
-            <input type="range" id="frame-axis-len" min="0.2" max="2" step="0.01" value="1.15">
-          </div>
-          <div class="checkbox-row">
-            <input type="checkbox" id="frame-arrows" checked>
-            <label for="frame-arrows">Arrowheads</label>
-          </div>
-          <div class="checkbox-row">
-            <input type="checkbox" id="frame-axis-labels" checked>
-            <label for="frame-axis-labels">Axis labels &mdash; x / y / z</label>
-          </div>
-
-          <div class="param-header" style="margin:8px 0 4px"><label>Ticks</label></div>
-          <div class="wave-toggle" style="margin-bottom:6px">
-            <button class="wave-btn" type="button" data-frameticks="0" aria-pressed="false">OFF</button>
-            <button class="wave-btn active" type="button" data-frameticks="1" aria-pressed="true">MARKS</button>
-            <button class="wave-btn" type="button" data-frameticks="2" aria-pressed="false">NUMBERS</button>
-          </div>
-          <div class="param-row">
-            <div class="param-header"><label>Tick spacing</label><span class="val" id="frame-tick-div-val">1/4</span></div>
-            <input type="range" id="frame-tick-div" min="1" max="10" step="1" value="4">
-          </div>
-
-          <div class="param-header" style="margin:8px 0 4px"><label>Planes</label></div>
-          <div class="checkbox-row">
-            <input type="checkbox" id="frame-plane-xy">
-            <label for="frame-plane-xy">XY &mdash; the screen plane</label>
-          </div>
-          <div class="checkbox-row">
-            <input type="checkbox" id="frame-plane-yz">
-            <label for="frame-plane-yz">YZ &mdash; the side plane</label>
-          </div>
-          <div class="checkbox-row">
-            <input type="checkbox" id="frame-plane-zx">
-            <label for="frame-plane-zx">ZX &mdash; the ground plane</label>
-          </div>
-          <div class="wave-toggle" style="margin-bottom:6px">
-            <button class="wave-btn active" type="button" data-frameplanemode="0" aria-pressed="true">GRID</button>
-            <button class="wave-btn" type="button" data-frameplanemode="1" aria-pressed="false">FILL</button>
-            <button class="wave-btn" type="button" data-frameplanemode="2" aria-pressed="false">BOTH</button>
-          </div>
-          <div class="param-row">
-            <div class="param-header"><label>Plane grid</label><span class="val" id="frame-plane-div-val">8 cells</span></div>
-            <input type="range" id="frame-plane-div" min="1" max="24" step="1" value="8">
-          </div>
-          <div class="checkbox-row">
-            <input type="checkbox" id="frame-box">
-            <label for="frame-box">Bounding box</label>
-          </div>
-
-          <div class="param-header" style="margin:8px 0 4px"><label>Orbitals</label></div>
-          <div class="wave-toggle" style="margin-bottom:6px">
-            <button class="wave-btn" type="button" data-frameorbits="0" aria-pressed="false">OFF</button>
-            <button class="wave-btn active" type="button" data-frameorbits="1" aria-pressed="true">EQUATOR</button>
-            <button class="wave-btn" type="button" data-frameorbits="2" aria-pressed="false">ALL THREE</button>
-          </div>
-          <div class="checkbox-row">
-            <input type="checkbox" id="frame-sphere">
-            <label for="frame-sphere">Wireframe sphere</label>
-          </div>
-          <div class="param-row">
-            <div class="param-header"><label>Latitudes</label><span class="val" id="frame-sphere-lat-val">4</span></div>
-            <input type="range" id="frame-sphere-lat" min="0" max="16" step="1" value="4">
-          </div>
-          <div class="param-row">
-            <div class="param-header"><label>Meridians</label><span class="val" id="frame-sphere-lon-val">6</span></div>
-            <input type="range" id="frame-sphere-lon" min="0" max="16" step="1" value="6">
-          </div>
-
-          <div class="param-header" style="margin:8px 0 4px"><label>Angles</label></div>
-          <div class="wave-toggle" style="margin-bottom:6px">
-            <button class="wave-btn active" type="button" data-frameangles="0" aria-pressed="true">OFF</button>
-            <button class="wave-btn" type="button" data-frameangles="1" aria-pressed="false">ARCS</button>
-            <button class="wave-btn" type="button" data-frameangles="2" aria-pressed="false">LABELLED</button>
-          </div>
-          <div class="wave-toggle" style="margin-bottom:6px">
-            <button class="wave-btn active" type="button" data-frameanglenames="0" aria-pressed="true">&theta; / &phi;</button>
-            <button class="wave-btn" type="button" data-frameanglenames="1" aria-pressed="false">AZ / EL</button>
-          </div>
-
-          <div class="param-header" style="margin:8px 0 4px"><label>Colour</label></div>
-          <div class="wave-toggle" style="margin-bottom:6px">
-            <button class="wave-btn active" type="button" data-framecolor="0" aria-pressed="true">RGB</button>
-            <button class="wave-btn" type="button" data-framecolor="1" aria-pressed="false">MONO</button>
-            <button class="wave-btn" type="button" data-framecolor="2" aria-pressed="false">ICE</button>
-            <button class="wave-btn" type="button" data-framecolor="3" aria-pressed="false">CUSTOM</button>
-          </div>
-          <div id="frame-custom-colors" style="display:none">
-            <div class="color-row"><label>x axis</label><input type="color" id="frame-col-x" value="#e5484d"></div>
-            <div class="color-row"><label>y axis</label><input type="color" id="frame-col-y" value="#4cc38a"></div>
-            <div class="color-row"><label>z axis</label><input type="color" id="frame-col-z" value="#5b8def"></div>
-            <div class="color-row"><label>Mesh</label><input type="color" id="frame-col-grid" value="#8b909a"></div>
-          </div>
-          <div class="param-row">
-            <div class="param-header"><label>Opacity</label><span class="val" id="frame-opacity-val">55%</span></div>
-            <input type="range" id="frame-opacity" min="0" max="1" step="0.01" value="0.55">
-          </div>
-          <div class="param-row">
-            <div class="param-header"><label>Line width</label><span class="val" id="frame-width-val">1.2</span></div>
-            <input type="range" id="frame-width" min="0.4" max="4" step="0.1" value="1.2">
-          </div>
-          <div class="param-row">
-            <div class="param-header"><label>Frame scale</label><span class="val" id="frame-radius-val">1.00&times;</span></div>
-            <input type="range" id="frame-radius" min="0.2" max="2" step="0.01" value="1">
-          </div>
-          <div class="checkbox-row">
-            <input type="checkbox" id="frame-follow" checked>
-            <label for="frame-follow">Frame turns with the figure</label>
-          </div>
-          <div class="checkbox-row">
-            <input type="checkbox" id="frame-fade" checked>
-            <label for="frame-fade">Depth fade &mdash; the far side dimmer</label>
-          </div>
-          <div class="checkbox-row">
-            <input type="checkbox" id="frame-front">
-            <label for="frame-front">Draw in front of the figure</label>
-          </div>
+        <button class="map-add-btn" id="rec-toggle" style="margin-top:8px">● record</button>
+        <div class="info-text" data-info-label="video recording">
+          Recording captures exactly what the canvas shows — construction view included
+          when it's on. The framing's <strong>Zoom</strong> lives with the rest of the
+          figure's view controls, under <em>Figure ▸ View</em>, and <strong>Volume</strong>
+          now applies to the recorded audio as well as the speakers (the monitor level
+          and mute still do not — you can record with the speakers silent).
         </div>
-        <div class="info-text" data-info-label="the coordinate frame">
-          The frame is drawn through the <em>same projection as the figure</em>, so it
-          is not a picture of a coordinate system laid over the curve &mdash; it is the
-          space the curve is in. Every ring, plane and tick takes the rotation, the
-          orbit tilt and the perspective the figure takes, which is why a
-          tick at <strong>0.5</strong> sits exactly where the figure's own 0.5 sits and
-          the equator stays under it as the object turns.
-          <strong>Orbitals</strong> are the great circles of the three coordinate
-          planes, each wearing the colour of the axis it is normal to, so the flat
-          horizontal ring reads as the plane the y axis stands on.
-          <strong>Angles</strong> traces the yaw and the orbit tilt as arcs by driving
-          the rotation from zero up to its live value and following where an axis
-          lands &mdash; the arc is the path the axis actually took, so it cannot
-          disagree with the picture.
-          <strong>Frame turns with the figure</strong> makes it the object's own frame;
-          switch it off and the frame is fixed to the view instead, so the figure turns
-          inside a coordinate system that stays put.
+        <div id="rec-status" style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5" role="status"></div>
+      </div>
+
+      <div class="section" id="section-files">
+        <div class="section-label">Files</div>
+        <div class="subsection-label">Patch</div>
+        <div style="display:flex;gap:6px">
+          <button class="map-add-btn" id="preset-save" style="margin-top:0">⤓ export</button>
+          <button class="map-add-btn" id="preset-load" style="margin-top:0">⤒ import</button>
         </div>
-      </div>
-    </div>
+        <input type="file" id="preset-file" accept="application/json,.json" style="display:none">
+        <div class="info-text" data-info-label="patch export and import">
+          Saves all parameters, LFOs &amp; CC mappings to a .json file.
+        </div>
 
-    <div class="section" id="section-lfos">
-      <div class="section-label">LFOs</div>
-      <div id="lfo-list"></div>
-    </div>
+        <button class="btn btn-outline" id="btn-reset" style="width:100%;margin-top:14px">Reset All</button>
 
-    <div class="section" id="section-evolve">
-      <div class="section-label">Evolve</div>
-      <button class="btn btn-primary" id="evolve-mutate" style="width:100%">⚇ Mutate</button>
-      <div class="param-row" style="margin-top:10px">
-        <div class="param-header"><label>Deviation</label><span class="val" id="evolve-dev-val">30%</span></div>
-        <input type="range" id="evolve-dev" min="0" max="1" step="0.01" value="0.3">
+        <div class="subsection-label">Wavetable Export</div>
+        <div class="param-row">
+          <div class="param-header"><label>Root note</label><span class="val" id="wav-root-val">C0 · 33.5 kHz</span></div>
+          <input type="range" id="wav-root" min="0" max="48" step="1" value="12">
+        </div>
+        <button class="map-add-btn" id="btn-export-wav" style="margin-top:8px">⤓ Export Single Cycle WAV</button>
+        <div class="info-text" data-info-label="the single-cycle export">
+          Writes <strong>one cycle</strong> of each axis's processed waveform as a
+          2048-sample WAV — the format wavetable synths and samplers expect. A
+          single cycle has no pitch of its own; what fixes it is the file's sample
+          rate, so the <strong>Root note</strong> sets that rate
+          (2048 × the note's frequency) and the file plays back at that pitch at
+          normal speed. <strong>C0</strong> is the usual convention for
+          single-cycle libraries; pick the note your sampler expects, or the one you
+          want the table to sound at untransposed.
+        </div>
+
+        <div class="subsection-label">Image</div>
+        <button class="btn btn-primary" id="btn-export" style="width:100%;margin-top:12px">Export SVG</button>
       </div>
-      <div class="info-text" data-info-label="mutation deviation">
-        How far each mutation strays from the current value. At 100% every included
-        parameter is fully randomised.
-      </div>
-      <div style="display:flex;gap:6px;margin-bottom:6px">
-        <button class="map-add-btn" id="evolve-all" style="margin-top:0">select all</button>
-        <button class="map-add-btn" id="evolve-none" style="margin-top:0">deselect all</button>
-      </div>
-      <div style="display:flex;gap:6px;margin-bottom:8px">
-        <button class="map-add-btn" id="evolve-rand3" style="margin-top:0">3 at random</button>
-        <button class="map-add-btn" id="evolve-rand6" style="margin-top:0">6 at random</button>
-      </div>
-      <div class="info-text" data-info-label="the random parameter draw">
-        <strong>3 / 6 at random</strong> clears the list and picks that many
-        parameters at random to include &mdash; a small, legible mutation instead of
-        moving everything at once. The view toggles are left out of the draw.
-      </div>
-      <div class="evolve-list" id="evolve-list"></div>
-      <button class="btn btn-outline" id="evolve-reset" style="width:100%;margin-top:12px">↺ Reset to defaults</button>
     </div>
 
   </div>
@@ -2420,6 +2630,8 @@
       <button class="view-tg" type="button" id="vt-readout" aria-pressed="false" title="Synthesis readout on / off">INFO</button>
     </div>
     <pre class="synth-readout" id="synth-readout" aria-live="off" hidden></pre>
+    <div class="ro-pop" id="ro-pop" role="dialog" aria-label="Edit stage" hidden></div>
+    <div class="pin-dock" id="pin-dock" role="region" aria-label="Pinned controls" hidden></div>
     <div id="rec-overlay" data-label=""></div>
     <div id="interval-label" style="
       position:absolute;
@@ -2486,6 +2698,19 @@
     <span>fx</span> <span id="status-fx">3</span> &nbsp;/&nbsp;
     <span>fy</span> <span id="status-fy">2</span> &nbsp;/&nbsp;
     <span>δ</span> <span id="status-phase">0.50π</span>
+  </div>
+</div>
+
+<div class="param-search" id="param-search" role="dialog" aria-modal="true" aria-label="Find a parameter" hidden>
+  <div class="ps-box">
+    <div class="ps-q">
+      <span aria-hidden="true">⌕</span>
+      <input id="ps-input" type="text" autocomplete="off" spellcheck="false" placeholder="Find a parameter…"
+             role="combobox" aria-expanded="true" aria-controls="ps-results" aria-autocomplete="list">
+      <kbd>esc</kbd>
+    </div>
+    <div class="ps-results" id="ps-results" role="listbox" aria-label="Matching parameters"></div>
+    <div class="ps-foot">↑↓ choose · ↵ show in sidebar · ☆ pin to canvas</div>
   </div>
 </div>
 
@@ -4685,7 +4910,7 @@ let viewW = 0, viewH = 0, viewDpr = 1;
 // drag is refused over the chrome instead. Move/up ride the window so a drag
 // that leaves the figure area still tracks.
 let orbitDrag = null;
-const ORBIT_CHROME = '.sidebar, header, .preset-sidebar, .view-toggles, .synth-readout, input, button, select, textarea, label, a';
+const ORBIT_CHROME = '.sidebar, header, .preset-sidebar, .view-toggles, .synth-readout, .ro-pop, .pin-dock, .param-search, input, button, select, textarea, label, a';
 function orbitSet(key, id, value) {
   params[key] = value;
   const el = document.getElementById(id); if (el) el.value = value;
@@ -5138,7 +5363,30 @@ function retriggerLFOs() {
 
 // ── Dynamic LFO UI (built into #lfo-list) ────────────────────────────────────
 const WAVE_LABELS = { sine:'SIN', triangle:'TRI', sawtooth:'SAW', square:'SQR' };
+// Waveform buttons show the shape itself: one cycle, drawn on a 24×12 box.
+const WAVE_PATHS = {
+  sine:     'M1 6C4 -1.5 8 -1.5 12 6S20 13.5 23 6',
+  triangle: 'M1 6L6.5 1L17.5 11L23 6',
+  sawtooth: 'M1 11L12 1V11L23 1V11',
+  square:   'M1 11V1H12V11H23V1',
+};
+const WAVE_NAMES = { sine:'Sine', triangle:'Triangle', sawtooth:'Sawtooth', square:'Square' };
+function waveIcon(w) {
+  return `<svg class="wave-icon" viewBox="0 0 24 12" aria-hidden="true"><path d="${WAVE_PATHS[w]}"/></svg>` +
+         `<span class="sr-only">${WAVE_NAMES[w] || w}</span>`;
+}
+// Put the icon on every static waveform button (base waves, AM/FM modulator
+// shapes); the LFO buttons get theirs when the LFO panels are built.
+function applyWaveIcons(root) {
+  (root || document).querySelectorAll('[data-bwave], [data-mwave], [data-lwave]').forEach(b => {
+    const w = b.dataset.bwave || b.dataset.mwave || b.dataset.lwave;
+    if (!WAVE_PATHS[w] || b.querySelector('.wave-icon')) return;
+    b.innerHTML = waveIcon(w);
+    b.title = WAVE_NAMES[w];
+  });
+}
 
+applyWaveIcons();
 function buildLFOPanels() {
   const list = document.getElementById('lfo-list');
   list.innerHTML = '';
@@ -5152,7 +5400,7 @@ function buildLFOPanels() {
         <span class="lfo-num">LFO ${i + 1}</span>
         <div class="lfo-wave-toggle">
           ${['sine','triangle','sawtooth','square'].map(w =>
-            `<button class="lfo-wave-btn${lfo.wave===w?' active':''}" data-lwave="${w}">${WAVE_LABELS[w]}</button>`).join('')}
+            `<button class="lfo-wave-btn${lfo.wave===w?' active':''}" data-lwave="${w}" title="${WAVE_NAMES[w]}">${waveIcon(w)}</button>`).join('')}
         </div>
         <button class="retrig-btn${lfo.retrigger?' active':''}" data-role="retrig">retrig</button>
       </div>
@@ -6012,8 +6260,12 @@ function setGeometry(g) {
   if (hint) hint.textContent = GEO_HINTS[g];
   // The lift and the construction view have no rotary counterpart: grey them out
   // rather than silently ignoring them.
-  const cv = document.getElementById('construction-view');
-  if (cv && cv.parentElement) cv.parentElement.style.opacity = g ? 0.4 : 1;
+  // The construction view only explains the lateral figure: hide its section
+  // (and the canvas shortcut) in the other geometries rather than greying it.
+  const cs = document.getElementById('section-construct');
+  if (cs) cs.hidden = !!g;
+  const vc = document.getElementById('vt-construct');
+  if (vc) vc.hidden = !!g;
   document.querySelectorAll('.wave-btn[data-depthsrc]').forEach(b => { b.disabled = !!g; b.style.opacity = g ? 0.4 : ''; });
   document.body.classList.toggle('orbit', orbitable());
   refreshDepthChecks();
@@ -6571,17 +6823,84 @@ if (navigator.requestMIDIAccess) {
   setMidiStatus('error', 'not supported (use Chrome)');
 }
 
-// ── Collapsible sections — accordion: opening one folds all the others ────────
-document.querySelectorAll('.section > .section-label').forEach(label => {
-  label.addEventListener('click', () => {
-    const sec = label.parentElement;
-    const opening = sec.classList.contains('collapsed');
-    if (opening) {
-      document.querySelectorAll('.sidebar .section').forEach(s => { if (s !== sec) s.classList.add('collapsed'); });
-    }
-    sec.classList.toggle('collapsed');
+// ── Sidebar: task tabs + collapsible sections ─────────────────────────────────
+// Sections open and close independently, so two can be compared side by side;
+// Alt-click keeps the old accordion (open this one, fold the rest of the tab).
+// The tab, which sections are folded and each tab's scroll position are
+// remembered per browser.
+const UI_STATE_KEY = 'lissa.ui';
+const uiState = (() => {
+  try { return JSON.parse(localStorage.getItem(UI_STATE_KEY)) || {}; } catch (e) { return {}; }
+})();
+function saveUiState() {
+  try { localStorage.setItem(UI_STATE_KEY, JSON.stringify(uiState)); } catch (e) {}
+}
+const sidebarEl = document.getElementById('sidebar-panel');
+let activeTab = 'shape';
+function showTab(name, opts) {
+  const panel = document.getElementById('tab-' + name);
+  if (!panel) return;
+  const prev = activeTab;
+  if (prev !== name && sidebarEl) (uiState.scroll = uiState.scroll || {})[prev] = sidebarEl.scrollTop;
+  activeTab = name;
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    const on = b.dataset.tab === name;
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+    b.tabIndex = on ? 0 : -1;
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => { p.hidden = p.dataset.tab !== name; });
+  if (sidebarEl && !(opts && opts.keepScroll)) sidebarEl.scrollTop = (uiState.scroll && uiState.scroll[name]) || 0;
+  uiState.tab = name;
+  saveUiState();
+}
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => showTab(btn.dataset.tab));
+  btn.addEventListener('keydown', e => {
+    const tabs = [...document.querySelectorAll('.tab-btn')];
+    const i = tabs.indexOf(btn);
+    let j = -1;
+    if (e.key === 'ArrowRight') j = (i + 1) % tabs.length;
+    else if (e.key === 'ArrowLeft') j = (i - 1 + tabs.length) % tabs.length;
+    else if (e.key === 'Home') j = 0;
+    else if (e.key === 'End') j = tabs.length - 1;
+    if (j < 0) return;
+    e.preventDefault();
+    tabs[j].focus();
+    showTab(tabs[j].dataset.tab);
   });
 });
+function saveCollapsed() {
+  uiState.collapsed = [...document.querySelectorAll('.sidebar .section.collapsed')].map(s => s.id).filter(Boolean);
+  saveUiState();
+}
+document.querySelectorAll('.section > .section-label').forEach(label => {
+  label.addEventListener('click', e => {
+    if (e.target.closest && e.target.closest('.sec-help')) return;   // the help button has its own job
+    const sec = label.parentElement;
+    const opening = sec.classList.contains('collapsed');
+    if (opening && e.altKey) {
+      const scope = sec.closest('.tab-panel') || document;
+      scope.querySelectorAll('.section').forEach(s => { if (s !== sec) s.classList.add('collapsed'); });
+    }
+    sec.classList.toggle('collapsed');
+    saveCollapsed();
+  });
+});
+// Reveal a control wherever it lives: switch to its tab, unfold its section,
+// scroll it into view and flash it. Used by the parameter search.
+function revealControl(el) {
+  if (!el) return;
+  const panel = el.closest('.tab-panel');
+  if (panel) showTab(panel.dataset.tab, { keepScroll: true });
+  const sec = el.closest('.section');
+  if (sec && sec.classList.contains('collapsed')) { sec.classList.remove('collapsed'); saveCollapsed(); }
+  const row = el.closest('.param-row, .checkbox-row, .mod-group, .color-row, .number-input') || el;
+  row.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  row.classList.remove('flash-find'); void row.offsetWidth; row.classList.add('flash-find');
+  setTimeout(() => row.classList.remove('flash-find'), 1600);
+  const f = (el.matches && el.matches('input, select, button')) ? el : (row.querySelector('input, select') || el);
+  try { f.focus({ preventScroll: true }); } catch (e) {}
+}
 
 
 // ── Realtime LFO → audio and slider sync ─────────────────────────────────────
@@ -7319,6 +7638,7 @@ function serializePreset() {
     strokeHSL: { ...strokeHSL },
     lfos: lfos.map(l => ({ wave: l.wave, freq: l.freq, depth: l.depth, retrigger: l.retrigger, assignments: [...l.assignments] })),
     mappings: midiMappings.map(m => ({ key: m.key, ccNum: m.ccNum, lo: m.lo, hi: m.hi, loCc: m.loCc, hiCc: m.hiCc })),
+    pins: [...pinnedKeys],
   };
 }
 
@@ -7468,7 +7788,13 @@ document.getElementById('preset-load').addEventListener('click', () => document.
 document.getElementById('preset-file').addEventListener('change', e => {
   const f = e.target.files[0]; if (!f) return;
   const r = new FileReader();
-  r.onload = () => { try { applyPresetData(JSON.parse(r.result)); } catch (err) { alert('Invalid preset file: ' + err.message); } };
+  r.onload = () => {
+    try {
+      const d = JSON.parse(r.result);
+      applyPresetData(d);
+      if (Array.isArray(d.pins)) setPins(d.pins);
+    } catch (err) { alert('Invalid preset file: ' + err.message); }
+  };
   r.readAsText(f);
   e.target.value = '';
 });
@@ -7814,6 +8140,47 @@ document.addEventListener('dblclick', e => {
     el.value = el.defaultValue;                       // original HTML `value` attr
     el.dispatchEvent(new Event('input', { bubbles: true }));
   }
+});
+
+// ── Double-click a value read-out to type an exact value ──────────────────────
+// The field takes the slider's own units (fractions like 3/2 for the ratio
+// sliders). Enter applies, Esc or leaving the field cancels.
+document.addEventListener('dblclick', e => {
+  const val = e.target.closest && e.target.closest('.param-header .val');
+  if (!val || val.querySelector('input')) return;
+  const row = val.closest('.param-row');
+  const slider = row && row.querySelector('input[type=range]');
+  if (!slider || slider.disabled) return;
+  const ratio = slider.id === 'fm-ratio' || slider.id === 'am-ratio';
+  const shown = val.textContent;
+  const field = document.createElement('input');
+  field.type = 'text';
+  field.className = 'val-edit';
+  field.inputMode = 'decimal';
+  field.value = ratio ? RATIO_LABELS[+slider.value] : slider.value;
+  field.setAttribute('aria-label', 'Type a value' + (ratio ? ' (e.g. 3/2)' : ` between ${slider.min} and ${slider.max}`));
+  val.textContent = '';
+  val.appendChild(field);
+  field.focus(); field.select();
+  let done = false;
+  const finish = apply => {
+    if (done) return; done = true;
+    const txt = field.value.trim();
+    val.textContent = shown;
+    if (!apply || !txt) return;
+    const m = txt.match(/^(-?[\d.]+)\s*\/\s*([\d.]+)$/);
+    const num = m ? parseFloat(m[1]) / parseFloat(m[2]) : parseFloat(txt);
+    if (!isFinite(num)) return;
+    slider.value = ratio ? ratioNearestIndex(num) : Math.max(+slider.min, Math.min(+slider.max, num));
+    slider.dispatchEvent(new Event('input', { bubbles: true }));
+    slider.dispatchEvent(new Event('change', { bubbles: true }));
+  };
+  field.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter') { ev.preventDefault(); finish(true); }
+    else if (ev.key === 'Escape') { ev.preventDefault(); finish(false); }
+    ev.stopPropagation();
+  });
+  field.addEventListener('blur', () => finish(false));
 });
 
 // ─── EVOLVE (parameter mutation / randomisation) ──────────────────────────────
@@ -8237,10 +8604,21 @@ applyPageBg();
   }
 })();
 
-// Accordion startup state: only Synthesis open.
-document.querySelectorAll('.section').forEach(s => {
-  if (s.id !== 'section-waveform') s.classList.add('collapsed');
-});
+// Startup state: the remembered one, else every section open but the long,
+// rarely-touched ones.
+{
+  const DEFAULT_FOLDED = ['section-construct', 'section-evolve', 'section-midi-map', 'section-video', 'section-audio'];
+  const folded = Array.isArray(uiState.collapsed) ? uiState.collapsed : DEFAULT_FOLDED;
+  document.querySelectorAll('.sidebar .section').forEach(s => s.classList.toggle('collapsed', folded.includes(s.id)));
+  const scroll = uiState.scroll;
+  showTab(document.getElementById('tab-' + uiState.tab) ? uiState.tab : 'shape', { keepScroll: true });
+  if (sidebarEl && scroll && scroll[activeTab]) requestAnimationFrame(() => { sidebarEl.scrollTop = scroll[activeTab]; });
+  let st = 0;
+  if (sidebarEl) sidebarEl.addEventListener('scroll', () => {
+    clearTimeout(st);
+    st = setTimeout(() => { (uiState.scroll = uiState.scroll || {})[activeTab] = sidebarEl.scrollTop; saveUiState(); }, 200);
+  }, { passive: true });
+}
 
 // ── Canvas-corner view toggles + synthesis readout ───────────────────────────
 // The four buttons mirror the sidebar controls rather than owning any state, so
@@ -8300,7 +8678,7 @@ function buildSynthReadout() {
                l.assignments.length > 0 && l.depth > 0]);
   });
   return rows.map(([k, v, on]) =>
-    `<span class="${on ? 'ro-on' : 'ro-off'}"><span class="ro-k">${k.padEnd(5)}</span> ${roEsc(v)}</span>`).join('\n');
+    `<button type="button" class="ro-row ${on ? 'ro-on' : 'ro-off'}${k === roOpen ? ' open' : ''}" data-ro="${k}" aria-expanded="${k === roOpen}" title="Edit ${k}"><span class="ro-k">${k.padEnd(5)}</span> ${roEsc(v)}</button>`).join('\n');
 }
 function setViewTg(id, on) {
   const b = document.getElementById(id);
@@ -8325,8 +8703,389 @@ function syncViewToggles() {
     if (html !== _roLast) { ro.innerHTML = html; _roLast = html; }
   }
 }
+// ═══ FINDING AND PLAYING PARAMETERS ═══════════════════════════════════════════
+// Three ways in that do not need the sidebar: the search palette ( / ), a dock
+// of pinned controls along the bottom of the canvas, and the INFO readout, whose
+// lines open a small editor for that stage. All three drive MAP_TARGETS — the
+// same registry the CC mappings and LFOs use — so they cannot disagree with it.
+
+// Where each registry key's control lives in the sidebar: an element id, or a
+// selector for the controls that are button groups.
+const TARGET_CONTROL = {
+  fx: 'fx', fy: 'fy', ax: 'ax', ay: 'ay', geometry: '[data-geo]', visualSwap: 'xy-swap-btn', preset: 'preset-grid',
+  morphX: 'morph-x', morphY: 'morph-y', waveX: '[data-axis="x"][data-bwave]', waveY: '[data-axis="y"][data-bwave]',
+  fmAmount: 'fm-amount', fmRatio: 'fm-ratio', amAmt: 'am-amt', amRatio: 'am-ratio', crossFm: 'cross-fm', ringAmt: 'ring-amt',
+  shapeAmt: 'shape-amt', fbAmt: 'fb-amt', warp: 'warp', foldDrive: 'fold-drive', foldBias: 'fold-bias',
+  crushBits: 'crush-bits', crushRate: 'crush-rate', noiseAmt: 'noise-amt', filterCutoff: 'filter-freq', filterQ: 'filter-res',
+  syncAmt: 'sync-amt', unisonDetune: 'unison-detune', unisonMix: 'unison-mix', volume: 'audio-vol',
+  hue: 'hsl-h', sat: 'hsl-s', light: 'hsl-l', lineWidth: 'line-width', dotsLine: 'dots-line',
+  mirrorMode: '[data-mirror]', fillSurface: 'fill-surface', trailMode: '[data-trailmode]', trailAmt: 'trail-amt',
+  trailCount: 'trail-count', trailSpacing: 'trail-spacing', phase: 'phase', animatePhase: 'animate', animSpeed: 'anim-speed',
+  constructionView: 'construction-view', m4Rotate: '[data-m4rot]',
+  depthSrc: '[data-depthsrc]', az: 'az', tiltAngle: 'tilt-angle', depthShade: 'depth-shade', showShadow: 'show-shadow',
+  frameShow: 'frame-show', frameFollow: 'frame-follow', frameOpacity: 'frame-opacity', frameRadius: 'frame-radius',
+  frameAxisLen: 'frame-axis-len', frameOrbits: '[data-frameorbits]', frameAngles: '[data-frameangles]', framePlanes: 'frame-plane-xy',
+  lfo0Rate: 'lfo0-freq', lfo0Depth: 'lfo0-depth', lfo1Rate: 'lfo1-freq', lfo1Depth: 'lfo1-depth',
+  ...Object.fromEntries(AXIS_GROUPS.map(([k]) => [k, `.mod-group[data-axis="${k}"] .mod-axis-toggle`])),
+};
+function targetControl(key) {
+  const ref = TARGET_CONTROL[key];
+  if (!ref) return null;
+  return /^[\[.#]/.test(ref) ? document.querySelector(ref) : document.getElementById(ref);
+}
+// "Look · Drawing" — the tab and section a control sits in.
+function controlWhere(el) {
+  if (!el) return '';
+  const panel = el.closest('.tab-panel'), sec = el.closest('.section');
+  const tab = panel ? document.getElementById('tabbtn-' + panel.dataset.tab) : null;
+  const sl = sec && sec.querySelector(':scope > .section-label');
+  return [tab && tab.textContent.trim(), sl && sl.textContent.trim()].filter(Boolean).join(' · ');
+}
+const RATIO_KEYS = new Set(['fmRatio', 'amRatio']);
+function fmtTargetValue(key, v) {
+  const t = MAP_TARGETS[key];
+  if (!t) return '';
+  if (t.toggle) return v ? 'on' : 'off';
+  if (RATIO_KEYS.has(key)) return RATIO_LABELS[ratioNearestIndex(v)];
+  if (/Axis$/.test(key)) return AXIS_TAG[Math.round(v)] || 'XY';
+  if (key === 'geometry') return GEO_NAMES[Math.round(v)] ? GEO_NAMES[Math.round(v)].toLowerCase() : String(v);
+  if (t.step && t.step >= 1) return String(Math.round(v));
+  const a = Math.abs(v);
+  return a >= 100 ? v.toFixed(0) : a >= 10 ? v.toFixed(1) : v.toFixed(2);
+}
+// A live control for one registry key: a slider (or an on/off button for a
+// toggle) that writes through setTargetValue and shows the value in `valEl`.
+function makeTargetControl(key, valEl, onChange) {
+  const t = MAP_TARGETS[key];
+  const read = () => { const v = readTarget(key); return typeof v === 'boolean' ? (v ? 1 : 0) : +v || 0; };
+  if (t.toggle) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'dk-tg';
+    const sync = () => { const on = read() > 0.5; b.classList.toggle('on', on); b.textContent = on ? 'ON' : 'OFF'; b.setAttribute('aria-pressed', on); };
+    b.addEventListener('click', () => { setTargetValue(key, read() > 0.5 ? 0 : 1); sync(); if (onChange) onChange(); });
+    b.setAttribute('aria-label', t.label);
+    sync();
+    b._sync = sync;
+    return b;
+  }
+  const r = document.createElement('input');
+  r.type = 'range';
+  r.min = t.min; r.max = t.max;
+  r.step = t.step || (t.max - t.min) / 400;
+  r.setAttribute('aria-label', t.label);
+  const sync = () => { if (document.activeElement !== r) r.value = read(); if (valEl) valEl.textContent = fmtTargetValue(key, read()); };
+  r.addEventListener('input', () => { setTargetValue(key, parseFloat(r.value)); if (valEl) valEl.textContent = fmtTargetValue(key, read()); if (onChange) onChange(); });
+  sync();
+  r._sync = sync;
+  return r;
+}
+
+// ── Search ────────────────────────────────────────────────────────────────────
+// The registry entries come with a live control; every other labelled control in
+// the sidebar (resolution, MIDI settings, recording …) is listed too and jumps.
+const SEARCH_SYNONYMS = {
+  bend: 'warp', glow: 'trail', afterglow: 'trail', persistence: 'trail', pitch: 'frequency', ratio: 'frequency',
+  distort: 'waveshape', saturate: 'waveshape', color: 'colour', rotate: 'tilt', orbit: 'tilt', speed: 'speed',
+  width: 'width', thickness: 'width', lowpass: 'filter', cutoff: 'cutoff', resonance: 'reso', detune: 'detune',
+  record: 'record', video: 'video', midi: 'midi', cc: 'cc', mirror: 'mirror', kaleidoscope: 'mirror', symmetry: 'mirror',
+};
+let searchIndex = null;
+function buildSearchIndex() {
+  const items = [], seen = new Set();
+  Object.keys(MAP_TARGETS).forEach(key => {
+    const el = targetControl(key);
+    if (key === 'preset') return;
+    items.push({ key, name: MAP_TARGETS[key].label, el, where: controlWhere(el) });
+    if (el) seen.add(el);
+  });
+  // Everything else with a visible label.
+  document.querySelectorAll('.sidebar .param-row, .sidebar .checkbox-row, .sidebar .number-input, .sidebar .color-row').forEach(row => {
+    const ctl = row.querySelector('input, select');
+    if (!ctl || seen.has(ctl)) return;
+    const lbl = row.querySelector('label');
+    let name = lbl ? lbl.textContent.trim() : '';
+    if (!name) return;
+    const grp = row.closest('.mod-group');
+    const gl = grp && grp.querySelector('.vel-label');
+    if (gl && !name.toLowerCase().includes(gl.textContent.trim().toLowerCase())) name = gl.textContent.trim() + ' · ' + name;
+    items.push({ key: null, name, el: ctl, where: controlWhere(ctl) });
+    seen.add(ctl);
+  });
+  document.querySelectorAll('.sidebar .section-label, .sidebar .subsection-label').forEach(h => {
+    items.push({ key: null, name: h.textContent.trim(), el: h, where: controlWhere(h), heading: true });
+  });
+  return items;
+}
+const psEl = document.getElementById('param-search');
+const psInput = document.getElementById('ps-input');
+const psList = document.getElementById('ps-results');
+let psSel = 0, psHits = [], psReturnFocus = null;
+function psEsc(t) { return String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function psRender() {
+  if (!searchIndex) searchIndex = buildSearchIndex();
+  const q = psInput.value.trim().toLowerCase();
+  const terms = q ? [q, SEARCH_SYNONYMS[q]].filter(Boolean) : [];
+  const score = it => {
+    const n = it.name.toLowerCase(), w = it.where.toLowerCase();
+    let best = -1;
+    terms.forEach(t => {
+      if (n.startsWith(t)) best = Math.max(best, 3);
+      else if (n.split(/[^a-z0-9δ]+/).some(p => p.startsWith(t))) best = Math.max(best, 2);
+      else if (n.includes(t)) best = Math.max(best, 1);
+      else if (w.includes(t)) best = Math.max(best, 0);
+    });
+    return best;
+  };
+  if (terms.length) {
+    psHits = searchIndex.map(it => [it, score(it) + (it.key ? 0.5 : 0) - (it.heading ? 0.25 : 0)])
+      .filter(([, sc]) => sc >= 0).sort((a, b) => b[1] - a[1]).map(([it]) => it).slice(0, 12);
+  } else {
+    // Empty query: what is pinned, then what is live in the patch.
+    const pinned = [...pinnedKeys].map(k => searchIndex.find(it => it.key === k)).filter(Boolean);
+    psHits = pinned.length ? pinned : searchIndex.filter(it => it.key).slice(0, 8);
+  }
+  psSel = Math.min(psSel, Math.max(0, psHits.length - 1));
+  psList.textContent = '';
+  if (!psHits.length) {
+    psList.innerHTML = '<div class="ps-empty">Nothing matches. Try a section name (drawing, synthesis) or a word like “glow”.</div>';
+    psInput.removeAttribute('aria-activedescendant');
+    return;
+  }
+  psHits.forEach((it, i) => {
+    const row = document.createElement('div');
+    row.className = 'ps-row' + (i === psSel ? ' sel' : '');
+    row.id = 'ps-opt-' + i;
+    row.setAttribute('role', 'option');
+    row.setAttribute('aria-selected', i === psSel ? 'true' : 'false');
+    const t = terms.find(t => it.name.toLowerCase().includes(t));
+    const k = t ? it.name.toLowerCase().indexOf(t) : -1;
+    const name = k >= 0 ? psEsc(it.name.slice(0, k)) + '<mark>' + psEsc(it.name.slice(k, k + t.length)) + '</mark>' + psEsc(it.name.slice(k + t.length)) : psEsc(it.name);
+    row.innerHTML = `<span class="ps-name">${name}</span><span class="ps-where">${psEsc(it.where || '')}</span><span class="ps-val"></span>`;
+    if (it.key) {
+      const ctlRow = document.createElement('div');
+      ctlRow.className = 'ps-ctl';
+      ctlRow.appendChild(makeTargetControl(it.key, row.querySelector('.ps-val')));
+      ctlRow.appendChild(makePinButton(it.key));
+      row.appendChild(ctlRow);
+    }
+    row.addEventListener('mouseenter', () => { psSel = i; psMark(); });
+    row.addEventListener('click', e => {
+      if (e.target.closest('input, button')) return;   // using the inline control, not jumping
+      psGo(i);
+    });
+    psList.appendChild(row);
+  });
+  psMark();
+}
+function psMark() {
+  psList.querySelectorAll('.ps-row').forEach((r, i) => {
+    r.classList.toggle('sel', i === psSel);
+    r.setAttribute('aria-selected', i === psSel ? 'true' : 'false');
+  });
+  const cur = document.getElementById('ps-opt-' + psSel);
+  if (cur) { psInput.setAttribute('aria-activedescendant', cur.id); cur.scrollIntoView({ block: 'nearest' }); }
+}
+function psGo(i) {
+  const it = psHits[i];
+  if (!it) return;
+  closeSearch(false);
+  if (document.getElementById('layout').classList.contains('sidebar-hidden')) document.getElementById('sidebar-toggle').click();
+  if (it.el && it.el.closest('.section[hidden]')) return;   // e.g. construction view outside LATERAL
+  revealControl(it.el);
+}
+function openSearch() {
+  searchIndex = buildSearchIndex();   // rebuilt each time: LFO panels and pins change
+  psReturnFocus = document.activeElement;
+  psEl.hidden = false;
+  psInput.value = '';
+  psSel = 0;
+  psRender();
+  psInput.focus();
+}
+function closeSearch(restore) {
+  psEl.hidden = true;
+  if (restore !== false && psReturnFocus && psReturnFocus.focus) try { psReturnFocus.focus(); } catch (e) {}
+}
+psInput.addEventListener('input', () => { psSel = 0; psRender(); });
+psInput.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown') { psSel = Math.min(psHits.length - 1, psSel + 1); psMark(); e.preventDefault(); }
+  else if (e.key === 'ArrowUp') { psSel = Math.max(0, psSel - 1); psMark(); e.preventDefault(); }
+  else if (e.key === 'Enter') { psGo(psSel); e.preventDefault(); }
+  else if (e.key === 'Escape') { closeSearch(); e.preventDefault(); }
+});
+psEl.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSearch(); e.preventDefault(); } });
+psEl.addEventListener('mousedown', e => { if (e.target === psEl) closeSearch(); });
+document.getElementById('search-toggle').addEventListener('click', openSearch);
+window.addEventListener('keydown', e => {
+  const k = e.key;
+  if ((k === '/' && !e.ctrlKey && !e.metaKey && !e.altKey && !typingInField(e.target)) ||
+      ((e.ctrlKey || e.metaKey) && (k === 'k' || k === 'K'))) {
+    if (!psEl.hidden) return;
+    e.preventDefault();
+    openSearch();
+  }
+});
+
+// ── Pins and the canvas dock ──────────────────────────────────────────────────
+const PIN_MAX = 8;
+let pinnedKeys = [];
+{
+  const saved = uiState.pins;
+  if (Array.isArray(saved)) pinnedKeys = saved.filter(k => MAP_TARGETS[k]).slice(0, PIN_MAX);
+}
+const dockEl = document.getElementById('pin-dock');
+function makePinButton(key) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'pin-btn';
+  b.dataset.pin = key;
+  b.textContent = pinnedKeys.includes(key) ? '★' : '☆';
+  b.setAttribute('aria-pressed', pinnedKeys.includes(key) ? 'true' : 'false');
+  b.setAttribute('aria-label', 'Pin ' + MAP_TARGETS[key].label + ' to the canvas');
+  b.title = 'Pin to the canvas';
+  b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); togglePin(key); });
+  return b;
+}
+function togglePin(key) {
+  const i = pinnedKeys.indexOf(key);
+  if (i >= 0) pinnedKeys.splice(i, 1);
+  else {
+    if (pinnedKeys.length >= PIN_MAX) pinnedKeys.shift();   // oldest pin gives way
+    pinnedKeys.push(key);
+  }
+  setPins(pinnedKeys);
+}
+function setPins(keys) {
+  pinnedKeys = keys.filter(k => MAP_TARGETS[k]).slice(0, PIN_MAX);
+  uiState.pins = [...pinnedKeys];
+  saveUiState();
+  document.querySelectorAll('.pin-btn').forEach(b => {
+    const on = pinnedKeys.includes(b.dataset.pin);
+    b.textContent = on ? '★' : '☆';
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  renderDock();
+}
+function renderDock() {
+  dockEl.textContent = '';
+  pinnedKeys.forEach(key => {
+    const t = MAP_TARGETS[key];
+    const w = document.createElement('div');
+    w.className = 'dk';
+    w.innerHTML = `<div class="dk-h"><span>${psEsc(t.label)}</span><span class="dk-v"></span></div>`;
+    const x = document.createElement('button');
+    x.type = 'button'; x.className = 'dk-x'; x.textContent = '✕';
+    x.title = 'Unpin'; x.setAttribute('aria-label', 'Unpin ' + t.label);
+    x.addEventListener('click', () => togglePin(key));
+    w.querySelector('.dk-h').appendChild(x);
+    w.appendChild(makeTargetControl(key, w.querySelector('.dk-v')));
+    dockEl.appendChild(w);
+  });
+  dockEl.hidden = !pinnedKeys.length;
+  document.body.classList.toggle('has-dock', !!pinnedKeys.length);
+  document.body.style.setProperty('--dock-h', (dockEl.offsetHeight || 0) + 'px');
+}
+// A star next to every control the registry covers.
+function addPinButtons() {
+  Object.keys(MAP_TARGETS).forEach(key => {
+    if (key === 'preset' || AXIS_GROUPS.some(([k]) => k === key)) return;
+    const el = targetControl(key);
+    if (!el) return;
+    let host = null;
+    const row = el.closest('.param-row');
+    if (row && el.type === 'range') host = row.querySelector('.param-header');
+    else if (el.type === 'checkbox') host = el.closest('.checkbox-row');
+    else {
+      // A button group: its label is the .param-header just before it.
+      const grp = el.closest('.wave-toggle, .lfo-wave-toggle');
+      let p = grp && grp.previousElementSibling;
+      if (p && p.classList.contains('param-header')) host = p;
+    }
+    if (!host || host.querySelector('.pin-btn')) return;
+    host.appendChild(makePinButton(key));
+    if (host.classList.contains('param-header') || host.classList.contains('checkbox-row')) host.style.display = 'flex';
+  });
+}
+
+// ── The readout as a set of editors ───────────────────────────────────────────
+const READOUT_KEYS = {
+  geo: ['geometry'], wave: ['morphX', 'morphY'], freq: ['fx', 'fy', 'ax', 'ay'],
+  am: ['amAmt', 'amRatio', 'amAxis'], fm: ['fmAmount', 'fmRatio', 'fmAxis'], cross: ['crossFm', 'ringAmt', 'crossAxis'],
+  shape: ['shapeAmt', 'shapeAxis'], fb: ['fbAmt', 'fbAxis'], warp: ['warp', 'foldDrive', 'foldBias', 'warpAxis'],
+  crush: ['crushBits', 'crushRate', 'crushAxis'], noise: ['noiseAmt', 'noiseAxis'], filt: ['filterCutoff', 'filterQ', 'filterAxis'],
+  sync: ['syncAmt', 'syncAxis'], uni: ['unisonDetune', 'unisonMix'], lfo1: ['lfo0Rate', 'lfo0Depth'], lfo2: ['lfo1Rate', 'lfo1Depth'],
+};
+let roOpen = null;
+const roPop = document.getElementById('ro-pop');
+function openReadoutEditor(k, anchor) {
+  roOpen = k;
+  const keys = (READOUT_KEYS[k] || []).filter(key => MAP_TARGETS[key]);
+  roPop.textContent = '';
+  const head = document.createElement('div');
+  head.className = 'rp-t';
+  head.innerHTML = `<span>${psEsc(k)}</span>`;
+  const x = document.createElement('button');
+  x.type = 'button'; x.textContent = '✕'; x.setAttribute('aria-label', 'Close');
+  x.addEventListener('click', closeReadoutEditor);
+  head.appendChild(x);
+  roPop.appendChild(head);
+  keys.forEach(key => {
+    const row = document.createElement('div');
+    row.className = 'dk';
+    row.innerHTML = `<div class="dk-h" style="display:flex;gap:6px;color:var(--label)"><span>${psEsc(MAP_TARGETS[key].label)}</span><span class="dk-v" style="margin-left:auto;color:var(--accent)"></span></div>`;
+    row.querySelector('.dk-h').appendChild(makePinButton(key));
+    row.appendChild(makeTargetControl(key, row.querySelector('.dk-v'), () => { _roLast = ''; }));
+    roPop.appendChild(row);
+  });
+  roPop.setAttribute('aria-label', 'Edit ' + k);
+  roPop.hidden = false;
+  // Beside the readout, level with the line that opened it.
+  const ro = document.getElementById('synth-readout');
+  const area = ro.offsetParent;
+  const left = ro.offsetLeft + ro.offsetWidth + 6;
+  const fits = area && left + roPop.offsetWidth < area.clientWidth;
+  roPop.style.left = (fits ? left : ro.offsetLeft) + 'px';
+  const top = anchor ? anchor.getBoundingClientRect().top - area.getBoundingClientRect().top : ro.offsetTop;
+  roPop.style.top = Math.max(4, fits ? top - 6 : ro.offsetTop + ro.offsetHeight + 6) + 'px';
+  _roLast = '';
+  const f = roPop.querySelector('input, .dk-tg');
+  if (f) f.focus();
+}
+function closeReadoutEditor() {
+  roOpen = null;
+  roPop.hidden = true;
+  _roLast = '';
+}
+document.getElementById('synth-readout').addEventListener('click', e => {
+  const b = e.target.closest('.ro-row');
+  if (!b) return;
+  if (roOpen === b.dataset.ro) closeReadoutEditor();
+  else openReadoutEditor(b.dataset.ro, b);
+});
+roPop.addEventListener('keydown', e => { if (e.key === 'Escape') { closeReadoutEditor(); e.stopPropagation(); } });
+document.addEventListener('pointerdown', e => {
+  if (roOpen && !e.target.closest('.ro-pop, .synth-readout')) closeReadoutEditor();
+});
+// Keep the dock, the open editor and the open search results in step with
+// changes made elsewhere (MIDI, LFOs, preset loads, the sidebar itself).
+function syncLiveControls() {
+  [dockEl, roPop.hidden ? null : roPop, psEl.hidden ? null : psList].forEach(root => {
+    if (root) root.querySelectorAll('input[type=range], .dk-tg').forEach(c => { if (c._sync) c._sync(); });
+  });
+  if (roOpen && document.getElementById('synth-readout').hidden) closeReadoutEditor();
+}
+addPinButtons();
+renderDock();
+// The LFO panels are rebuilt on every patch load; give their sliders stars again.
+{
+  const rebuild = buildLFOPanels;
+  buildLFOPanels = function () { rebuild.apply(this, arguments); addPinButtons(); };
+}
+window.addEventListener('resize', () => document.body.style.setProperty('--dock-h', (dockEl.offsetHeight || 0) + 'px'));
+
 syncViewToggles();
-setInterval(syncViewToggles, 150);
+setInterval(() => { syncViewToggles(); syncLiveControls(); }, 150);
 
 requestAnimationFrame(render);
 updateIntervalLabel();
@@ -8344,6 +9103,29 @@ updateIntervalLabel();
 // default, one button each, state announced.
 function initInfoToggles() {
   let n = 0;
+  // Inside a sidebar section, one HELP switch in the section header opens every
+  // explanation the section holds, instead of an INFO button per paragraph.
+  document.querySelectorAll('.sidebar .section').forEach(sec => {
+    const bodies = [...sec.querySelectorAll('.info-text')].filter(b => !b.dataset.infoWired);
+    if (!bodies.length) return;
+    const label = sec.querySelector(':scope > .section-label');
+    const topic = label ? label.textContent.trim() : 'this section';
+    bodies.forEach(b => { b.dataset.infoWired = '1'; b.id = b.id || ('info-body-' + (++n)); b.hidden = true; });
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'sec-help';
+    btn.setAttribute('aria-expanded', 'false');
+    btn.setAttribute('aria-controls', bodies.map(b => b.id).join(' '));
+    btn.title = 'Explain the ' + topic + ' controls';
+    btn.innerHTML = '<span class="info-mark" aria-hidden="true">i</span><span aria-hidden="true">help</span><span class="sr-only">Help for ' + topic + '</span>';
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const open = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+      bodies.forEach(b => { b.hidden = open; });
+    });
+    if (label) label.after(btn); else sec.prepend(btn);
+  });
   document.querySelectorAll('.info-text').forEach(body => {
     if (body.dataset.infoWired) return;
     body.dataset.infoWired = '1';
