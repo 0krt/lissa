@@ -1665,6 +1665,10 @@
         <button class="wave-btn" data-geo="2" style="padding:5px 2px" title="Rotary, counter-current — two circles turning opposite ways">COUNTER</button>
         <button class="wave-btn" data-geo="3" style="padding:5px 2px" title="Rose — r(θ) = cos(n/d · θ)">ROSE</button>
       </div>
+      <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="Solid figure geometry">
+        <button class="wave-btn" data-geo="4" style="padding:5px 2px" title="Torus knot — X round the ring, Y through the hole (3D)">TORUS KNOT</button>
+        <button class="wave-btn" data-geo="5" style="padding:5px 2px" title="Spherical Lissajous — X longitude, Y latitude (3D)">SPHERE</button>
+      </div>
       <div id="geo-hint" style="font-size:10.5px;color:var(--label);margin-bottom:10px;line-height:1.45"></div>
       <div class="info-text" data-info-label="figure geometry">
         <strong>Lateral</strong> is the Lissajous figure: the X oscillator moves the
@@ -1680,6 +1684,12 @@
         <em>n</em>, Y's is <em>d</em>, so the ratio presets walk the classic n/d
         table. Every synthesis stage still shapes the waves: a square Y wave snaps
         the rose's angle to four directions, FM bends the petals.
+        <strong>Torus knot</strong> and <strong>Sphere</strong> are solid: X winds
+        round a torus the long way and Y through its hole, so p:q draws the (p, q)
+        torus knot; or X sets longitude and Y latitude on a sphere (1:2 is the
+        tennis-ball seam). Amplitude X sets their size, amplitude Y the tube
+        thickness or how far the path swings towards the poles. Drag the canvas
+        to orbit them; Tilt, Perspective and depth shading in the 3D section apply.
         Construction view and the 3D lift explain the lateral figure only and stand
         down in the rotary geometries; the audio is the same two oscillators in
         every geometry.
@@ -2403,7 +2413,7 @@
 
   <div class="canvas-area">
     <div class="view-toggles" role="toolbar" aria-label="View toggles">
-      <button class="view-tg" type="button" id="vt-geo" aria-pressed="false" title="Geometry — cycle lateral / con-current / counter-current / rose">LAT</button>
+      <button class="view-tg" type="button" id="vt-geo" aria-pressed="false" title="Geometry — cycle lateral / con-current / counter-current / rose / torus knot / sphere">LAT</button>
       <button class="view-tg" type="button" id="vt-3d" aria-pressed="false" title="3D — phase lift on / off">3D</button>
       <button class="view-tg" type="button" id="vt-frame" aria-pressed="false" title="Coordinate frame on / off">XYZ</button>
       <button class="view-tg" type="button" id="vt-construct" aria-pressed="false" title="Construction view on / off">CON</button>
@@ -2491,7 +2501,7 @@ let params = {
   ax: 1, fx: 3,
   ay: 1, fy: 2,
   phase: 0.5,
-  geometry: 0,    // 0 = lateral (Lissajous), 1 = rotary concurrent, 2 = rotary counter-current, 3 = rose
+  geometry: 0,    // 0 = lateral, 1 = rotary concurrent, 2 = rotary counter-current, 3 = rose, 4 = torus knot, 5 = spherical
   morphX: 0,      // X wave position along SIN→TRI→SAW→SQR (0..3, whole = exact shape)
   morphY: 0,      // Y wave position along SIN→TRI→SAW→SQR (0..3, whole = exact shape)
   strokeColor: '#c8f060',
@@ -2858,7 +2868,7 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
   const pad = Math.min(w, h) * 0.034;
   // The rotary geometries fold the amplitudes into the point (they are rotor
   // radii there, not axis scales), so the box is square.
-  const geo = figGeometry(), polar = geo !== 0;
+  const geo = figGeometry(), polar = geo !== 0, solid = geo >= 4;
   const rx = (w / 2 - pad) * (polar ? 1 : ax) * zoom;
   const ry = (h / 2 - pad) * (polar ? 1 : ay) * zoom;
 
@@ -2957,7 +2967,7 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
     let xs = sxArr[idx];
     let ys = syArr[i];
     if (polar) { geoPoint(geo, xs, szArr[idx], ys, syqArr[i], _G); xs = _G.x; ys = _G.y; }
-    figureXform(visualSwap ? ys : xs, visualSwap ? xs : ys, lift ? szArr[idx] : 0, zFlip);
+    figureXform(visualSwap ? ys : xs, visualSwap ? xs : ys, lift ? szArr[idx] : (solid ? _G.z : 0), zFlip);
     _P.x = cx + rx * _Q.x * mx;
     _P.y = cy + ry * _Q.y * my;
   };
@@ -3034,7 +3044,7 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
   // Scoped to the lift on purpose: the z oscillator's look is already baked into
   // saved presets, while the lift is new and has none to disturb — and without the
   // cue a lifted figure reads as a flat tangle rather than as an object.
-  const shaded = !!params.depthShade && lift && !_eraseMode;
+  const shaded = !!params.depthShade && (lift || solid) && !_eraseMode;
 
   const drawFigure = (k) => {
     for (const [mx, my] of mirrors) {
@@ -3187,18 +3197,44 @@ function liftActive() { return Math.round(params.depthSrc ?? 0) === 1 && !polarG
 // r = cos(n/d·θ) table (δ = 0 is the cosine; other δ turn the rose). The rose is
 // itself two equal counter-rotating rotors at (n ± d)/d. Every synthesis stage
 // still acts on the waves, so a SQR angle wave snaps θ, FM bends the petals, etc.
-// The 3D lift is defined for the lateral figure only and stands down here.
-const GEO_NAMES = ['LATERAL', 'CON-CURRENT', 'COUNTER', 'ROSE'];
-function figGeometry() { return Math.max(0, Math.min(3, Math.round(params.geometry || 0))); }
+// The two SOLID geometries put the rotors on a surface and have real depth:
+//   TORUS   X winds the long way round a torus, Y through its hole; fx:fy = p:q
+//           draws the (p, q) torus knot.  ax = size, ay = tube thickness.
+//   SPHERE  X is longitude, Y drives latitude (spherical Lissajous; 1:2 is the
+//           tennis-ball seam).  ax = size, ay = how far towards the poles.
+// They go through the same view transform as the lift, so dragging orbits them,
+// Tilt / Perspective apply and the stroke is depth-cued.
+// The 3D lift itself is defined for the lateral figure only and stands down here.
+const GEO_NAMES = ['LATERAL', 'CON-CURRENT', 'COUNTER', 'ROSE', 'TORUS KNOT', 'SPHERICAL'];
+const GEO_MAX = GEO_NAMES.length - 1;
+function figGeometry() { return Math.max(0, Math.min(GEO_MAX, Math.round(params.geometry || 0))); }
 function polarGeometry() { return figGeometry() !== 0; }
+function solidGeometry() { return figGeometry() >= 4; }
+// Anything the view can orbit: the lifted lateral figure or a solid geometry.
+function orbitable() { return liftActive() || solidGeometry(); }
+const TORUS_TUBE = 0.6;     // tube radius over major radius at ay = 1
+const SPHERE_LAT = 1.2;     // latitude swing in radians at ay = 1 (short of the poles)
 // The construction view explains the lateral figure (two generators projected on
 // two axes); in the rotary geometries the plain figure is shown instead.
 function m4Active() { return constructionView && !polarGeometry(); }
 // Combine the samples into the figure point (normalised, before the view
 // transform). xs/ys are the wave values, xq/yq their quarter-period-ahead copies.
+// out.z is view depth (positive = away from the viewer), 0 for the flat ones.
 function geoPoint(geo, xs, xq, ys, yq, out) {
   const ax = params.ax, ay = params.ay;
-  if (geo === 3) {                       // rose: radius from X, direction from Y
+  out.z = 0;
+  if (geo === 4) {                       // torus: (cos X, sin X) round the ring, (cos Y, sin Y) round the tube
+    const r = TORUS_TUBE * ay, k = ax / (1 + r);
+    const w = (1 + r * yq) * k;
+    out.x = w * xq;
+    out.y = -w * xs;
+    out.z = -r * k * ys;
+  } else if (geo === 5) {                // sphere: longitude from X's rotor, latitude from Y's wave
+    const lat = SPHERE_LAT * ay * ys, c = Math.cos(lat);
+    out.x = ax * c * xs;
+    out.y = -ax * Math.sin(lat);
+    out.z = -ax * c * xq;
+  } else if (geo === 3) {                       // rose: radius from X, direction from Y
     out.x = ax * xq * yq;
     out.y = -ay * xq * ys;
   } else {                               // rotary: the sum of two rotors
@@ -3208,7 +3244,7 @@ function geoPoint(geo, xs, xq, ys, yq, out) {
     out.y = -(ax * xs + s * ay * ys) * n;
   }
 }
-const _G = { x: 0, y: 0 };
+const _G = { x: 0, y: 0, z: 0 };
 
 // ── Shared figure transform (main view AND construction view) ─────────────────
 // depth (lift quadrature or z oscillator) → lift yaw (about the vertical, or the
@@ -3224,20 +3260,23 @@ const _Q = { x: 0, y: 0, z: 0 };  // figureXform output (normalized space; z = v
 function beginFigureXform(phase, flat, zk) {   // hoist per-frame constants out of the point loop
   _xf.zAmt = params.az || 0;
   _xf.lift = liftActive();
+  _xf.solid = solidGeometry();
   _xf.flat = !!flat;
   // Lift mode adds δ·180° to the yaw. The drag-set orbit yaw (rotateAngle) rides
   // on top of it, so dragging the view and animating the phase compose instead of
   // fighting over the same angle.
-  const deg = _xf.lift ? (params.rotateAngle || 0) + (phase || 0) * 180 : 0;
+  // A solid geometry takes the drag yaw alone: its δ is already in the samples.
+  const deg = _xf.lift ? (params.rotateAngle || 0) + (phase || 0) * 180
+            : _xf.solid ? (params.rotateAngle || 0) : 0;
   const a = ((deg % 360) * Math.PI) / 180;
   // Kept for the coordinate frame's angle read-out, wrapped to the half turn the
   // arc actually has to sweep rather than the raw accumulated spin.
   _xf.yawDeg = ((deg % 360) + 540) % 360 - 180;
-  _xf.rot = _xf.lift || Math.abs(a) > 1e-4;
+  _xf.rot = _xf.lift || _xf.solid || Math.abs(a) > 1e-4;
   _xf.c = Math.cos(a); _xf.s = Math.sin(a);
   // The lift yaws about the axis perpendicular to the phased one — normally the
   // vertical, but visualSwap puts the phased axis on screen-Y, so it becomes X.
-  _xf.axis = visualSwap ? 2 : 1;
+  _xf.axis = (visualSwap && !_xf.solid) ? 2 : 1;
   const tilt = _xf.flat ? 0 : ((params.tiltAngle || 0) * Math.PI) / 180;
   _xf.tiltDeg = (tilt * 180) / Math.PI;
   _xf.tilt = Math.abs(tilt) > 1e-4;
@@ -3258,7 +3297,7 @@ function beginFigureXform(phase, flat, zk) {   // hoist per-frame constants out 
 }
 // The lift has genuine depth even with the perspective off, so the back face and
 // the depth cueing still apply — K alone would call an orthographic view flat.
-function figureHasDepth() { return _xf.K > 0.001 || _xf.lift; }
+function figureHasDepth() { return _xf.K > 0.001 || _xf.lift || _xf.solid; }
 // px,py = raw sample amplitudes; z = this point's depth amplitude (the caller owns
 // where it came from); zFlip mirrors the depth to render the figure's far
 // ("back") face. Writes the view-space depth to _Q.z so the stroke can be shaded.
@@ -4658,7 +4697,7 @@ function orbitEnd() {
   document.body.classList.remove('orbit-dragging');
 }
 document.addEventListener('pointerdown', e => {
-  if (!liftActive() || e.button !== 0) return;
+  if (!orbitable() || e.button !== 0) return;
   if (e.target.closest && e.target.closest(ORBIT_CHROME)) return;
   orbitDrag = { id: e.pointerId, x: e.clientX, y: e.clientY,
                 rot: params.rotateAngle || 0, tilt: params.tiltAngle || 0 };
@@ -4675,7 +4714,7 @@ window.addEventListener('pointermove', e => {
 });
 ['pointerup', 'pointercancel'].forEach(ev => window.addEventListener(ev, orbitEnd));
 document.addEventListener('dblclick', e => {
-  if (!liftActive()) return;
+  if (!orbitable()) return;
   if (e.target.closest && e.target.closest(ORBIT_CHROME)) return;
   orbitSet('rotateAngle', 'rotate-angle', 0);
   orbitSet('tiltAngle', 'tilt-angle', 0);
@@ -5942,14 +5981,26 @@ function refreshFrameControls() {
 refreshFrameControls();
 
 // Mirror mode: off / mirror-X / mirror-Y / 4-fold kaleidoscope.
+// Depth shading applies wherever there is real depth; the shadow is the lift's alone.
+function refreshDepthChecks() {
+  const lift = liftActive(), deep = lift || solidGeometry();
+  [['depth-shade', deep], ['show-shadow', lift]].forEach(([id, on]) => {
+    const cb = document.getElementById(id);
+    if (!cb) return;
+    cb.disabled = !on;
+    if (cb.parentElement) cb.parentElement.style.opacity = on ? 1 : 0.4;
+  });
+}
 const GEO_HINTS = [
   'x = X wave, y = Y wave',
   'X and Y as circles turning the same way',
   'X and Y as circles turning opposite ways',
   'r(θ) = cos(n/d · θ) — n = X freq, d = Y freq',
+  '(p, q) torus knot — p = X freq, q = Y freq · drag to orbit',
+  'X = longitude, Y = latitude · drag to orbit',
 ];
 function setGeometry(g) {
-  g = Math.max(0, Math.min(3, Math.round(g)));
+  g = Math.max(0, Math.min(GEO_MAX, Math.round(g)));
   const changed = figGeometry() !== g;
   params.geometry = g;
   document.querySelectorAll('.wave-btn[data-geo]').forEach(b => {
@@ -5964,7 +6015,8 @@ function setGeometry(g) {
   const cv = document.getElementById('construction-view');
   if (cv && cv.parentElement) cv.parentElement.style.opacity = g ? 0.4 : 1;
   document.querySelectorAll('.wave-btn[data-depthsrc]').forEach(b => { b.disabled = !!g; b.style.opacity = g ? 0.4 : ''; });
-  document.body.classList.toggle('orbit', liftActive());
+  document.body.classList.toggle('orbit', orbitable());
+  refreshDepthChecks();
   if (changed) clearTrail();
 }
 document.querySelectorAll('.wave-btn[data-geo]').forEach(btn => {
@@ -6041,12 +6093,7 @@ function setDepthSrc(n) {
     b.setAttribute('aria-pressed', active ? 'true' : 'false');
   });
   const lift = n === 1;
-  ['depth-shade', 'show-shadow'].forEach(id => {
-    const cb = document.getElementById(id);
-    if (!cb) return;
-    cb.disabled = !lift;
-    if (cb.parentElement) cb.parentElement.style.opacity = lift ? 1 : 0.4;
-  });
+  refreshDepthChecks();
   const azLbl = document.getElementById('az-label');
   if (azLbl) azLbl.textContent = lift ? 'Perspective' : 'Depth';
   const phLbl = document.getElementById('phase-label');
@@ -6055,7 +6102,7 @@ function setDepthSrc(n) {
   // the modulators to inherit — say so rather than leaving a dead checkbox.
   const pm = document.getElementById('phase-modulators');
   if (pm) { pm.disabled = lift; if (pm.parentElement) pm.parentElement.style.opacity = lift ? 0.4 : 1; }
-  document.body.classList.toggle('orbit', liftActive());
+  document.body.classList.toggle('orbit', orbitable());
   if (changed) clearTrail();
 }
 document.querySelectorAll('.wave-btn[data-depthsrc]').forEach(btn => {
@@ -6674,7 +6721,7 @@ const MAP_TARGETS = {
   fillSurface:{ label:'Fill Surface', toggle:true, apply:b => { params.fillSurface = b ? 1 : 0; const cb=document.getElementById('fill-surface'); if (cb) cb.checked = b; } },
 
   trailAmt:  { label:'Trail',         min:0,    max:0.97,           apply:v => setSliderParam('trailAmt','trail-amt','trail-amt-val',x=>(x<0.01?'off':Math.round(x*100)+'%'),v) },
-  geometry:  { label:'Geometry',       min:0,    max:3,   step:1,    apply:v => setGeometry(v) },
+  geometry:  { label:'Geometry',       min:0,    max:5,   step:1,    apply:v => setGeometry(v) },
   mirrorMode:{ label:'Mirror Mode',   min:0,    max:3,   step:1,    apply:v => setMirrorMode(v) },
   m4Rotate:{ label:'Straight Generators', toggle:true, apply:b => setM4Rotate(b) },
   trailMode:{ label:'Trail Mode',     min:0,    max:1,   step:1,    apply:v => setTrailMode(v) },
@@ -8207,7 +8254,7 @@ function clickCheckbox(id, on) {
 }
 let readoutOn = false;
 try { readoutOn = localStorage.getItem('lissa.readout') === '1'; } catch (e) {}
-document.getElementById('vt-geo').addEventListener('click', () => setGeometry((figGeometry() + 1) % 4));
+document.getElementById('vt-geo').addEventListener('click', () => setGeometry((figGeometry() + 1) % (GEO_MAX + 1)));
 document.getElementById('vt-3d').addEventListener('click', () => { if (!polarGeometry()) setDepthSrc(liftActive() ? 0 : 1); });
 document.getElementById('vt-frame').addEventListener('click', () => clickCheckbox('frame-show', !params.frameShow));
 document.getElementById('vt-construct').addEventListener('click', () => clickCheckbox('construction-view', !constructionView));
@@ -8262,7 +8309,7 @@ function setViewTg(id, on) {
   b.setAttribute('aria-pressed', on ? 'true' : 'false');
 }
 let _roLast = '';
-const GEO_TAGS = ['LAT', 'ROT+', 'ROT−', 'ROSE'];
+const GEO_TAGS = ['LAT', 'ROT+', 'ROT−', 'ROSE', 'KNOT', 'SPHR'];
 function syncViewToggles() {
   const geoBtn = document.getElementById('vt-geo');
   if (geoBtn && geoBtn.textContent !== GEO_TAGS[figGeometry()]) geoBtn.textContent = GEO_TAGS[figGeometry()];
