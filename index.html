@@ -1658,6 +1658,32 @@
 
     <div class="section" id="section-axes">
       <div class="section-label">Frequency &amp; MIDI</div>
+      <div class="param-header" style="margin-bottom:4px"><label>Geometry</label></div>
+      <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="Figure geometry">
+        <button class="wave-btn active" data-geo="0" style="padding:5px 2px" title="Lateral — X horizontal, Y vertical (Lissajous)">LATERAL</button>
+        <button class="wave-btn" data-geo="1" style="padding:5px 2px" title="Rotary, con-current — two circles turning the same way">CON</button>
+        <button class="wave-btn" data-geo="2" style="padding:5px 2px" title="Rotary, counter-current — two circles turning opposite ways">COUNTER</button>
+        <button class="wave-btn" data-geo="3" style="padding:5px 2px" title="Rose — r(θ) = cos(n/d · θ)">ROSE</button>
+      </div>
+      <div id="geo-hint" style="font-size:10.5px;color:var(--label);margin-bottom:10px;line-height:1.45"></div>
+      <div class="info-text" data-info-label="figure geometry">
+        <strong>Lateral</strong> is the Lissajous figure: the X oscillator moves the
+        point left–right, the Y oscillator up–down.
+        The other three treat each oscillator as a <strong>rotor</strong> — its wave
+        paired with the same wave a quarter period ahead, which for a sine is a
+        point going round a circle — and add the two circles together.
+        <strong>Con-current</strong> rotors turn the same way and draw looped rings;
+        <strong>counter-current</strong> rotors turn opposite ways and draw
+        |fx + fy|-petalled stars. Amplitude is each rotor's radius, and δ shifts X's
+        rotor against Y's, which turns the figure (at 1:1 it opens a point into a
+        circle). <strong>Rose</strong> draws r(θ) = cos(n/d · θ): X's frequency is
+        <em>n</em>, Y's is <em>d</em>, so the ratio presets walk the classic n/d
+        table. Every synthesis stage still shapes the waves: a square Y wave snaps
+        the rose's angle to four directions, FM bends the petals.
+        Construction view and the 3D lift explain the lateral figure only and stand
+        down in the rotary geometries; the audio is the same two oscillators in
+        every geometry.
+      </div>
       <div class="mod-group">
         <div class="vel-row"><span class="vel-label">X Axis</span></div>
         <div class="param-row">
@@ -2377,6 +2403,7 @@
 
   <div class="canvas-area">
     <div class="view-toggles" role="toolbar" aria-label="View toggles">
+      <button class="view-tg" type="button" id="vt-geo" aria-pressed="false" title="Geometry — cycle lateral / con-current / counter-current / rose">LAT</button>
       <button class="view-tg" type="button" id="vt-3d" aria-pressed="false" title="3D — phase lift on / off">3D</button>
       <button class="view-tg" type="button" id="vt-frame" aria-pressed="false" title="Coordinate frame on / off">XYZ</button>
       <button class="view-tg" type="button" id="vt-construct" aria-pressed="false" title="Construction view on / off">CON</button>
@@ -2464,6 +2491,7 @@ let params = {
   ax: 1, fx: 3,
   ay: 1, fy: 2,
   phase: 0.5,
+  geometry: 0,    // 0 = lateral (Lissajous), 1 = rotary concurrent, 2 = rotary counter-current, 3 = rose
   morphX: 0,      // X wave position along SIN→TRI→SAW→SQR (0..3, whole = exact shape)
   morphY: 0,      // Y wave position along SIN→TRI→SAW→SQR (0..3, whole = exact shape)
   strokeColor: '#c8f060',
@@ -2594,7 +2622,8 @@ function filterPeriodic(arr, n, c, mix) {
 }
 // Reusable buffers for the figure's per-axis sample sequences.
 let _figBufX = new Float64Array(0), _figBufY = new Float64Array(0);
-let _figBufZ = new Float64Array(0);   // lift mode only: the quadrature (depth) sequence
+let _figBufZ = new Float64Array(0);   // lift / rotary: X's quadrature (depth or rotor) sequence
+let _figBufYQ = new Float64Array(0);  // rotary geometries only: Y's quadrature sequence
 let _eraseMode = false;               // true while stroking the destination-out clearance pass
 let _audioSampling = false; // true while sampling processWave for audio (skips visual noise)
 
@@ -2827,16 +2856,20 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
 
   const cx = w / 2, cy = h / 2;
   const pad = Math.min(w, h) * 0.034;
-  const rx = (w / 2 - pad) * ax * zoom;
-  const ry = (h / 2 - pad) * ay * zoom;
+  // The rotary geometries fold the amplitudes into the point (they are rotor
+  // radii there, not axis scales), so the box is square.
+  const geo = figGeometry(), polar = geo !== 0;
+  const rx = (w / 2 - pad) * (polar ? 1 : ax) * zoom;
+  const ry = (h / 2 - pad) * (polar ? 1 : ay) * zoom;
 
   // Build the per-axis sample sequences first so the filter (a waveform stage) can
   // process them before they're drawn.
   const N = resolution + 1;
   if (_figBufX.length < N) { _figBufX = new Float64Array(N); _figBufY = new Float64Array(N); }
   const lift = liftActive();
-  if (lift && _figBufZ.length < N) _figBufZ = new Float64Array(N);
-  const sxArr = _figBufX, syArr = _figBufY, szArr = _figBufZ;
+  if ((lift || polar) && _figBufZ.length < N) _figBufZ = new Float64Array(N);
+  if (polar && _figBufYQ.length < N) _figBufYQ = new Float64Array(N);
+  const sxArr = _figBufX, syArr = _figBufY, szArr = _figBufZ, syqArr = _figBufYQ;
   const span = Math.PI * 2 * lcm(fx, fy) / Math.min(fx, fy);
   // Memo on (phase, resolution), reset once per frame by render(). KEEP trails
   // stroke each copy twice — once to clear what is under it, once to draw it —
@@ -2845,22 +2878,32 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
   // rotation — so the sample set is phase-independent and the key drops it. That
   // also means the N copies of a KEEP trail sample ONCE between them, not N times.
   const memoPhase = lift ? -1 : phase;
-  const xStale = _figMemoPhase !== memoPhase || _figMemoRes !== resolution || _figMemoLift !== lift;
+  const xStale = _figMemoPhase !== memoPhase || _figMemoRes !== resolution || _figMemoLift !== lift
+              || _figMemoGeo !== geo;
   // Y carries no δ, so a KEEP trail's N copies share ONE Y build instead of
   // sampling an identical array N times.
-  if (_figMemoYRes !== resolution) {
-    _figMemoYRes = resolution;
+  if (_figMemoYRes !== resolution || _figMemoYGeo !== geo) {
+    _figMemoYRes = resolution; _figMemoYGeo = geo;
     for (let i = 0; i <= resolution; i++) {
       syArr[i] = processWave(fy * ((i / resolution) * span),
                              fy * ((i / resolution) * span), waveTypeY, 'y');
     }
+    // Rotary: Y's rotor needs its second coordinate — the same wave a quarter
+    // period ahead (a cosine, for a sine).
+    if (polar) {
+      for (let i = 0; i <= resolution; i++) {
+        const t = (i / resolution) * span;
+        syqArr[i] = processWave(fy * t + Math.PI / 2, fy * t, waveTypeY, 'y');
+      }
+    }
     if (filterIsOn() && onAxis('filterAxis', 'y')) {
       const wY = Math.PI * 2 * Math.min(0.49, (filterHarmonics() * fy * periodFactor) / resolution);
       filterPeriodic(syArr, N, biquadCoeffs(filterType, wY, params.filterQ));
+      if (polar) filterPeriodic(syqArr, N, biquadCoeffs(filterType, wY, params.filterQ));
     }
   }
   if (xStale) {
-    _figMemoPhase = memoPhase; _figMemoRes = resolution; _figMemoLift = lift;
+    _figMemoPhase = memoPhase; _figMemoRes = resolution; _figMemoLift = lift; _figMemoGeo = geo;
     for (let i = 0; i <= resolution; i++) {
       const t = (i / resolution) * span;
       sxArr[i] = processWave(fx * t + (lift ? 0 : phase * Math.PI), fx * t, waveTypeX, 'x');
@@ -2875,13 +2918,20 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
         szArr[i] = processWave(fx * t + Math.PI / 2, fx * t, waveTypeX, 'x');
       }
     }
+    // Rotary: X's rotor partner, carrying δ like X itself.
+    if (polar) {
+      for (let i = 0; i <= resolution; i++) {
+        const t = (i / resolution) * span;
+        szArr[i] = processWave(fx * t + phase * Math.PI + Math.PI / 2, fx * t, waveTypeX, 'x');
+      }
+    }
     // ── Multimode filter (final waveform stage) — X and the depth it carries ──
     if (filterIsOn() && onAxis('filterAxis', 'x')) {
       const wX = Math.PI * 2 * Math.min(0.49, (filterHarmonics() * fx * periodFactor) / resolution);
       filterPeriodic(sxArr, N, biquadCoeffs(filterType, wX, params.filterQ));
       // Depth gets the X axis's own coefficients: filtering it differently would
       // pull it out of quadrature and buckle the cylinder.
-      if (lift) filterPeriodic(szArr, N, biquadCoeffs(filterType, wX, params.filterQ));
+      if (lift || polar) filterPeriodic(szArr, N, biquadCoeffs(filterType, wX, params.filterQ));
     }
   }
   const cyclesX = fx * periodFactor, cyclesY = fy * periodFactor;
@@ -2904,8 +2954,9 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
   // seen in quadrature, so sliding one and not the other would buckle the cylinder.
   const pt = (i, k, mx, my, zFlip) => {
     const idx = k ? (i + k) % resolution : i;
-    const xs = sxArr[idx];
-    const ys = syArr[i];
+    let xs = sxArr[idx];
+    let ys = syArr[i];
+    if (polar) { geoPoint(geo, xs, szArr[idx], ys, syqArr[i], _G); xs = _G.x; ys = _G.y; }
     figureXform(visualSwap ? ys : xs, visualSwap ? xs : ys, lift ? szArr[idx] : 0, zFlip);
     _P.x = cx + rx * _Q.x * mx;
     _P.y = cy + ry * _Q.y * my;
@@ -3053,6 +3104,7 @@ const _P = { x: 0, y: 0 };      // scratch point for drawLissajous
 let _figMemoPhase = NaN, _figMemoRes = -1;   // per-frame sample memo (see drawLissajous)
 let _figMemoLift = null;                     // ...and which depth mode built it
 let _figMemoYRes = -1;   // Y is independent of δ — its own key
+let _figMemoGeo = -1, _figMemoYGeo = -1;     // ...and the geometry each was built for
 let _unisonDrift = 0;           // unison ghost precession (cycles); advanced in render()
 // How far the unison ghosts sit from the main figure, in cycles. A small baseline
 // makes the doubling visible from Mix alone; Detune widens the separation and (via
@@ -3119,7 +3171,44 @@ function applyDotDash(c, dl, lineWidth) {
 // So for triangle/saw/square, and under heavy FM/fold/sync, the lift is a close
 // relative of the flat figure rather than a theorem about it: still a coherent
 // solid that spins, no longer an identity. Sine gives you the identity.
-function liftActive() { return Math.round(params.depthSrc ?? 0) === 1; }
+function liftActive() { return Math.round(params.depthSrc ?? 0) === 1 && !polarGeometry(); }
+
+// ── Figure geometry: how the two oscillators are combined into a point ─────────
+// LATERAL is the Lissajous figure: X drives the horizontal, Y the vertical.
+// The other three read each oscillator as a ROTOR — the wave and the same wave a
+// quarter period ahead, which for a sine is (cos, sin), a point going round a
+// circle — and combine the two circles instead of the two axes:
+//   ROTARY con-current     z = ax·e^{i(fx·t + δπ)} + ay·e^{+i·fy·t}
+//   ROTARY counter-current z = ax·e^{i(fx·t + δπ)} + ay·e^{−i·fy·t}
+// Concurrent rotors give the looped rings (epitrochoids), counter-rotating ones
+// the petalled stars (hypotrochoids), |fx ± fy| lobes around the centre.
+//   ROSE  r(θ) = W(fx/fy · θ + δπ + π/2),  θ = fy·t
+// X is the radius and Y turns the angle, so fx = n and fy = d reproduce the
+// r = cos(n/d·θ) table (δ = 0 is the cosine; other δ turn the rose). The rose is
+// itself two equal counter-rotating rotors at (n ± d)/d. Every synthesis stage
+// still acts on the waves, so a SQR angle wave snaps θ, FM bends the petals, etc.
+// The 3D lift is defined for the lateral figure only and stands down here.
+const GEO_NAMES = ['LATERAL', 'CON-CURRENT', 'COUNTER', 'ROSE'];
+function figGeometry() { return Math.max(0, Math.min(3, Math.round(params.geometry || 0))); }
+function polarGeometry() { return figGeometry() !== 0; }
+// The construction view explains the lateral figure (two generators projected on
+// two axes); in the rotary geometries the plain figure is shown instead.
+function m4Active() { return constructionView && !polarGeometry(); }
+// Combine the samples into the figure point (normalised, before the view
+// transform). xs/ys are the wave values, xq/yq their quarter-period-ahead copies.
+function geoPoint(geo, xs, xq, ys, yq, out) {
+  const ax = params.ax, ay = params.ay;
+  if (geo === 3) {                       // rose: radius from X, direction from Y
+    out.x = ax * xq * yq;
+    out.y = -ay * xq * ys;
+  } else {                               // rotary: the sum of two rotors
+    const n = 1 / Math.max(1e-6, ax + ay);
+    const s = geo === 1 ? 1 : -1;
+    out.x = (ax * xq + ay * yq) * n;
+    out.y = -(ax * xs + s * ay * ys) * n;
+  }
+}
+const _G = { x: 0, y: 0 };
 
 // ── Shared figure transform (main view AND construction view) ─────────────────
 // depth (lift quadrature or z oscillator) → lift yaw (about the vertical, or the
@@ -3322,7 +3411,7 @@ function frameText(g, str, x, y, color, alpha, fs) {
 function drawCoordFrame(target, w, h, phase, zoom) {
   if (!params.frameShow) return;
   let cx, cy, rx, ry, boxZoom = 1;
-  if (constructionView) {
+  if (m4Active()) {
     // Mirrors drawMode4's layout so the frame lands on the same square the
     // construction view draws its curve in (and takes the same box zoom, which
     // that view applies as a transform rather than folding into rx/ry).
@@ -3335,8 +3424,9 @@ function drawCoordFrame(target, w, h, phase, zoom) {
     const pad = Math.min(w, h) * 0.034;
     const z = zoom || 1;
     cx = w / 2; cy = h / 2;
-    rx = (w / 2 - pad) * params.ax * z;
-    ry = (h / 2 - pad) * params.ay * z;
+    const polar = polarGeometry();   // match drawLissajous's box
+    rx = (w / 2 - pad) * (polar ? 1 : params.ax) * z;
+    ry = (h / 2 - pad) * (polar ? 1 : params.ay) * z;
   }
   const zk = rx / ry;                 // depth rides rx, height rides ry — see figureXform
   const R = Math.max(0.05, params.frameRadius || 1);
@@ -3716,7 +3806,7 @@ function blitLayer(which) {
 function drawFigureInto(target, phase, res, zoom, phaseBack, resCap) {
   target.save();
   target.translate(figBox.x, figBox.y);
-  if (constructionView) drawMode4(target, figBox.size, figBox.size, phase, true, zoom, M4_FIGURE, resCap);
+  if (m4Active()) drawMode4(target, figBox.size, figBox.size, phase, true, zoom, M4_FIGURE, resCap);
   else drawLissajous(target, figBox.size, figBox.size, phase, res, zoom, true, resCap);
   target.restore();
 }
@@ -4128,7 +4218,7 @@ function tickWaveOut(dt) {
 
   // Position in the lap. Following the tracer keeps the stream and the moving dot
   // on the construction view in lockstep — what is sent is exactly what is shown.
-  if (woFollow && constructionView) {
+  if (woFollow && m4Active()) {
     woLap = (mode4T / (TWO_PI / gcd(params.fx, params.fy))) % 1;
   } else {
     woLap = (woLap + woRate * dt) % 1;
@@ -4152,7 +4242,7 @@ function tickWaveOut(dt) {
     const g = gcd(params.fx, params.fy);
     // The tracer steps T × traceSpeed × 0.003 per frame at 60fps, i.e. one lap
     // every 1/(traceSpeed × 0.18) seconds.
-    const hz = (woFollow && constructionView) ? (params.traceSpeed ?? 1) * 0.18 : woRate;
+    const hz = (woFollow && m4Active()) ? (params.traceSpeed ?? 1) * 0.18 : woRate;
     st.textContent = `X ${vx} (${(hz * params.fx / g).toFixed(2)} Hz) · Y ${vy} (${(hz * params.fy / g).toFixed(2)} Hz)`;
   }
 }
@@ -4263,8 +4353,8 @@ function render(now) {
   // Frame-advance the unison ghost drift.
   if ((params.unisonMix || 0) > 0.01) _unisonDrift = (_unisonDrift + (params.unisonDetune || 0) * 0.0008) % 1;
 
-  if (constructionView && animating) animPhase = (animPhase + 0.004 * animSpeed) % 2;
-  const drawPhase = constructionView ? (animating ? animPhase : params.phase) : phase;
+  if (m4Active() && animating) animPhase = (animPhase + 0.004 * animSpeed) % 2;
+  const drawPhase = m4Active() ? (animating ? animPhase : params.phase) : phase;
   const zoom = Math.max(ZOOM_MIN, recZoom);
   _m4MemoPhase = NaN; _figMemoPhase = NaN; _figMemoYRes = -1;   // the sample memos are per-frame
 
@@ -4300,7 +4390,7 @@ function render(now) {
   }
 
   // The diagram's own furniture, always fresh — never trailed, never faded.
-  if (constructionView) {
+  if (m4Active()) {
     ctx.save();
     ctx.translate(figBox.x, figBox.y);
     drawMode4(ctx, figBox.size, figBox.size, drawPhase, true, zoom, M4_CHROME);
@@ -4480,16 +4570,22 @@ document.getElementById('btn-export').addEventListener('click', () => {
   const { ax, fx, ay, fy, strokeColor, bgColor, lineWidth, resolution } = params;
   const phase = animating ? animPhase : params.phase;
   const cx = w / 2, cy = h / 2;
-  const rx = (w / 2 - 24) * ax;
-  const ry = (h / 2 - 24) * ay;
+  const geo = figGeometry();
+  const rx = (w / 2 - 24) * (geo ? 1 : ax);
+  const ry = (h / 2 - 24) * (geo ? 1 : ay);
 
   let points = [];
   const steps = resolution * 2;
   const T = Math.PI * 2 * lcm(fx, fy) / Math.min(fx, fy);
   for (let i = 0; i <= steps; i++) {
     const t = (i / steps) * T;
-    const sx = processWave(fx * t + phase * Math.PI, fx * t, waveTypeX, 'x');
-    const sy = processWave(fy * t, fy * t, waveTypeY, 'y');
+    let sx = processWave(fx * t + phase * Math.PI, fx * t, waveTypeX, 'x');
+    let sy = processWave(fy * t, fy * t, waveTypeY, 'y');
+    if (geo) {
+      geoPoint(geo, sx, processWave(fx * t + phase * Math.PI + Math.PI / 2, fx * t, waveTypeX, 'x'),
+               sy, processWave(fy * t + Math.PI / 2, fy * t, waveTypeY, 'y'), _G);
+      sx = _G.x; sy = _G.y;
+    }
     const x = cx + rx * (visualSwap ? sy : sx);
     const y = cy + ry * (visualSwap ? sx : sy);
     points.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(3)},${y.toFixed(3)}`);
@@ -4498,7 +4594,7 @@ document.getElementById('btn-export').addEventListener('click', () => {
   const pathD = points.join(' ');
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
-  <title>Lissajous fx=${fx} fy=${fy} waveX=${waveTypeX} waveY=${waveTypeY}</title>
+  <title>${GEO_NAMES[geo]} fx=${fx} fy=${fy} waveX=${waveTypeX} waveY=${waveTypeY}</title>
   <rect width="${w}" height="${h}" fill="${bgColor}"/>
   <path d="${pathD}" fill="none" stroke="${strokeColor}" stroke-width="${lineWidth}" stroke-linejoin="round" stroke-linecap="round"/>
 </svg>`;
@@ -5846,6 +5942,35 @@ function refreshFrameControls() {
 refreshFrameControls();
 
 // Mirror mode: off / mirror-X / mirror-Y / 4-fold kaleidoscope.
+const GEO_HINTS = [
+  'x = X wave, y = Y wave',
+  'X and Y as circles turning the same way',
+  'X and Y as circles turning opposite ways',
+  'r(θ) = cos(n/d · θ) — n = X freq, d = Y freq',
+];
+function setGeometry(g) {
+  g = Math.max(0, Math.min(3, Math.round(g)));
+  const changed = figGeometry() !== g;
+  params.geometry = g;
+  document.querySelectorAll('.wave-btn[data-geo]').forEach(b => {
+    const active = parseInt(b.dataset.geo) === g;
+    b.classList.toggle('active', active);
+    b.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
+  const hint = document.getElementById('geo-hint');
+  if (hint) hint.textContent = GEO_HINTS[g];
+  // The lift and the construction view have no rotary counterpart: grey them out
+  // rather than silently ignoring them.
+  const cv = document.getElementById('construction-view');
+  if (cv && cv.parentElement) cv.parentElement.style.opacity = g ? 0.4 : 1;
+  document.querySelectorAll('.wave-btn[data-depthsrc]').forEach(b => { b.disabled = !!g; b.style.opacity = g ? 0.4 : ''; });
+  document.body.classList.toggle('orbit', liftActive());
+  if (changed) clearTrail();
+}
+document.querySelectorAll('.wave-btn[data-geo]').forEach(btn => {
+  btn.addEventListener('click', () => setGeometry(parseInt(btn.dataset.geo)));
+});
+
 function setMirrorMode(m) {
   m = Math.max(0, Math.min(3, Math.round(m)));
   params.mirrorMode = m;
@@ -5930,7 +6055,7 @@ function setDepthSrc(n) {
   // the modulators to inherit — say so rather than leaving a dead checkbox.
   const pm = document.getElementById('phase-modulators');
   if (pm) { pm.disabled = lift; if (pm.parentElement) pm.parentElement.style.opacity = lift ? 0.4 : 1; }
-  document.body.classList.toggle('orbit', lift);
+  document.body.classList.toggle('orbit', liftActive());
   if (changed) clearTrail();
 }
 document.querySelectorAll('.wave-btn[data-depthsrc]').forEach(btn => {
@@ -6549,6 +6674,7 @@ const MAP_TARGETS = {
   fillSurface:{ label:'Fill Surface', toggle:true, apply:b => { params.fillSurface = b ? 1 : 0; const cb=document.getElementById('fill-surface'); if (cb) cb.checked = b; } },
 
   trailAmt:  { label:'Trail',         min:0,    max:0.97,           apply:v => setSliderParam('trailAmt','trail-amt','trail-amt-val',x=>(x<0.01?'off':Math.round(x*100)+'%'),v) },
+  geometry:  { label:'Geometry',       min:0,    max:3,   step:1,    apply:v => setGeometry(v) },
   mirrorMode:{ label:'Mirror Mode',   min:0,    max:3,   step:1,    apply:v => setMirrorMode(v) },
   m4Rotate:{ label:'Straight Generators', toggle:true, apply:b => setM4Rotate(b) },
   trailMode:{ label:'Trail Mode',     min:0,    max:1,   step:1,    apply:v => setTrailMode(v) },
@@ -6599,7 +6725,7 @@ const TARGET_CATEGORIES = [
                  'warp', 'foldDrive', 'foldBias', 'warpAxis', 'crushBits', 'crushRate', 'crushAxis',
                  'noiseAmt', 'noiseAxis', 'filterCutoff', 'filterQ', 'filterAxis',
                  'syncAmt', 'syncAxis', 'unisonDetune', 'unisonMix']],
-  ['Frequency', ['ax', 'fx', 'ay', 'fy', 'visualSwap', 'preset']],
+  ['Frequency', ['geometry', 'ax', 'fx', 'ay', 'fy', 'visualSwap', 'preset']],
   ['Audio',     ['volume']],
   ['Figure',    ['hue', 'sat', 'light', 'lineWidth', 'dotsLine', 'mirrorMode', 'fillSurface',
                  'trailMode', 'trailAmt', 'trailCount', 'trailSpacing',
@@ -6666,7 +6792,7 @@ const MAP_DEFAULTS = {
   syncAmt:1, foldDrive:1, amAmt:0, amRatio:2, noiseAmt:0, waveX:0, waveY:0,
   crossFm:0, ringAmt:0, fbAmt:0, foldBias:0, crushBits:16, crushRate:0,
   unisonDetune:0, unisonMix:0,
-  fillSurface:0, trailAmt:0, trailMode:0, trailCount:4, trailSpacing:0.08, mirrorMode:0, m4Rotate:1, az:0,
+  geometry:0, fillSurface:0, trailAmt:0, trailMode:0, trailCount:4, trailSpacing:0.08, mirrorMode:0, m4Rotate:1, az:0,
   lfo0Rate:0.5, lfo0Depth:0.5, lfo1Rate:1.0, lfo1Depth:0.5,
   hue:79, sat:84, light:66, lineWidth:1.5, phase:0.5, animSpeed:1, volume:0.5,
   filterCutoff:1, filterQ:0.7, dotsLine:1,
@@ -7190,6 +7316,7 @@ function refreshAllControls() {
   setS('dots-line', params.dotsLine ?? 1, 'dots-line-val', fmtDotSpacing);
   VISUAL_SLIDERS.forEach(([id, key, fmt]) => setS(id, params[key] ?? 0, id + '-val', fmt));
   UNISON_SLIDERS.forEach(([id, key, fmt]) => setS(id, params[key] ?? 0, id + '-val', fmt));
+  setGeometry(params.geometry ?? 0);
   setMirrorMode(params.mirrorMode ?? 0);
   setTrailMode(params.trailMode ?? 0);
   setTrailQuality(trailQuality);
@@ -7370,10 +7497,10 @@ function captureRecFrame(phase) {
     fullCtx.fillStyle = params.bgColor;
     fullCtx.fillRect(0, 0, F, F);
     if (!params.frameFront) drawCoordFrame(fullCtx, F, F, phase, z);
-    if (constructionView) drawMode4(fullCtx, F, F, phase, true, z);
+    if (m4Active()) drawMode4(fullCtx, F, F, phase, true, z);
     else drawLissajous(fullCtx, F, F, phase, params.resolution, z, true);
     if (params.frameFront) drawCoordFrame(fullCtx, F, F, phase, z);
-  } else if (constructionView) {
+  } else if (m4Active()) {
     drawMode4(fullCtx, F, F, phase, false, Math.max(ZOOM_MIN, recZoom));
   } else {
     drawLissajous(fullCtx, F, F, phase, params.resolution, Math.max(ZOOM_MIN, recZoom));
@@ -7649,7 +7776,7 @@ document.addEventListener('dblclick', e => {
 // value within its range by the Deviation amount (1 = fully random).
 const EVOLVE_KEYS = orderedTargetKeys(Object.keys(MAP_TARGETS).filter(k => k !== 'preset'));
 // Default-excluded: view toggles + master volume (disruptive / non-musical).
-const EVOLVE_DEFAULT_OFF = new Set(['constructionView', 'animatePhase', 'visualSwap', 'volume',
+const EVOLVE_DEFAULT_OFF = new Set(['constructionView', 'animatePhase', 'visualSwap', 'volume', 'geometry',
   'depthSrc', 'depthShade', 'showShadow',
   'frameShow', 'frameFollow', 'frameOpacity', 'frameRadius', 'frameAxisLen',
   'frameOrbits', 'frameAngles', 'framePlanes',
@@ -7890,7 +8017,7 @@ function setMorphStepMode(m) {
 // wave types are derived from them — so they belong with the stepped set, or a
 // recall would slide the timbre through two other shapes on its way and IGNORE
 // would stop protecting the waveform it promises to leave alone.
-const MORPH_DISCRETE = new Set(['fx', 'fy', 'mirrorMode', 'fillSurface', 'trailMode', 'trailCount', 'm4Rotate', 'phase',
+const MORPH_DISCRETE = new Set(['fx', 'fy', 'geometry', 'mirrorMode', 'fillSurface', 'trailMode', 'trailCount', 'm4Rotate', 'phase',
                                 'depthSrc', 'depthShade', 'showShadow', 'morphX', 'morphY']);
 // The rest of a patch's stepped state lives outside `params` — the waveforms, the
 // filter type, the view toggles. Same treatment, same list.
@@ -8080,7 +8207,8 @@ function clickCheckbox(id, on) {
 }
 let readoutOn = false;
 try { readoutOn = localStorage.getItem('lissa.readout') === '1'; } catch (e) {}
-document.getElementById('vt-3d').addEventListener('click', () => setDepthSrc(liftActive() ? 0 : 1));
+document.getElementById('vt-geo').addEventListener('click', () => setGeometry((figGeometry() + 1) % 4));
+document.getElementById('vt-3d').addEventListener('click', () => { if (!polarGeometry()) setDepthSrc(liftActive() ? 0 : 1); });
 document.getElementById('vt-frame').addEventListener('click', () => clickCheckbox('frame-show', !params.frameShow));
 document.getElementById('vt-construct').addEventListener('click', () => clickCheckbox('construction-view', !constructionView));
 document.getElementById('vt-readout').addEventListener('click', () => {
@@ -8103,6 +8231,7 @@ function buildSynthReadout() {
   Object.keys(PARAM_DEFAULTS).forEach(k => { P[k] = params[k] ?? PARAM_DEFAULTS[k]; });
   const ax = k => AXIS_TAG[P[k] | 0] || 'XY';
   const rows = [
+    ['geo',   GEO_NAMES[figGeometry()].toLowerCase(), true],
     ['wave',  `X ${fmtMorph(P.morphX)}  Y ${fmtMorph(P.morphY)}`, true],
     ['freq',  `${roNum(P.fx)}:${roNum(P.fy)}  ${Math.round(baseFreq)}Hz  amp ${P.ax.toFixed(2)}/${P.ay.toFixed(2)}`, true],
     ['am',    `${P.amAmt.toFixed(2)} ×${roRatio(P.amRatio)} ${MODW_TAG[P.amWave] || P.amWave} ${ax('amAxis')}`, P.amAmt > 0],
@@ -8133,10 +8262,14 @@ function setViewTg(id, on) {
   b.setAttribute('aria-pressed', on ? 'true' : 'false');
 }
 let _roLast = '';
+const GEO_TAGS = ['LAT', 'ROT+', 'ROT−', 'ROSE'];
 function syncViewToggles() {
+  const geoBtn = document.getElementById('vt-geo');
+  if (geoBtn && geoBtn.textContent !== GEO_TAGS[figGeometry()]) geoBtn.textContent = GEO_TAGS[figGeometry()];
+  setViewTg('vt-geo', polarGeometry());
   setViewTg('vt-3d', liftActive());
   setViewTg('vt-frame', !!params.frameShow);
-  setViewTg('vt-construct', !!constructionView);
+  setViewTg('vt-construct', m4Active());
   setViewTg('vt-readout', readoutOn);
   const ro = document.getElementById('synth-readout');
   ro.hidden = !readoutOn;
