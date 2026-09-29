@@ -1079,8 +1079,8 @@
   /* Canvas-corner view toggles + synthesis readout. The canvas area ignores the
      pointer (so drags reach the figure); these opt back in. */
   .view-toggles {
-    position: absolute; top: 6px; left: 6px; z-index: 2;
-    display: flex; gap: 3px; pointer-events: auto;
+    position: absolute; top: 6px; right: 6px; z-index: 2;
+    display: flex; flex-direction: column; gap: 3px; pointer-events: auto;
   }
   .view-tg {
     font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.08em;
@@ -1092,11 +1092,11 @@
   .view-tg.active { color: var(--accent); border-color: var(--accent); }
   .view-tg:focus-visible { outline: 1px solid var(--focus); outline-offset: 1px; }
   .synth-readout {
-    position: absolute; top: 24px; left: 6px; z-index: 2; margin: 0;
-    max-width: calc(100% - 12px); max-height: calc(100% - 30px); overflow: auto;
+    position: absolute; top: 6px; left: 6px; z-index: 2; margin: 0;
+    max-width: calc(100% - 52px); max-height: calc(100% - 12px); overflow: auto;
     font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; line-height: 1.35;
     color: var(--label); background: rgba(12,12,14,0.72);
-    border: 1px solid var(--border); border-radius: 2px; padding: 4px 6px;
+    border: 0; border-radius: 2px; padding: 4px 6px;
     pointer-events: auto; white-space: pre;
   }
   .synth-readout[hidden] { display: none; }
@@ -1624,8 +1624,8 @@
 <div class="layout grid-hidden" id="layout">
   <div class="sidebar" id="sidebar-panel">
     <div class="tab-bar" role="tablist" aria-label="Control groups">
-      <button class="tab-btn" type="button" role="tab" id="tabbtn-shape" data-tab="shape" aria-controls="tab-shape" aria-selected="false" title="Shape — the figure itself: geometry, ratio, waves"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12c2.2-6.5 6.8-6.5 9 0s6.8 6.5 9 0M3 12c2.2 6.5 6.8 6.5 9 0s6.8-6.5 9 0"/></svg><span>Shape</span></button>
-      <button class="tab-btn" type="button" role="tab" id="tabbtn-sound" data-tab="sound" aria-controls="tab-sound" aria-selected="false" title="Sound — how the waves are processed"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12h3l2.5-7 4 14 3-10 2 3H22"/></svg><span>Sound</span></button>
+      <button class="tab-btn" type="button" role="tab" id="tabbtn-shape" data-tab="shape" aria-controls="tab-shape" aria-selected="false" title="Shape — the figure itself: geometry and ratio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12c2.2-6.5 6.8-6.5 9 0s6.8 6.5 9 0M3 12c2.2 6.5 6.8 6.5 9 0s6.8-6.5 9 0"/></svg><span>Shape</span></button>
+      <button class="tab-btn" type="button" role="tab" id="tabbtn-sound" data-tab="sound" aria-controls="tab-sound" aria-selected="false" title="Sound — the waves and how they are processed"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12h3l2.5-7 4 14 3-10 2 3H22"/></svg><span>Sound</span></button>
       <button class="tab-btn" type="button" role="tab" id="tabbtn-look" data-tab="look" aria-controls="tab-look" aria-selected="false" title="Look — how the figure is drawn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 0 0 17z" fill="currentColor" stroke="none"/></svg><span>Look</span></button>
       <button class="tab-btn" type="button" role="tab" id="tabbtn-motion" data-tab="motion" aria-controls="tab-motion" aria-selected="false" title="Motion — what changes over time"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4.5V9h-4.5"/></svg><span>Motion</span></button>
       <button class="tab-btn" type="button" role="tab" id="tabbtn-setup" data-tab="setup" aria-controls="tab-setup" aria-selected="false" title="Setup — devices, recording and files"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg><span>Setup</span></button>
@@ -1644,6 +1644,7 @@
         <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="Solid figure geometry">
           <button class="wave-btn" data-geo="4" style="padding:5px 2px" title="Torus knot — X round the ring, Y through the hole (3D)">TORUS KNOT</button>
           <button class="wave-btn" data-geo="5" style="padding:5px 2px" title="Spherical Lissajous — X longitude, Y latitude (3D)">SPHERE</button>
+          <button class="wave-btn" data-geo="6" style="padding:5px 2px" title="Waves — X and Y stacked across the full view, their normalised sum below">WAVES</button>
         </div>
         <div id="geo-hint" style="font-size:10.5px;color:var(--label);margin-bottom:10px;line-height:1.45"></div>
         <div class="info-text" data-info-label="figure geometry">
@@ -1666,6 +1667,9 @@
           tennis-ball seam). Amplitude X sets their size, amplitude Y the tube
           thickness or how far the path swings towards the poles. Drag the canvas
           to orbit them; Tilt, Perspective and depth shading in the 3D section apply.
+          <strong>Waves</strong> drops the figure and plots the two waves themselves
+          across the whole view, X above Y, over one full period of the pair, with
+          their sum normalised to full height underneath.
           Construction view and the 3D lift explain the lateral figure only and stand
           down in the rotary geometries; the audio is the same two oscillators in
           every geometry.
@@ -1697,7 +1701,9 @@
         <div class="subsection-label">Ratio Presets</div>
         <div class="preset-grid" id="preset-grid"></div>
       </div>
+    </div>
 
+    <div class="tab-panel" id="tab-sound" data-tab="sound" role="tabpanel" aria-labelledby="tabbtn-sound" tabindex="-1">
       <div class="section" id="section-waves">
         <div class="section-label">Waves</div>
         <div class="param-row" style="margin-bottom:6px">
@@ -1708,10 +1714,6 @@
             <button class="wave-btn" data-axis="x" data-bwave="sawtooth">SAW</button>
             <button class="wave-btn" data-axis="x" data-bwave="square">SQR</button>
           </div>
-          <div class="param-row" style="margin-top:5px">
-            <div class="param-header"><label>Morph</label><span class="val" id="morph-x-val">SIN</span></div>
-            <input type="range" id="morph-x" min="0" max="3" step="0.01" value="0">
-          </div>
         </div>
         <div class="param-row" style="margin-bottom:6px">
           <div class="param-header"><label>Y wave</label></div>
@@ -1721,25 +1723,10 @@
             <button class="wave-btn" data-axis="y" data-bwave="sawtooth">SAW</button>
             <button class="wave-btn" data-axis="y" data-bwave="square">SQR</button>
           </div>
-          <div class="param-row" style="margin-top:5px">
-            <div class="param-header"><label>Morph</label><span class="val" id="morph-y-val">SIN</span></div>
-            <input type="range" id="morph-y" min="0" max="3" step="0.01" value="0">
-          </div>
-          <div class="info-text" data-info-label="the waveform morph">
-            <strong>Morph</strong> is a continuous position along the whole chain —
-            SIN → TRI → SAW → SQR — crossfading between each neighbouring pair as it
-            travels, so the four shapes are the landmarks on one sweep rather than
-            four separate choices. The buttons are shortcuts that jump the slider to
-            an exact shape, and a button lights up whenever the slider is sitting
-            precisely on it, so you can always see whether you are on a named
-            waveform or somewhere between two.
-          </div>
         </div>
         <canvas class="wave-preview" id="wave-preview" width="208" height="28"></canvas>
       </div>
-    </div>
 
-    <div class="tab-panel" id="tab-sound" data-tab="sound" role="tabpanel" aria-labelledby="tabbtn-sound" tabindex="-1">
       <div class="section" id="section-waveform">
         <div class="section-label">Synthesis</div>
         <div class="mod-group" data-axis="amAxis">
@@ -2464,7 +2451,7 @@
         <div style="margin-top:8px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
             <span style="color:var(--label);font-size:11px">Base freq</span>
-            <span id="midi-note-display" style="color:var(--accent);font-size:11px">100 Hz</span>
+            <span id="midi-note-display" style="color:var(--accent);font-size:11px">43.65 Hz</span>
           </div>
           <div class="wave-toggle" style="margin-bottom:8px">
             <button class="wave-btn active" id="basefreq-midi-btn">MIDI</button>
@@ -2481,8 +2468,8 @@
           </div>
           <div id="basefreq-slider-panel" style="display:none">
             <div class="param-row">
-              <div class="param-header"><label>Base Hz</label><span class="val" id="basefreq-val">100 Hz</span></div>
-              <input type="range" id="basefreq-slider" min="10" max="500" step="1" value="100">
+              <div class="param-header"><label>Base Hz</label><span class="val" id="basefreq-val">43.65 Hz</span></div>
+              <input type="range" id="basefreq-slider" min="10" max="500" step="0.01" value="43.65">
             </div>
           </div>
         </div>
@@ -2623,7 +2610,7 @@
 
   <div class="canvas-area">
     <div class="view-toggles" role="toolbar" aria-label="View toggles">
-      <button class="view-tg" type="button" id="vt-geo" aria-pressed="false" title="Geometry — cycle lateral / con-current / counter-current / rose / torus knot / sphere">LAT</button>
+      <button class="view-tg" type="button" id="vt-geo" aria-pressed="false" title="Geometry — cycle lateral / con-current / counter-current / rose / torus knot / sphere / waves">LAT</button>
       <button class="view-tg" type="button" id="vt-3d" aria-pressed="false" title="3D — phase lift on / off">3D</button>
       <button class="view-tg" type="button" id="vt-frame" aria-pressed="false" title="Coordinate frame on / off">XYZ</button>
       <button class="view-tg" type="button" id="vt-construct" aria-pressed="false" title="Construction view on / off">CON</button>
@@ -2726,7 +2713,7 @@ let params = {
   ax: 1, fx: 3,
   ay: 1, fy: 2,
   phase: 0.5,
-  geometry: 0,    // 0 = lateral, 1 = rotary concurrent, 2 = rotary counter-current, 3 = rose, 4 = torus knot, 5 = spherical
+  geometry: 0,    // 0 = lateral, 1 = rotary concurrent, 2 = rotary counter-current, 3 = rose, 4 = torus knot, 5 = spherical, 6 = waves
   morphX: 0,      // X wave position along SIN→TRI→SAW→SQR (0..3, whole = exact shape)
   morphY: 0,      // Y wave position along SIN→TRI→SAW→SQR (0..3, whole = exact shape)
   strokeColor: '#c8f060',
@@ -3093,7 +3080,7 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
   const pad = Math.min(w, h) * 0.034;
   // The rotary geometries fold the amplitudes into the point (they are rotor
   // radii there, not axis scales), so the box is square.
-  const geo = figGeometry(), polar = geo !== 0, solid = geo >= 4;
+  const geo = figGeometry(), polar = geo !== 0, solid = geo === 4 || geo === 5;
   const rx = (w / 2 - pad) * (polar ? 1 : ax) * zoom;
   const ry = (h / 2 - pad) * (polar ? 1 : ay) * zoom;
 
@@ -3430,11 +3417,14 @@ function liftActive() { return Math.round(params.depthSrc ?? 0) === 1 && !polarG
 // They go through the same view transform as the lift, so dragging orbits them,
 // Tilt / Perspective apply and the stroke is depth-cued.
 // The 3D lift itself is defined for the lateral figure only and stands down here.
-const GEO_NAMES = ['LATERAL', 'CON-CURRENT', 'COUNTER', 'ROSE', 'TORUS KNOT', 'SPHERICAL'];
+const GEO_NAMES = ['LATERAL', 'CON-CURRENT', 'COUNTER', 'ROSE', 'TORUS KNOT', 'SPHERICAL', 'WAVES'];
 const GEO_MAX = GEO_NAMES.length - 1;
 function figGeometry() { return Math.max(0, Math.min(GEO_MAX, Math.round(params.geometry || 0))); }
 function polarGeometry() { return figGeometry() !== 0; }
-function solidGeometry() { return figGeometry() >= 4; }
+function solidGeometry() { const g = figGeometry(); return g === 4 || g === 5; }
+// WAVES is not a figure at all: the two waves and their sum, plotted flat.
+const GEO_WAVES = 6;
+function waveGeometry() { return figGeometry() === GEO_WAVES; }
 // Anything the view can orbit: the lifted lateral figure or a solid geometry.
 function orbitable() { return liftActive() || solidGeometry(); }
 const TORUS_TUBE = 0.6;     // tube radius over major radius at ay = 1
@@ -3930,7 +3920,7 @@ function drawCoordFrame(target, w, h, phase, zoom) {
 // straight onto the canvas every frame and never into the trail layer, because a
 // smeared ruler is not a ruler.
 function drawFrameLayer(phase, zoom) {
-  if (!params.frameShow) return;
+  if (!params.frameShow || waveGeometry()) return;
   ctx.save();
   ctx.translate(figBox.x, figBox.y);
   drawCoordFrame(ctx, figBox.size, figBox.size, phase, zoom);
@@ -4068,11 +4058,89 @@ function blitLayer(which) {
 // Ghosts also wind the spin back in proportion, so a rotating figure leaves a
 // rotational trail rather than a stack of copies at the same angle.
 function drawFigureInto(target, phase, res, zoom, phaseBack, resCap) {
+  if (waveGeometry()) {
+    target.save();
+    target.translate(waveBox.x, waveBox.y);
+    drawWaveStack(target, waveBox.w, waveBox.h, phase, res, zoom, WS_CURVES);
+    target.restore();
+    return;
+  }
   target.save();
   target.translate(figBox.x, figBox.y);
   if (m4Active()) drawMode4(target, figBox.size, figBox.size, phase, true, zoom, M4_FIGURE, resCap);
   else drawLissajous(target, figBox.size, figBox.size, phase, res, zoom, true, resCap);
   target.restore();
+}
+
+// ── WAVES view: X, Y and their normalised sum as three stacked lanes ──────────
+// One period of the pair (2π / gcd), so both waves close on themselves. Each lane
+// runs through the full waveform chain, filter included, exactly as the figure's
+// axes do; X carries δ. The lanes scale with the amplitudes; the sum lane is
+// ax·X + ay·Y scaled so its peak fills the lane.
+const WS_ALL = 0, WS_CURVES = 1, WS_CHROME = 2;
+const WS_LABELS = ['X', 'Y', 'X+Y'];
+let _wsX = new Float64Array(0), _wsY = new Float64Array(0), _wsS = new Float64Array(0);
+function waveStackSamples(phase, n) {
+  const { fx, fy, ax, ay } = params;
+  const g = gcd(fx, fy), T = TWO_PI / g;
+  const N = n + 1;
+  if (_wsX.length < N) { _wsX = new Float64Array(N); _wsY = new Float64Array(N); _wsS = new Float64Array(N); }
+  for (let i = 0; i <= n; i++) {
+    const t = (i / n) * T;
+    _wsX[i] = processWave(fx * t + phase * Math.PI, fx * t, waveTypeX, 'x');
+    _wsY[i] = processWave(fy * t, fy * t, waveTypeY, 'y');
+  }
+  if (filterIsOn()) {
+    const fc = cyc => biquadCoeffs(filterType, TWO_PI * Math.min(0.49, (filterHarmonics() * cyc) / n), params.filterQ);
+    if (onAxis('filterAxis', 'x')) filterPeriodic(_wsX, N, fc(fx / g));
+    if (onAxis('filterAxis', 'y')) filterPeriodic(_wsY, N, fc(fy / g));
+  }
+  let peak = 0;
+  for (let i = 0; i <= n; i++) {
+    _wsX[i] *= ax; _wsY[i] *= ay;
+    _wsS[i] = _wsX[i] + _wsY[i];
+    peak = Math.max(peak, Math.abs(_wsS[i]));
+  }
+  const k = peak > 1e-9 ? 1 / peak : 0;
+  for (let i = 0; i <= n; i++) _wsS[i] *= k;
+  return [_wsX, _wsY, _wsS];
+}
+function drawWaveStack(target, w, h, phase, res, zoom, part) {
+  part = part || WS_ALL;
+  const laneH = h / 3, amp = laneH / 2 * 0.86 * (zoom || 1);
+  if (part !== WS_CURVES && !_eraseMode) {
+    target.save();
+    target.strokeStyle = 'rgba(255,255,255,0.10)';
+    target.lineWidth = 1;
+    target.setLineDash([2, 4]);
+    for (let l = 0; l < 3; l++) {
+      const cy = laneH * (l + 0.5);
+      target.beginPath(); target.moveTo(0, cy); target.lineTo(w, cy); target.stroke();
+    }
+    target.setLineDash([]);
+    target.fillStyle = 'rgba(255,255,255,0.35)';
+    target.font = "10px 'IBM Plex Mono', monospace";
+    target.textBaseline = 'top';
+    for (let l = 0; l < 3; l++) target.fillText(WS_LABELS[l], 2, laneH * l + 4);
+    target.restore();
+  }
+  if (part === WS_CHROME) return;
+  const n = Math.max(200, Math.min(res || 2000, Math.round(w * 4)));
+  const lanes = waveStackSamples(phase, n);
+  target.strokeStyle = params.strokeColor;
+  target.lineWidth = params.lineWidth;
+  target.lineJoin = 'round';
+  target.lineCap = 'round';
+  target.setLineDash([]);
+  for (let l = 0; l < 3; l++) {
+    const buf = lanes[l], cy = laneH * (l + 0.5);
+    target.beginPath();
+    for (let i = 0; i <= n; i++) {
+      const x = (i / n) * w, y = cy - buf[i] * amp;
+      i === 0 ? target.moveTo(x, y) : target.lineTo(x, y);
+    }
+    target.stroke();
+  }
 }
 
 // Clear whatever a copy is about to be drawn over, so a newer line visibly cuts
@@ -4654,6 +4722,12 @@ function render(now) {
   }
 
   // The diagram's own furniture, always fresh — never trailed, never faded.
+  if (waveGeometry()) {
+    ctx.save();
+    ctx.translate(waveBox.x, waveBox.y);
+    drawWaveStack(ctx, waveBox.w, waveBox.h, drawPhase, res, zoom, WS_CHROME);
+    ctx.restore();
+  }
   if (m4Active()) {
     ctx.save();
     ctx.translate(figBox.x, figBox.y);
@@ -4726,18 +4800,13 @@ function updateWaveButtons(axis) {
     b.setAttribute('aria-pressed', on ? 'true' : 'false');
   });
 }
-// Move an axis to a position on the chain. The waveform "type" is the integer
-// part, so the buttons, the slider and the sampler can never disagree.
-function setWaveMorph(axis, pos, fromSlider) {
-  pos = Math.max(0, Math.min(MORPH_MAX, pos));
+// Move an axis to one of the four shapes. The position is always whole — there
+// is no in-between morph — so a fractional value from an older patch snaps.
+function setWaveMorph(axis, pos) {
+  pos = Math.max(0, Math.min(MORPH_MAX, Math.round(pos || 0)));
   if (axis === 'y') params.morphY = pos; else params.morphX = pos;
-  const t = WAVE_ORDER[Math.max(0, Math.min(MORPH_MAX, Math.floor(pos + 1e-6)))];
+  const t = WAVE_ORDER[pos];
   if (axis === 'y') waveTypeY = t; else waveTypeX = t;
-  if (!fromSlider) {
-    const e = document.getElementById(axis === 'y' ? 'morph-y' : 'morph-x');
-    if (e) e.value = pos;
-  }
-  updateMorphLabels();
   updateWaveButtons(axis);
   drawWavePreview();
   syncAudioParams();
@@ -4830,7 +4899,9 @@ function updateStatus() {
 document.getElementById('btn-export').addEventListener('click', () => {
   // The canvas bitmap is the whole window now, so the export takes its size from
   // the figure's own box — the square the figure is actually composed in.
-  const w = Math.round(figBox.size * viewDpr), h = w;
+  const wave = waveGeometry();
+  const w = Math.round((wave ? waveBox.w : figBox.size) * viewDpr);
+  const h = wave ? Math.round(waveBox.h * viewDpr) : w;
   const { ax, fx, ay, fy, strokeColor, bgColor, lineWidth, resolution } = params;
   const phase = animating ? animPhase : params.phase;
   const cx = w / 2, cy = h / 2;
@@ -4839,6 +4910,16 @@ document.getElementById('btn-export').addEventListener('click', () => {
   const ry = (h / 2 - 24) * (geo ? 1 : ay);
 
   let points = [];
+  if (wave) {
+    // WAVES: the three lanes as they are drawn on the canvas, one subpath each.
+    const n = Math.max(200, Math.min(resolution * 2, w * 4));
+    const lanes = waveStackSamples(phase, n), laneH = h / 3, amp = laneH / 2 * 0.86;
+    lanes.forEach((buf, l) => {
+      const ly = laneH * (l + 0.5);
+      for (let i = 0; i <= n; i++)
+        points.push(`${i === 0 ? 'M' : 'L'}${((i / n) * w).toFixed(3)},${(ly - buf[i] * amp).toFixed(3)}`);
+    });
+  } else {
   const steps = resolution * 2;
   const T = Math.PI * 2 * lcm(fx, fy) / Math.min(fx, fy);
   for (let i = 0; i <= steps; i++) {
@@ -4853,6 +4934,7 @@ document.getElementById('btn-export').addEventListener('click', () => {
     const x = cx + rx * (visualSwap ? sy : sx);
     const y = cy + ry * (visualSwap ? sx : sy);
     points.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(3)},${y.toFixed(3)}`);
+  }
   }
 
   const pathD = points.join(' ');
@@ -4896,6 +4978,7 @@ document.getElementById('btn-reset').addEventListener('click', resetAll);
 // viewport and then measures .canvas-area to place the box, so the figure lands
 // exactly where it used to and everything that overflows it is still drawn.
 const figBox = { x: 0, y: 0, size: 700 };
+const waveBox = { x: 0, y: 0, w: 700, h: 700 };   // the whole canvas area, for WAVES
 let viewW = 0, viewH = 0, viewDpr = 1;
 
 // ── Drag to orbit ─────────────────────────────────────────────────────────────
@@ -4971,6 +5054,10 @@ function resize() {
   figBox.size = size;
   figBox.x = r.left + (r.width - size) / 2;
   figBox.y = r.top + (r.height - size) / 2;
+  waveBox.x = r.left + parseFloat(cs.paddingLeft);
+  waveBox.y = r.top + parseFloat(cs.paddingTop);
+  waveBox.w = Math.max(80, r.width - padX);
+  waveBox.h = Math.max(80, r.height - padY);
 }
 
 window.addEventListener('resize', resize);
@@ -5162,8 +5249,6 @@ const VEL_RANGES = {
   fmAmount:  [0, 8],
   fmRatio:   [0.5, 8],
   warp:      [-1, 1],
-  morphX:    [0, 3],
-  morphY:    [0, 3],
   shapeAmt:  [0, 1],
   syncAmt:   [0.1, 2],
   foldDrive: [1, 8],
@@ -5221,8 +5306,6 @@ const PARAM_UI = {
   traceSpeed:    { slider: 'trace-speed',    disp: 'trace-speed-val',    fmt: v => v.toFixed(1) + '×' },
   untracedAlpha: { slider: 'untraced-alpha', disp: 'untraced-alpha-val', fmt: v => Math.round(v*100) + '%' },
   warp:      { slider: 'warp',       disp: 'warp-val',       fmt: v => fmtWarp(v) },
-  morphX:    { slider: 'morph-x',    disp: 'morph-x-val',    fmt: v => fmtMorph(v) },
-  morphY:    { slider: 'morph-y',    disp: 'morph-y-val',    fmt: v => fmtMorph(v) },
   shapeAmt:  { slider: 'shape-amt',  disp: 'shape-amt-val',  fmt: v => v.toFixed(2) },
   syncAmt:   { slider: 'sync-amt',   disp: 'sync-amt-val',   fmt: v => v.toFixed(2) },
   foldDrive: { slider: 'fold-drive', disp: 'fold-drive-val', fmt: v => fmtFold(v) },
@@ -5295,7 +5378,7 @@ function lfoSet(key, v) {
 let LFO_TARGET_OPTIONS = [];   // filled by completeVelRanges(), below MAP_TARGETS
 // Keys whose modulation requires rebuilding the periodic wavetable (noise and the
 // unison pair are live audio nodes tracked in pwTick, so they're excluded here).
-const LFO_SYNTH_KEYS = ['fmAmount','fmRatio','crossFm','ringAmt','fbAmt','shapeAmt','syncAmt','foldDrive','foldBias','crushBits','crushRate','amAmt','amRatio','filterCutoff','filterQ','waveX','waveY','noiseAmt','warp','morphX','morphY']
+const LFO_SYNTH_KEYS = ['fmAmount','fmRatio','crossFm','ringAmt','fbAmt','shapeAmt','syncAmt','foldDrive','foldBias','crushBits','crushRate','amAmt','amRatio','filterCutoff','filterQ','waveX','waveY','noiseAmt','warp']
   .concat(AXIS_GROUPS.map(([k]) => k));
 
 function lfoWaveFn(phase, type) {
@@ -6246,6 +6329,7 @@ const GEO_HINTS = [
   'r(θ) = cos(n/d · θ) — n = X freq, d = Y freq',
   '(p, q) torus knot — p = X freq, q = Y freq · drag to orbit',
   'X = longitude, Y = latitude · drag to orbit',
+  'X wave, Y wave and their normalised sum, over one period',
 ];
 function setGeometry(g) {
   g = Math.max(0, Math.min(GEO_MAX, Math.round(g)));
@@ -6266,6 +6350,8 @@ function setGeometry(g) {
   if (cs) cs.hidden = !!g;
   const vc = document.getElementById('vt-construct');
   if (vc) vc.hidden = !!g;
+  const vf = document.getElementById('vt-frame');
+  if (vf) vf.hidden = g === GEO_WAVES;
   document.querySelectorAll('.wave-btn[data-depthsrc]').forEach(b => { b.disabled = !!g; b.style.opacity = g ? 0.4 : ''; });
   document.body.classList.toggle('orbit', orbitable());
   refreshDepthChecks();
@@ -6485,17 +6571,6 @@ function fmtMorph(v) {
   return WAVE_LABELS[WAVE_ORDER[lo]] + '→' + WAVE_LABELS[WAVE_ORDER[lo + 1]]
        + ' ' + Math.round((p - lo) * 100) + '%';
 }
-function updateMorphLabels() {
-  const x = document.getElementById('morph-x-val');
-  if (x) x.textContent = fmtMorph(params.morphX || 0);
-  const y = document.getElementById('morph-y-val');
-  if (y) y.textContent = fmtMorph(params.morphY || 0);
-}
-[['morph-x', 'x'], ['morph-y', 'y']].forEach(([id, axis]) => {
-  document.getElementById(id).addEventListener('input', e => {
-    setWaveMorph(axis, parseFloat(e.target.value), true);
-  });
-});
 
 
 // ── Sync mode checkboxes (hard/soft + single axis) ───────────────────────────
@@ -6538,17 +6613,18 @@ const DISPLAY_IDS = {
   phase: ['phase-val', v => v.toFixed(2) + 'π'],
 };
 
-// Base frequency set by MIDI note or slider (default = 100 Hz)
-let baseFreq = 100;
+// Base frequency set by MIDI note or slider (default = 43.65 Hz, F1)
+let baseFreq = 43.65;
 let baseFreqMode = 'midi'; // 'midi' | 'slider'
 
 const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 function noteToName(n) { return NOTE_NAMES[n % 12] + (Math.floor(n / 12) - 1); }
 function noteToHz(n)   { return 440 * Math.pow(2, (n - 69) / 12); }
 
+function fmtHz(hz) { return (Math.round(hz * 100) / 100) + ' Hz'; }
 function setBaseFreq(hz) {
   baseFreq = hz;
-  document.getElementById('midi-note-display').textContent = Math.round(hz) + ' Hz';
+  document.getElementById('midi-note-display').textContent = fmtHz(hz);
   syncAudioParams();
   updateIntervalLabel();
 }
@@ -6577,7 +6653,7 @@ document.getElementById('basefreq-slider-btn').addEventListener('click', () => {
 
 document.getElementById('basefreq-slider').addEventListener('input', e => {
   const hz = parseFloat(e.target.value);
-  document.getElementById('basefreq-val').textContent = hz + ' Hz';
+  document.getElementById('basefreq-val').textContent = fmtHz(hz);
   setBaseFreq(hz);
 });
 
@@ -6924,7 +7000,6 @@ function tickLFOSliders(now) {
   keys.forEach(key => {
     const m = PARAM_UI[key];
     if (!m) return;
-    if (key === 'morphX' || key === 'morphY') updateWaveButtons(key === 'morphY' ? 'y' : 'x');
     const el = document.getElementById(m.slider);
     const disp = document.getElementById(m.disp);
     if (el) el.value = params[key];
@@ -7021,8 +7096,6 @@ const MAP_TARGETS = {
   ...Object.fromEntries(AXIS_GROUPS.map(([k, label]) => [k,
     { label: label + ' → Axis', min: 0, max: 2, step: 1, apply: v => setAxisTarget(k, v) }])),
   warp:      { label:'Warp',          min:-1,   max:1,              apply:_synthApply('warp','warp','warp-val',fmtWarp) },
-  morphX:    { label:'X Wave Morph',  min:0,    max:3,              apply:v => setWaveMorph('x', v) },
-  morphY:    { label:'Y Wave Morph',  min:0,    max:3,              apply:v => setWaveMorph('y', v) },
   shapeAmt:  { label:'Waveshape',     min:0,    max:1,              apply:_synthApply('shapeAmt','shape-amt','shape-amt-val',x=>x.toFixed(2)) },
   syncAmt:   { label:'Sync Ratio',    min:0.1,  max:2,   step:0.05, apply:_synthApply('syncAmt','sync-amt','sync-amt-val',x=>x.toFixed(2)) },
   foldDrive: { label:'Fold',          min:1,    max:8,              apply:_synthApply('foldDrive','fold-drive','fold-drive-val',fmtFold) },
@@ -7040,7 +7113,7 @@ const MAP_TARGETS = {
   fillSurface:{ label:'Fill Surface', toggle:true, apply:b => { params.fillSurface = b ? 1 : 0; const cb=document.getElementById('fill-surface'); if (cb) cb.checked = b; } },
 
   trailAmt:  { label:'Trail',         min:0,    max:0.97,           apply:v => setSliderParam('trailAmt','trail-amt','trail-amt-val',x=>(x<0.01?'off':Math.round(x*100)+'%'),v) },
-  geometry:  { label:'Geometry',       min:0,    max:5,   step:1,    apply:v => setGeometry(v) },
+  geometry:  { label:'Geometry',       min:0,    max:6,   step:1,    apply:v => setGeometry(v) },
   mirrorMode:{ label:'Mirror Mode',   min:0,    max:3,   step:1,    apply:v => setMirrorMode(v) },
   m4Rotate:{ label:'Straight Generators', toggle:true, apply:b => setM4Rotate(b) },
   trailMode:{ label:'Trail Mode',     min:0,    max:1,   step:1,    apply:v => setTrailMode(v) },
@@ -7085,7 +7158,7 @@ const MAP_TARGETS = {
 // pickers show the category first and then only that category's parameters.
 // Anything in MAP_TARGETS not listed here still shows up, under "Other".
 const TARGET_CATEGORIES = [
-  ['Synthesis', ['morphX', 'waveX', 'morphY', 'waveY',
+  ['Synthesis', ['waveX', 'waveY',
                  'amAmt', 'amRatio', 'amAxis', 'fmAmount', 'fmRatio', 'fmAxis',
                  'crossFm', 'ringAmt', 'crossAxis', 'shapeAmt', 'shapeAxis', 'fbAmt', 'fbAxis',
                  'warp', 'foldDrive', 'foldBias', 'warpAxis', 'crushBits', 'crushRate', 'crushAxis',
@@ -7153,7 +7226,7 @@ completeVelRanges();
 
 // Starting values per mappable target — used to restore params when MIDI disconnects.
 const MAP_DEFAULTS = {
-  fx:3, fy:2, ax:1, ay:1, fmAmount:0, fmRatio:2, shapeAmt:0, warp:0, morphX:0, morphY:0,
+  fx:3, fy:2, ax:1, ay:1, fmAmount:0, fmRatio:2, shapeAmt:0, warp:0,
   ...Object.fromEntries(AXIS_GROUPS.map(([k]) => [k, 0])),
   syncAmt:1, foldDrive:1, amAmt:0, amRatio:2, noiseAmt:0, waveX:0, waveY:0,
   crossFm:0, ringAmt:0, fbAmt:0, foldBias:0, crushBits:16, crushRate:0,
@@ -7704,7 +7777,7 @@ function refreshAllControls() {
   applyUnisonAudio();
   document.getElementById('phase-modulators').checked = phaseModulators;
   document.getElementById('audio-vol').value = (params.volume !== undefined ? params.volume : parseFloat(document.getElementById('audio-vol').value));
-  document.getElementById('midi-note-display').textContent = Math.round(baseFreq) + ' Hz';
+  document.getElementById('midi-note-display').textContent = fmtHz(baseFreq);
   updateStatus(); highlightActivePreset();
   buildLFOPanels();
   renderMapList();
@@ -7858,7 +7931,11 @@ function captureRecFrame(phase) {
   // coordinate frame over a FADE trail is the same story: the frame is redrawn
   // clean every frame while the curve behind it smears, and only the live canvas
   // holds both at once.
-  if (trailKeeps() || (params.frameShow && trailFades())) {
+  if (waveGeometry()) {
+    fullCtx.fillStyle = params.bgColor;
+    fullCtx.fillRect(0, 0, F, F);
+    drawWaveStack(fullCtx, F, F, phase, params.resolution, Math.max(ZOOM_MIN, recZoom), WS_ALL);
+  } else if (trailKeeps() || (params.frameShow && trailFades())) {
     const d = viewDpr, s = Math.max(1, Math.round(figBox.size * d));
     fullCtx.fillStyle = params.bgColor;
     fullCtx.fillRect(0, 0, F, F);
@@ -8658,7 +8735,7 @@ function buildSynthReadout() {
   const rows = [
     ['geo',   GEO_NAMES[figGeometry()].toLowerCase(), true],
     ['wave',  `X ${fmtMorph(P.morphX)}  Y ${fmtMorph(P.morphY)}`, true],
-    ['freq',  `${roNum(P.fx)}:${roNum(P.fy)}  ${Math.round(baseFreq)}Hz  amp ${P.ax.toFixed(2)}/${P.ay.toFixed(2)}`, true],
+    ['freq',  `${roNum(P.fx)}:${roNum(P.fy)}  ${Math.round(baseFreq * 100) / 100}Hz  amp ${P.ax.toFixed(2)}/${P.ay.toFixed(2)}`, true],
     ['am',    `${P.amAmt.toFixed(2)} ×${roRatio(P.amRatio)} ${MODW_TAG[P.amWave] || P.amWave} ${ax('amAxis')}`, P.amAmt > 0],
     ['fm',    `${P.fmAmount.toFixed(1)} ×${roRatio(P.fmRatio)} ${MODW_TAG[P.fmWave] || P.fmWave} ${ax('fmAxis')}`, P.fmAmount > 0],
     ['cross', `fm ${P.crossFm.toFixed(2)} ring ${P.ringAmt.toFixed(2)} ${ax('crossAxis')}`, P.crossFm > 0 || P.ringAmt > 0],
@@ -8687,7 +8764,7 @@ function setViewTg(id, on) {
   b.setAttribute('aria-pressed', on ? 'true' : 'false');
 }
 let _roLast = '';
-const GEO_TAGS = ['LAT', 'ROT+', 'ROT−', 'ROSE', 'KNOT', 'SPHR'];
+const GEO_TAGS = ['LAT', 'ROT+', 'ROT−', 'ROSE', 'KNOT', 'SPHR', 'WAVE'];
 function syncViewToggles() {
   const geoBtn = document.getElementById('vt-geo');
   if (geoBtn && geoBtn.textContent !== GEO_TAGS[figGeometry()]) geoBtn.textContent = GEO_TAGS[figGeometry()];
@@ -8713,7 +8790,7 @@ function syncViewToggles() {
 // selector for the controls that are button groups.
 const TARGET_CONTROL = {
   fx: 'fx', fy: 'fy', ax: 'ax', ay: 'ay', geometry: '[data-geo]', visualSwap: 'xy-swap-btn', preset: 'preset-grid',
-  morphX: 'morph-x', morphY: 'morph-y', waveX: '[data-axis="x"][data-bwave]', waveY: '[data-axis="y"][data-bwave]',
+  waveX: '[data-axis="x"][data-bwave]', waveY: '[data-axis="y"][data-bwave]',
   fmAmount: 'fm-amount', fmRatio: 'fm-ratio', amAmt: 'am-amt', amRatio: 'am-ratio', crossFm: 'cross-fm', ringAmt: 'ring-amt',
   shapeAmt: 'shape-amt', fbAmt: 'fb-amt', warp: 'warp', foldDrive: 'fold-drive', foldBias: 'fold-bias',
   crushBits: 'crush-bits', crushRate: 'crush-rate', noiseAmt: 'noise-amt', filterCutoff: 'filter-freq', filterQ: 'filter-res',
@@ -9010,7 +9087,7 @@ function addPinButtons() {
 
 // ── The readout as a set of editors ───────────────────────────────────────────
 const READOUT_KEYS = {
-  geo: ['geometry'], wave: ['morphX', 'morphY'], freq: ['fx', 'fy', 'ax', 'ay'],
+  geo: ['geometry'], wave: ['waveX', 'waveY'], freq: ['fx', 'fy', 'ax', 'ay'],
   am: ['amAmt', 'amRatio', 'amAxis'], fm: ['fmAmount', 'fmRatio', 'fmAxis'], cross: ['crossFm', 'ringAmt', 'crossAxis'],
   shape: ['shapeAmt', 'shapeAxis'], fb: ['fbAmt', 'fbAxis'], warp: ['warp', 'foldDrive', 'foldBias', 'warpAxis'],
   crush: ['crushBits', 'crushRate', 'crushAxis'], noise: ['noiseAmt', 'noiseAxis'], filt: ['filterCutoff', 'filterQ', 'filterAxis'],
