@@ -2330,6 +2330,7 @@
           <div class="wave-toggle" style="margin-bottom:6px">
             <button class="wave-btn active" data-m4rot="1">STRAIGHT</button>
             <button class="wave-btn" data-m4rot="0">FULL LAP</button>
+            <button class="wave-btn" data-m4rot="2">RINGS</button>
           </div>
           <div class="info-text" data-info-label="the generator strips">
             <strong>STRAIGHT</strong> turns each generator a quarter turn, so its
@@ -2340,6 +2341,11 @@
             horizontal and vertical &mdash; the classic construction.
             <strong>FULL LAP</strong> lays each wave along its strip and shows the
             whole lap at once, at the cost of diagonal projections.
+            <strong>RINGS</strong> rolls each wave up into a ring by plotting it
+            against itself a quarter cycle later &mdash; a pure sine becomes a
+            circle, any other wave a distorted loop. The tracer wanders round
+            each ring at its own frequency, and its horizontal (top) or vertical
+            (left) reading is the coordinate it feeds the figure.
           </div>
           <div class="param-row">
             <div class="param-header"><label>Trace tempo</label><span class="val" id="trace-speed-val">1.0×</span></div>
@@ -2767,6 +2773,7 @@ let params = {
   traceSpeed: 1,      // construction view: figure-tracing tempo (independent of phase anim speed)
   untracedAlpha: 0.2, // construction view: opacity of the not-yet-traced background figure
   m4Rotate: 1,        // construction view: 1 = quarter-turned scrolling generators (default)
+  m4Rings: 0,         // construction view: 1 = generators rolled into rings (overrides m4Rotate)
   // ── Coordinate frame (visual furniture — see drawCoordFrame) ───────────────
   frameShow: 0,        // master switch for the whole reference frame
   frameAxes: 2,        // axes: 0 = none, 1 = positive rays, 2 = full plus/minus
@@ -3669,7 +3676,7 @@ function drawCoordFrame(target, w, h, phase, zoom) {
     // Mirrors drawMode4's layout so the frame lands on the same square the
     // construction view draws its curve in (and takes the same box zoom, which
     // that view applies as a transform rather than folding into rx/ry).
-    const margin = Math.round(Math.min(w, h) * (params.m4Rotate ? 0.28 : 0.2));
+    const margin = Math.round(Math.min(w, h) * ((params.m4Rotate || params.m4Rings) ? 0.28 : 0.2));
     const figW = w - margin, figH = h - margin;
     cx = margin + figW / 2; cy = margin + figH / 2;
     rx = (figW / 2 - 12) * params.ax; ry = (figH / 2 - 12) * params.ay;
@@ -4236,7 +4243,7 @@ function drawMode4(ctx, w, h, phase, noBg, zoom, part, resCap) {  // w,h are log
 
   // The rotated form needs a deeper strip: its time axis runs across the strip's
   // short side, and at 20% the single cycle is squashed flat enough to be unreadable.
-  const margin = Math.round(Math.min(w, h) * (params.m4Rotate ? 0.28 : 0.2));
+  const margin = Math.round(Math.min(w, h) * ((params.m4Rotate || params.m4Rings) ? 0.28 : 0.2));
   const pad    = 12;
 
   // Layout: figure bottom-right, X wave along the top strip, Y wave down the left.
@@ -4307,7 +4314,8 @@ function drawMode4(ctx, w, h, phase, noBg, zoom, part, resCap) {  // w,h are log
   // only along its own amplitude axis, while the waveform slides past underneath
   // it. Each strip scrolls at its own side of the ratio, and the two lines from
   // the generators to the moving point stay exactly vertical and horizontal.
-  const m4Rot = !!params.m4Rotate;
+  const m4Rings = !!params.m4Rings;
+  const m4Rot = !!params.m4Rotate && !m4Rings;
   const stripAmp = margin / 2 - 6;
   const xMid = margin / 2;   // vertical centre of the top strip
   const yMid = margin / 2;   // horizontal centre of the left strip
@@ -4321,14 +4329,22 @@ function drawMode4(ctx, w, h, phase, noBg, zoom, part, resCap) {  // w,h are log
   const Th = T / cycH, Tv = T / cycV;                    // one cycle of each
   const hStart = m4Rot ? mode4T - Th : 0;      // window ends AT the tracer
   const vStart = m4Rot ? mode4T - Tv : 0;
-  const hSpan  = m4Rot ? Th : T;
-  const vSpan  = m4Rot ? Tv : T;
+  const hSpan  = (m4Rot || m4Rings) ? Th : T;
+  const vSpan  = (m4Rot || m4Rings) ? Tv : T;
+  // RINGS: each wave is plotted against itself a quarter cycle back, so a sine is
+  // an exact circle and the ring's horizontal (top) / vertical (left) reading IS
+  // the wave's amplitude. The ring closes after one cycle of that generator.
+  const ringR = margin / 2 - 8;
 
   // (τ, amplitude) → a point on the strip. The two forms differ only here.
-  const hPt = m4Rot
+  const hPt = m4Rings
+    ? (τ, amp) => { _S.x = cx + ringR * amp;                          _S.y = xMid - ringR * hAt(τ - Th / 4); }
+    : m4Rot
     ? (τ, amp) => { _S.x = cx + rx * amp;                           _S.y = stripPad + ((τ - hStart) / Th) * stripDepth; }
     : (τ, amp) => { _S.x = figX + (τ / T) * figW;                   _S.y = xMid - amp * stripAmp; };
-  const vPt = m4Rot
+  const vPt = m4Rings
+    ? (τ, amp) => { _S.x = yMid + ringR * vAt(τ - Tv / 4);            _S.y = cy + ringR * amp; }
+    : m4Rot
     ? (τ, amp) => { _S.x = stripPad + ((τ - vStart) / Tv) * stripDepth; _S.y = cy + ry * amp; }
     : (τ, amp) => { _S.x = yMid - amp * stripAmp;                   _S.y = figY + (τ / T) * figH; };
 
@@ -4407,6 +4423,21 @@ function drawMode4(ctx, w, h, phase, noBg, zoom, part, resCap) {  // w,h are log
       i === 0 ? ctx.moveTo(_S.x, _S.y) : ctx.lineTo(_S.x, _S.y);
     }
     ctx.stroke();
+
+    // Rings: a brighter tail behind each tracer (a quarter of its own cycle)
+    if (m4Rings) {
+      ctx.strokeStyle = hexToRgba(strokeColor, 0.95);
+      const tail = (ptFn, Tc) => {
+        ctx.beginPath();
+        for (let i = 0; i <= 48; i++) {
+          const τ = t - Tc * 0.25 * (1 - i / 48);
+          ptFn(τ, (ptFn === hPt ? hAt : vAt)(τ));
+          i === 0 ? ctx.moveTo(_S.x, _S.y) : ctx.lineTo(_S.x, _S.y);
+        }
+        ctx.stroke();
+      };
+      tail(hPt, Th); tail(vPt, Tv);
+    }
   }
 
   // ── Figure rendering — full visual pipeline (z / rotation axis / shear /
@@ -6449,15 +6480,18 @@ document.querySelectorAll('.wave-btn[data-depthsrc]').forEach(btn => {
 document.getElementById('depth-shade').addEventListener('change', e => { params.depthShade = e.target.checked ? 1 : 0; });
 document.getElementById('show-shadow').addEventListener('change', e => { params.showShadow = e.target.checked ? 1 : 0; });
 function setM4Rotate(on) {
-  params.m4Rotate = on ? 1 : 0;
+  // false/0 = full lap, true/1 = straight, 2 = rings
+  params.m4Rings = on === 2 ? 1 : 0;
+  params.m4Rotate = on === 2 ? (params.m4Rotate || 0) : (on ? 1 : 0);
+  const mode = params.m4Rings ? 2 : params.m4Rotate;
   document.querySelectorAll('.wave-btn[data-m4rot]').forEach(b => {
-    const active = (parseInt(b.dataset.m4rot) === params.m4Rotate);
+    const active = (parseInt(b.dataset.m4rot) === mode);
     b.classList.toggle('active', active);
     b.setAttribute('aria-pressed', active ? 'true' : 'false');
   });
 }
 document.querySelectorAll('.wave-btn[data-m4rot]').forEach(btn => {
-  btn.addEventListener('click', () => setM4Rotate(parseInt(btn.dataset.m4rot) === 1));
+  btn.addEventListener('click', () => { const v = parseInt(btn.dataset.m4rot); setM4Rotate(v === 2 ? 2 : v === 1); });
 });
 document.getElementById('fill-surface').addEventListener('change', e => { params.fillSurface = e.target.checked ? 1 : 0; });
 
@@ -7771,7 +7805,7 @@ function refreshAllControls() {
   setDepthSrc(params.depthSrc ?? 0);
   document.getElementById('depth-shade').checked = !!params.depthShade;
   document.getElementById('show-shadow').checked = !!params.showShadow;
-  setM4Rotate(!!params.m4Rotate);
+  setM4Rotate(params.m4Rings ? 2 : !!params.m4Rotate);
   document.getElementById('fill-surface').checked = !!params.fillSurface;
   setS('map-slew', mapSlewTau, 'map-slew-val', fmtSlew);
   applyUnisonAudio();
