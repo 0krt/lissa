@@ -3676,7 +3676,7 @@ function drawCoordFrame(target, w, h, phase, zoom) {
     // Mirrors drawMode4's layout so the frame lands on the same square the
     // construction view draws its curve in (and takes the same box zoom, which
     // that view applies as a transform rather than folding into rx/ry).
-    const margin = Math.round(Math.min(w, h) * ((params.m4Rotate || params.m4Rings) ? 0.28 : 0.2));
+    const margin = Math.round(Math.min(w, h) * (params.m4Rings ? 0.5 : params.m4Rotate ? 0.28 : 0.2));
     const figW = w - margin, figH = h - margin;
     cx = margin + figW / 2; cy = margin + figH / 2;
     rx = (figW / 2 - 12) * params.ax; ry = (figH / 2 - 12) * params.ay;
@@ -4114,28 +4114,43 @@ function waveStackSamples(phase, n) {
 }
 function drawWaveStack(target, w, h, phase, res, zoom, part) {
   part = part || WS_ALL;
-  const laneH = h / 3, amp = laneH / 2 * 0.86 * (zoom || 1);
+  const z = Math.max(0.05, zoom || 1);
+  const laneH = h / 3, amp = laneH / 2 * 0.86;
+  // Zoom scales the whole box about its centre, like the figures, so the side
+  // borders move with it. Strokes are kept at their screen width.
+  target.save();
+  target.translate(w / 2, h / 2);
+  target.scale(z, z);
+  target.translate(-w / 2, -h / 2);
+  const lw = params.lineWidth / z;
   if (part !== WS_CURVES && !_eraseMode) {
     target.save();
+    // Side borders only, running off the top and bottom of the window.
+    const reach = (typeof viewH === 'number' ? viewH : 2000) / z;
+    target.strokeStyle = 'rgba(255,255,255,0.07)';
+    target.lineWidth = 1 / z;
+    target.beginPath();
+    target.moveTo(0, h / 2 - reach); target.lineTo(0, h / 2 + reach);
+    target.moveTo(w, h / 2 - reach); target.lineTo(w, h / 2 + reach);
+    target.stroke();
     target.strokeStyle = 'rgba(255,255,255,0.10)';
-    target.lineWidth = 1;
-    target.setLineDash([2, 4]);
+    target.setLineDash([2 / z, 4 / z]);
     for (let l = 0; l < 3; l++) {
       const cy = laneH * (l + 0.5);
       target.beginPath(); target.moveTo(0, cy); target.lineTo(w, cy); target.stroke();
     }
     target.setLineDash([]);
     target.fillStyle = 'rgba(255,255,255,0.35)';
-    target.font = "10px 'IBM Plex Mono', monospace";
+    target.font = `${10 / z}px 'IBM Plex Mono', monospace`;
     target.textBaseline = 'top';
-    for (let l = 0; l < 3; l++) target.fillText(WS_LABELS[l], 2, laneH * l + 4);
+    for (let l = 0; l < 3; l++) target.fillText(WS_LABELS[l], 2 / z, laneH * l + 4 / z);
     target.restore();
   }
-  if (part === WS_CHROME) return;
+  if (part === WS_CHROME) { target.restore(); return; }
   const n = Math.max(200, Math.min(res || 2000, Math.round(w * 4)));
   const lanes = waveStackSamples(phase, n);
   target.strokeStyle = params.strokeColor;
-  target.lineWidth = params.lineWidth;
+  target.lineWidth = lw;
   target.lineJoin = 'round';
   target.lineCap = 'round';
   target.setLineDash([]);
@@ -4148,6 +4163,7 @@ function drawWaveStack(target, w, h, phase, res, zoom, part) {
     }
     target.stroke();
   }
+  target.restore();
 }
 
 // Clear whatever a copy is about to be drawn over, so a newer line visibly cuts
@@ -4243,7 +4259,7 @@ function drawMode4(ctx, w, h, phase, noBg, zoom, part, resCap) {  // w,h are log
 
   // The rotated form needs a deeper strip: its time axis runs across the strip's
   // short side, and at 20% the single cycle is squashed flat enough to be unreadable.
-  const margin = Math.round(Math.min(w, h) * ((params.m4Rotate || params.m4Rings) ? 0.28 : 0.2));
+  const margin = Math.round(Math.min(w, h) * (params.m4Rings ? 0.5 : params.m4Rotate ? 0.28 : 0.2));
   const pad    = 12;
 
   // Layout: figure bottom-right, X wave along the top strip, Y wave down the left.
@@ -4334,16 +4350,17 @@ function drawMode4(ctx, w, h, phase, noBg, zoom, part, resCap) {  // w,h are log
   // RINGS: each wave is plotted against itself a quarter cycle back, so a sine is
   // an exact circle and the ring's horizontal (top) / vertical (left) reading IS
   // the wave's amplitude. The ring closes after one cycle of that generator.
-  const ringR = margin / 2 - 8;
+  // Each ring is exactly as big as the figure on its own axis (rx / ry), so a
+  // ring's reading lines up with the figure's x / y.
 
   // (τ, amplitude) → a point on the strip. The two forms differ only here.
   const hPt = m4Rings
-    ? (τ, amp) => { _S.x = cx + ringR * amp;                          _S.y = xMid - ringR * hAt(τ - Th / 4); }
+    ? (τ, amp) => { _S.x = cx + rx * amp;                              _S.y = xMid - rx * hAt(τ - Th / 4); }
     : m4Rot
     ? (τ, amp) => { _S.x = cx + rx * amp;                           _S.y = stripPad + ((τ - hStart) / Th) * stripDepth; }
     : (τ, amp) => { _S.x = figX + (τ / T) * figW;                   _S.y = xMid - amp * stripAmp; };
   const vPt = m4Rings
-    ? (τ, amp) => { _S.x = yMid + ringR * vAt(τ - Tv / 4);            _S.y = cy + ringR * amp; }
+    ? (τ, amp) => { _S.x = yMid + ry * vAt(τ - Tv / 4);                _S.y = cy + ry * amp; }
     : m4Rot
     ? (τ, amp) => { _S.x = stripPad + ((τ - vStart) / Tv) * stripDepth; _S.y = cy + ry * amp; }
     : (τ, amp) => { _S.x = yMid - amp * stripAmp;                   _S.y = figY + (τ / T) * figH; };
@@ -5087,7 +5104,8 @@ function resize() {
   figBox.y = r.top + (r.height - size) / 2;
   waveBox.x = r.left + parseFloat(cs.paddingLeft);
   waveBox.y = r.top + parseFloat(cs.paddingTop);
-  waveBox.w = Math.max(80, r.width - padX);
+  waveBox.w = size;
+  waveBox.x = r.left + (r.width - size) / 2;
   waveBox.h = Math.max(80, r.height - padY);
 }
 
