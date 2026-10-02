@@ -2296,28 +2296,6 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <div class="tab-panel" id="tab-motion" data-tab="motion" role="tabpanel" aria-labelledby="tabbtn-motion" tabindex="-1">
-      <div class="section" id="section-motion">
-        <div class="section-label">Motion</div>
-        <div class="param-row">
-          <div class="param-header"><label id="phase-label">δ (phase position)</label><span class="val" id="phase-val">0.50π</span></div>
-          <input type="range" id="phase" min="0" max="2" step="0.01" value="0.5">
-        </div>
-        <div class="checkbox-row">
-          <input type="checkbox" id="phase-modulators">
-          <label for="phase-modulators">Phase rotates FM/AM modulators</label>
-        </div>
-        <div class="checkbox-row">
-          <input type="checkbox" id="animate" checked>
-          <label for="animate">Animate phase</label>
-        </div>
-        <div class="param-row" id="anim-speed-row">
-          <div class="param-header"><label>Speed</label><span class="val" id="speed-val">1.0×</span></div>
-          <input type="range" id="anim-speed" min="0.1" max="5" step="0.1" value="1">
-        </div>
-      </div>
 
       <div class="section" id="section-construct">
         <div class="section-label">Construction view</div>
@@ -2355,6 +2333,28 @@
             <div class="param-header"><label>Untraced opacity</label><span class="val" id="untraced-alpha-val">20%</span></div>
             <input type="range" id="untraced-alpha" min="0" max="1" step="0.01" value="0.2">
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-motion" data-tab="motion" role="tabpanel" aria-labelledby="tabbtn-motion" tabindex="-1">
+      <div class="section" id="section-motion">
+        <div class="section-label">Motion</div>
+        <div class="param-row">
+          <div class="param-header"><label id="phase-label">δ (phase position)</label><span class="val" id="phase-val">0.50π</span></div>
+          <input type="range" id="phase" min="0" max="2" step="0.01" value="0.5">
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="phase-modulators">
+          <label for="phase-modulators">Phase rotates FM/AM modulators</label>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="animate" checked>
+          <label for="animate">Animate phase</label>
+        </div>
+        <div class="param-row" id="anim-speed-row">
+          <div class="param-header"><label>Speed</label><span class="val" id="speed-val">1.0×</span></div>
+          <input type="range" id="anim-speed" min="0.1" max="5" step="0.1" value="1">
         </div>
       </div>
 
@@ -4125,13 +4125,14 @@ function drawWaveStack(target, w, h, phase, res, zoom, part) {
   const lw = params.lineWidth / z;
   if (part !== WS_CURVES && !_eraseMode) {
     target.save();
-    // Side borders only, running off the top and bottom of the window.
-    const reach = (typeof viewH === 'number' ? viewH : 2000) / z;
+    // Side borders only, spanning exactly the waveforms' display range: from the
+    // top of the first lane's peak to the bottom of the last lane's trough.
+    const bTop = laneH * 0.5 - amp, bBot = laneH * 2.5 + amp;
     target.strokeStyle = 'rgba(255,255,255,0.07)';
     target.lineWidth = 1 / z;
     target.beginPath();
-    target.moveTo(0, h / 2 - reach); target.lineTo(0, h / 2 + reach);
-    target.moveTo(w, h / 2 - reach); target.lineTo(w, h / 2 + reach);
+    target.moveTo(0, bTop); target.lineTo(0, bBot);
+    target.moveTo(w, bTop); target.lineTo(w, bBot);
     target.stroke();
     target.strokeStyle = 'rgba(255,255,255,0.10)';
     target.setLineDash([2 / z, 4 / z]);
@@ -4509,6 +4510,18 @@ function drawMode4(ctx, w, h, phase, noBg, zoom, part, resCap) {  // w,h are log
     }
   }
 
+  // RINGS: each generator's frequency sits in the top-left corner of its quadrant.
+  if (wantChrome && m4Rings) {
+    const fq = v => Number.isInteger(v) ? String(v) : v.toFixed(1);
+    ctx.save();
+    ctx.font = "11px 'IBM Plex Mono', monospace";
+    ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+    ctx.fillStyle = hexToRgba(strokeColor, 0.7);
+    ctx.fillText((visualSwap ? 'fy ' : 'fx ') + fq(visualSwap ? fy : fx), margin + 8, 8);
+    ctx.fillText((visualSwap ? 'fx ' : 'fy ') + fq(visualSwap ? fx : fy), 8, margin + 8);
+    ctx.restore();
+  }
+
   // ── Current positions (figure point runs through the same transform)
   const xAmpNow = hAt(t);
   const yAmpNow = vAt(t);
@@ -4659,6 +4672,7 @@ function render(now) {
 
   updateDot(now);
   updateInputMeter(now);
+  layoutRingOverlays();
 
   const midiActive = (now - midiLastAt) < MIDI_ACTIVE_MS;
 
@@ -9384,6 +9398,32 @@ function initSectionHeaders() {
 // ── 4. The one piece of text drawn ON the figure ──────────────────────────────
 // It used to be a fixed 35%-white, which vanished on a light background. Pick
 // black or white from the background's own luminance instead.
+// RINGS leaves the top-left quadrant of the construction view empty; the INFO
+// readout and the interval label move into it (and follow the box zoom).
+let _ringOvKey = '';
+function layoutRingOverlays() {
+  const ro = document.getElementById('synth-readout'), il = document.getElementById('interval-label');
+  if (!ro || !il) return;
+  const P = ['left', 'top', 'bottom', 'transform', 'max-width', 'max-height'];
+  if (!(m4Active() && params.m4Rings)) {
+    if (_ringOvKey !== '') { P.forEach(k => { ro.style.removeProperty(k); il.style.removeProperty(k); }); _ringOvKey = ''; }
+    return;
+  }
+  const area = document.querySelector('.canvas-area').getBoundingClientRect();
+  const z = Math.max(ZOOM_MIN, recZoom), size = figBox.size, margin = Math.round(size * 0.5);
+  const cx = figBox.x + size / 2, cy = figBox.y + size / 2;
+  const x0 = cx + (figBox.x - cx) * z - area.left, y0 = cy + (figBox.y - cy) * z - area.top;
+  const qw = margin * z, qh = margin * z;
+  const key = [x0, y0, qw, qh].map(v => v.toFixed(1)).join(',');
+  if (key === _ringOvKey) return;
+  _ringOvKey = key;
+  const set = (el, k, v) => el.style.setProperty(k, v, 'important');
+  set(ro, 'left', (x0 + 4) + 'px'); set(ro, 'top', (y0 + 4) + 'px');
+  set(ro, 'max-width', Math.max(40, qw - 8) + 'px'); set(ro, 'max-height', Math.max(40, qh - 40) + 'px');
+  set(il, 'left', (x0 + qw / 2) + 'px'); set(il, 'top', (y0 + qh - 8) + 'px');
+  set(il, 'bottom', 'auto'); set(il, 'transform', 'translate(-50%, -100%)');
+}
+
 function updateIntervalLabelContrast() {
   const el = document.getElementById('interval-label');
   if (!el) return;
