@@ -327,6 +327,11 @@
     font-size: 9px; font-style: italic; line-height: 1;
   }
   .section.collapsed > .sec-help { display: none; }
+  /* Keep the title clear of the absolutely-placed HELP button (and the chevron
+     beyond it); a long title wraps instead of running underneath. */
+  .section > .section-label.has-help { padding-right: 112px; }
+  .section.collapsed > .section-label.has-help { padding-right: 34px; }
+  .section > .section-label.has-help::after { position: absolute; right: 13px; top: 12px; }
   .flash-find { animation: flash-find 1.5s ease-out; border-radius: 4px; }
   @keyframes flash-find {
     0%, 30% { box-shadow: 0 0 0 2px var(--accent), 0 0 0 6px rgba(200,240,96,0.18); }
@@ -1648,31 +1653,7 @@
         </div>
         <div id="geo-hint" style="font-size:10.5px;color:var(--label);margin-bottom:10px;line-height:1.45"></div>
         <div class="info-text" data-info-label="figure geometry">
-          <strong>Lateral</strong> is the Lissajous figure: the X oscillator moves the
-          point left–right, the Y oscillator up–down.
-          The other three treat each oscillator as a <strong>rotor</strong> — its wave
-          paired with the same wave a quarter period ahead, which for a sine is a
-          point going round a circle — and add the two circles together.
-          <strong>Con-current</strong> rotors turn the same way and draw looped rings;
-          <strong>counter-current</strong> rotors turn opposite ways and draw
-          |fx + fy|-petalled stars. Amplitude is each rotor's radius, and δ shifts X's
-          rotor against Y's, which turns the figure (at 1:1 it opens a point into a
-          circle). <strong>Rose</strong> draws r(θ) = cos(n/d · θ): X's frequency is
-          <em>n</em>, Y's is <em>d</em>, so the ratio presets walk the classic n/d
-          table. Every synthesis stage still shapes the waves: a square Y wave snaps
-          the rose's angle to four directions, FM bends the petals.
-          <strong>Torus knot</strong> and <strong>Sphere</strong> are solid: X winds
-          round a torus the long way and Y through its hole, so p:q draws the (p, q)
-          torus knot; or X sets longitude and Y latitude on a sphere (1:2 is the
-          tennis-ball seam). Amplitude X sets their size, amplitude Y the tube
-          thickness or how far the path swings towards the poles. Drag the canvas
-          to orbit them; Tilt, Perspective and depth shading in the 3D section apply.
-          <strong>Waves</strong> drops the figure and plots the two waves themselves
-          across the whole view, X above Y, over one full period of the pair, with
-          their sum normalised to full height underneath.
-          Construction view and the 3D lift explain the lateral figure only and stand
-          down in the rotary geometries; the audio is the same two oscillators in
-          every geometry.
+          <strong>Lateral</strong>: X moves the point left–right, Y up–down. <strong>Con-current</strong> and <strong>counter-current</strong> turn each oscillator into a rotating circle and add the two, drawing rings or stars. <strong>Rose</strong>: r = cos(fx/fy · θ). <strong>Torus knot</strong> and <strong>Sphere</strong> wrap the path on a solid; drag to orbit. <strong>Waves</strong> plots the raw waves. Construction view and the 3D lift work in Lateral only.
         </div>
         <div class="mod-group">
           <div class="vel-row"><span class="vel-label">X Axis</span></div>
@@ -1697,6 +1678,10 @@
           </div>
         </div>
         <button class="wave-btn" id="xy-swap-btn" style="width:100%;border:1px solid var(--border);border-radius:var(--radius);padding:7px;margin-top:4px">⇄ Swap X / Y</button>
+        <div class="param-row" style="margin-top:10px">
+          <div class="param-header"><label>Damping</label><span class="val" id="damp-val">off</span></div>
+          <input type="range" id="damp" min="0" max="1" step="0.01" value="0">
+        </div>
 
         <div class="subsection-label">Ratio Presets</div>
         <div class="preset-grid" id="preset-grid"></div>
@@ -1810,19 +1795,7 @@
             <input type="range" id="fold-bias" min="-1" max="1" step="0.01" value="0">
           </div>
           <div class="info-text" data-info-label="warp and fold">
-            The two shapers from Ableton Wavetable's oscillator.
-            <strong>Warp</strong> bends the cycle's own clock rather than its
-            amplitude: at <em>+100%</em> the entire cycle is crammed into its opening
-            and the rest of the period is a flat tail; at <em>−100%</em> it lies flat
-            and then fires off at the very end. Both ends of the cycle are fixed
-            points of the bend, so the wave stays periodic and continuous at any
-            setting — on a square it reads as PWM, on a saw as a bent ramp.
-            <strong>Fold</strong> drives the wave into a reflecting folder: past ±1 the
-            signal turns back on itself instead of clipping, so each extra decibel of
-            drive buys another lobe per cycle and the harmonics grow without the
-            shape ever leaving the rails. <strong>Bias</strong> offsets the signal into
-            the folder, so the two halves fold differently and the result loses its
-            symmetry (and gains even harmonics).
+            <strong>Warp</strong> bends the timing inside each cycle, squeezing it toward the start (+) or the end (−). <strong>Fold</strong> reflects the wave back at ±1 instead of clipping, adding lobes as drive rises. <strong>Bias</strong> folds the two halves unevenly.
           </div>
         </div>
 
@@ -1872,6 +1845,18 @@
           </div>
           <div style="display:flex;gap:16px;margin-top:2px">
             <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--label);cursor:pointer"><input type="checkbox" id="sync-hard" checked style="accent-color:var(--accent2);cursor:pointer">hard sync</label>
+          </div>
+        </div>
+
+        <div class="mod-group" data-axis="subAxis">
+          <div class="vel-row"><span class="vel-label">Sub</span></div>
+          <div class="param-row">
+            <div class="param-header"><label>Mix</label><span class="val" id="sub-mix-val">off</span></div>
+            <input type="range" id="sub-mix" min="0" max="1" step="0.01" value="0">
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Octave</label><span class="val" id="sub-oct-val">−1</span></div>
+            <input type="range" id="sub-oct" min="1" max="2" step="1" value="1">
           </div>
         </div>
 
@@ -1925,18 +1910,7 @@
             <input type="range" id="eq-loud-depth" min="0" max="1" step="0.01" value="1">
           </div>
           <div class="info-text" data-info-label="equal-loudness weighting">
-            The ear is far less sensitive at the bottom of its range than in the
-            middle, so sweeping a ratio from 1 to 16 over a 100 Hz base walks from
-            nearly inaudible to piercing without the Volume slider moving. Each
-            oscillator is weighted by its own fundamental against the
-            <strong>ISO 226 60-phon contour</strong>, which flattens that out: the
-            two axes of a wide interval arrive at comparable loudness, and sweeping
-            a frequency no longer sweeps the level with it.
-            The curve only ever <em>attenuates</em> — the correction is normalised so
-            nothing is ever boosted above unity — so switching it on cannot clip the
-            output. It costs headroom instead, which Volume gets back.
-            It weights the <em>fundamental</em>, not each harmonic, so it evens out
-            the pitch of a note rather than the spectrum inside it.
+            Weights each oscillator by its pitch (ISO 226, 60 phon) so low and high ratios sound equally loud. It only ever attenuates, so it can't clip; raise Volume to compensate.
           </div>
         </div>
 
@@ -1963,11 +1937,7 @@
             <label for="ain-monitor">Monitor (hear through speakers)</label>
           </div>
           <div class="info-text" data-info-label="the external audio input">
-            External input <strong>replaces</strong> the internal generator (exclusive — no
-            mixing) and is captured in video recordings. <strong>Volume</strong> now
-            shapes the recording as well as the speakers; Monitor level and mute still
-            affect the speakers alone, so you can record with them silent. For
-            system/desktop audio pick a loopback device (e.g. BlackHole, Loopback).
+            Replaces the internal synth and is recorded with the video. For desktop audio, pick a loopback device (e.g. BlackHole).
           </div>
           <div id="ain-protocol-note" style="font-size:11px;color:var(--warn);margin-top:6px;line-height:1.55;display:none" role="status"></div>
         </div>
@@ -1983,9 +1953,7 @@
           <input type="range" id="rec-zoom" min="0.1" max="4" step="0.01" value="1">
         </div>
         <div class="info-text" data-info-label="zoom">
-          Scales the figure inside its frame, on screen and in a recording alike.
-          You can also <strong>pinch with two fingers</strong> or hold
-          <strong>Shift</strong> (or ⌘/Ctrl) and scroll anywhere over the figure.
+          Scales the figure on screen and in recordings. You can also pinch, or hold <strong>Shift</strong> (or ⌘/Ctrl) and scroll over the figure.
         </div>
         <div class="number-input"><label>Resolution</label><input type="number" id="resolution" value="2000" min="100" max="10000" step="100"></div>
         <div class="checkbox-row">
@@ -2059,26 +2027,11 @@
             <button class="wave-btn" data-trailq="fast" title="Always coarse — fastest">FAST</button>
           </div>
           <div class="info-text" data-info-label="ghost detail">
-            A KEEP trail's cost is the ink it lays down, not the arithmetic: every
-            copy is stroked twice (once to clear its own path, once to draw it), so
-            a long figure at sixteen copies fills the frame many times over. The
-            copies are therefore rasterised into their own smaller layer and scaled
-            back up — half the linear size is a quarter of the work — while the live
-            curve is drawn straight onto the canvas at full resolution and stays
-            sharp. <strong>AUTO</strong> keeps the copies pixel-sharp while the
-            frame rate allows it and steps them down only when frames actually run
-            long, so you pay for detail only where it is affordable.
+            KEEP copies are drawn on a smaller layer to save work. <strong>AUTO</strong> keeps them sharp and lowers detail only when frames run slow.
           </div>
         </div>
         <div class="info-text" data-info-label="trail modes">
-          <strong>FADE</strong> is an afterglow: each frame's curve is kept and eaten
-          away over the next few, at a rate set by <em>Persistence</em>.
-          <strong>KEEP</strong> does not fade at all — it draws <em>Count</em> extra
-          copies of the figure, each <em>Spacing</em> further back in phase, so the
-          trail is a set of standing copies rather than a smear. The live curve
-          erases whatever it crosses, so it always reads solid and the copies give
-          way to it. Either way the trail applies to the figure alone; the
-          construction view's strips, rulers and dots are redrawn clean every frame.
+          <strong>FADE</strong>: an afterglow that fades at the <em>Persistence</em> rate. <strong>KEEP</strong>: <em>Count</em> standing copies, each <em>Spacing</em> further back in phase. Only the figure trails, never the construction view.
         </div>
 
       </div>
@@ -2109,27 +2062,7 @@
             <label for="show-shadow">Show the flat shadow</label>
           </div>
           <div class="info-text" data-info-label="the phase lift">
-            The animated figure reads as a wire object turning about a central axis
-            because it is one. <strong>sin(fx·t + δ)</strong> expands to
-            <strong>sin(fx·t)·cos δ + cos(fx·t)·sin δ</strong> — the x of the
-            <em>fixed</em> curve <em>(sin fx·t, sin fy·t, cos fx·t)</em>, wound on a
-            vertical cylinder of radius <em>ax</em>, turned by δ about that cylinder's
-            axis. The flat figure is its shadow, and animating δ is spinning it.
-            <strong>PHASE LIFT</strong> stops discarding the third coordinate.
-            With <strong>Tilt</strong> and <strong>Depth</strong> at zero the picture is
-            unchanged to the pixel — that is the proof, not a bug. Raise
-            <strong>Tilt</strong> to look at it from off-axis (or drag on the figure),
-            <strong>Depth</strong> to add perspective, and <strong>Show the flat
-            shadow</strong> to keep the original figure visible underneath.
-            <strong>The identity is exact for sine only.</strong> Setting δ = 0 and then
-            δ = π/2 pins both coordinates, and nothing but a sinusoid satisfies what is
-            left: a phase shift moves harmonic <em>n</em> by <em>n</em>·δ, which no single
-            rotation can do. With a triangle, saw or square base wave, or with FM, sync,
-            fold, crush or feedback in play, the lifted object is a close relative of the
-            animation rather than the same thing. The waveform filter is the exception
-            — it is linear, so it commutes with the rotation exactly. While the lift is
-            on, δ no longer moves the waveform, so <em>Phase rotates FM/AM
-            modulators</em> has nothing to act on.
+            Shows the figure as the shadow of a 3D curve wound on a cylinder; animating δ spins it. At Tilt and Depth 0 the picture is unchanged. Raise <strong>Tilt</strong> (or drag) and <strong>Depth</strong> to see it in 3D. Exact for sine waves only.
           </div>
         </div>
 
@@ -2277,22 +2210,7 @@
             </div>
           </div>
           <div class="info-text" data-info-label="the coordinate frame">
-            The frame is drawn through the <em>same projection as the figure</em>, so it
-            is not a picture of a coordinate system laid over the curve &mdash; it is the
-            space the curve is in. Every ring, plane and tick takes the rotation, the
-            orbit tilt and the perspective the figure takes, which is why a
-            tick at <strong>0.5</strong> sits exactly where the figure's own 0.5 sits and
-            the equator stays under it as the object turns.
-            <strong>Orbitals</strong> are the great circles of the three coordinate
-            planes, each wearing the colour of the axis it is normal to, so the flat
-            horizontal ring reads as the plane the y axis stands on.
-            <strong>Angles</strong> traces the yaw and the orbit tilt as arcs by driving
-            the rotation from zero up to its live value and following where an axis
-            lands &mdash; the arc is the path the axis actually took, so it cannot
-            disagree with the picture.
-            <strong>Frame turns with the figure</strong> makes it the object's own frame;
-            switch it off and the frame is fixed to the view instead, so the figure turns
-            inside a coordinate system that stays put.
+            Axes, planes and rings drawn in the figure's own 3D space, so ticks line up with figure values. <strong>Orbitals</strong>: the three coordinate circles. <strong>Angles</strong>: arcs for yaw and tilt. Turn off <strong>Frame turns with the figure</strong> to fix it to the view.
           </div>
         </div>
       </div>
@@ -2311,19 +2229,7 @@
             <button class="wave-btn" data-m4rot="2">RINGS</button>
           </div>
           <div class="info-text" data-info-label="the generator strips">
-            <strong>STRAIGHT</strong> turns each generator a quarter turn, so its
-            amplitude is measured along the axis it drives, and scrolls a
-            one-cycle window that always ends at the tracer. The tracer's dot
-            therefore holds a fixed depth and moves only sideways while the wave
-            slides past, and the two lines to the moving point stay exactly
-            horizontal and vertical &mdash; the classic construction.
-            <strong>FULL LAP</strong> lays each wave along its strip and shows the
-            whole lap at once, at the cost of diagonal projections.
-            <strong>RINGS</strong> rolls each wave up into a ring by plotting it
-            against itself a quarter cycle later &mdash; a pure sine becomes a
-            circle, any other wave a distorted loop. The tracer wanders round
-            each ring at its own frequency, and its horizontal (top) or vertical
-            (left) reading is the coordinate it feeds the figure.
+            <strong>STRAIGHT</strong>: each wave turned to face the axis it drives, scrolling past the tracer. <strong>FULL LAP</strong>: the whole lap laid flat. <strong>RINGS</strong>: each wave plotted against itself a quarter cycle later, so a sine becomes a circle.
           </div>
           <div class="param-row">
             <div class="param-header"><label>Trace tempo</label><span class="val" id="trace-speed-val">1.0×</span></div>
@@ -2383,9 +2289,7 @@
           <button class="map-add-btn" id="evolve-rand6" style="margin-top:0">6 at random</button>
         </div>
         <div class="info-text" data-info-label="the random parameter draw">
-          <strong>3 / 6 at random</strong> clears the list and picks that many
-          parameters at random to include &mdash; a small, legible mutation instead of
-          moving everything at once. The view toggles are left out of the draw.
+          <strong>3 / 6 at random</strong> includes only that many random parameters, for small mutations. View toggles are never drawn.
         </div>
         <div class="evolve-list" id="evolve-list"></div>
         <button class="btn btn-outline" id="evolve-reset" style="width:100%;margin-top:12px">↺ Reset to defaults</button>
@@ -2526,13 +2430,7 @@
           <div class="grid-hint" id="wo-status">X — · Y —</div>
         </div>
         <div class="info-text" data-info-label="the wave outputs">
-          Streams the two axis waveforms out as continuous controllers, so the same
-          shapes that draw the figure can modulate something in a DAW. The rate is
-          the <strong>visual</strong> one, not the audible one: <em>Rate</em> sets how
-          many laps of the figure go by per second, and each axis then runs at its own
-          side of the ratio — a 3:2 figure at 1 lap/s sends 3&nbsp;Hz on X and 2&nbsp;Hz
-          on Y. The values carry the whole waveform chain, filter included, and are
-          sent only when the 7-bit value actually changes.
+          Sends the two axis waveforms as MIDI CCs at the figure's lap rate: a 3:2 figure at 1 lap/s sends 3&nbsp;Hz on X and 2&nbsp;Hz on Y. The whole wave chain is included.
         </div>
       </div>
 
@@ -2558,20 +2456,11 @@
           <input type="range" id="rec-fade-out" min="0" max="10" step="0.1" value="0">
         </div>
         <div class="info-text" data-info-label="the recording fades">
-          The clip opens out of, and closes back into, the
-          <strong>background colour</strong> — not black — so it starts and ends on
-          the same flat field the figure sits on. The audio rides the same ramp.
-          A fade-out means <strong>stop is not instant</strong>: the recording has to
-          keep rolling for the length of the fade, so the button shows
-          <em>fading</em> and saves the file when it lands.
+          Fades from and to the background colour, audio included. With a fade-out, the file saves only after the fade has played.
         </div>
         <button class="map-add-btn" id="rec-toggle" style="margin-top:8px">● record</button>
         <div class="info-text" data-info-label="video recording">
-          Recording captures exactly what the canvas shows — construction view included
-          when it's on. The framing's <strong>Zoom</strong> lives with the rest of the
-          figure's view controls, under <em>Figure ▸ View</em>, and <strong>Volume</strong>
-          now applies to the recorded audio as well as the speakers (the monitor level
-          and mute still do not — you can record with the speakers silent).
+          Records exactly what the canvas shows, with audio at the current <strong>Volume</strong>. Monitor level and mute don't affect the recording.
         </div>
         <div id="rec-status" style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5" role="status"></div>
       </div>
@@ -2597,14 +2486,7 @@
         </div>
         <button class="map-add-btn" id="btn-export-wav" style="margin-top:8px">⤓ Export Single Cycle WAV</button>
         <div class="info-text" data-info-label="the single-cycle export">
-          Writes <strong>one cycle</strong> of each axis's processed waveform as a
-          2048-sample WAV — the format wavetable synths and samplers expect. A
-          single cycle has no pitch of its own; what fixes it is the file's sample
-          rate, so the <strong>Root note</strong> sets that rate
-          (2048 × the note's frequency) and the file plays back at that pitch at
-          normal speed. <strong>C0</strong> is the usual convention for
-          single-cycle libraries; pick the note your sampler expects, or the one you
-          want the table to sound at untransposed.
+          Writes one cycle of each axis as a 2048-sample WAV. The <strong>Root note</strong> sets the sample rate, and so the pitch it plays at; C0 is the usual choice. With Sub on, the cycle spans the sub's period.
         </div>
 
         <div class="subsection-label">Image</div>
@@ -2658,16 +2540,7 @@
         <button class="wave-btn" data-morphstep="ignore" title="Never step them — recall only what can be interpolated">IGNORE</button>
       </div>
       <div class="info-text" data-info-label="stepped parameters during a morph">
-        A morph glides everything that has an in-between. The rest — frequency
-        ratios, waveforms, mirror and trail modes, the filter type, the view
-        toggles — has none, so it has to step, and this says when.
-        <strong>START</strong> steps it the moment the pad is hit, so the new
-        patch's structure is there from the first frame and the glide fills in the
-        rest around it. <strong>END</strong> holds the current structure for the
-        whole glide and steps it as the morph lands. <strong>IGNORE</strong> never
-        steps it at all: the stepped parameters stay exactly as you have them and
-        only the continuous ones are recalled, which is how you audition a patch's
-        timbre against your own ratio (it applies to instant loads too).
+        Ratios, waveforms and modes can't glide. <strong>START</strong> switches them as the morph begins, <strong>END</strong> as it lands. <strong>IGNORE</strong> leaves them alone and recalls only the continuous parameters.
       </div>
       <div class="grid-meta-row">
         <button class="map-add-btn" id="grid-export" style="margin-top:0">⤓ export</button>
@@ -2738,6 +2611,7 @@ let params = {
   noiseAxis: 0,
   filterAxis: 0,
   syncAxis: 0,
+  subAxis: 0,
   warp: 0,        // phase bend (Ableton Wavetable "Warp"): -1 = late, +1 = early
   shapeAmt: 0,    // waveshaping (tanh) drive
   syncAmt: 1,     // sync ratio (1 = off), range 0.1..2.0
@@ -2755,6 +2629,9 @@ let params = {
   foldBias: 0,    // asymmetric fold: DC offset into the folder (-1..1)
   unisonDetune: 0, // unison pair detune in cents (audio) / ghost drift rate (visual)
   unisonMix: 0,    // unison pair level 0..1 (0 = off)
+  subMix: 0,       // sub oscillator level 0..1 (0 = off): base wave 1 or 2 octaves down
+  subOct: 1,       // sub oscillator depth in octaves (1 or 2)
+  damp: 0,         // harmonograph damping 0..1 (visual only): figure spirals inward
   filterCutoff: 1, // waveform filter cutoff 0..1 (1 = fully open / off)
   filterQ: 0.7,    // waveform filter resonance / Q
   dotsLine: 1,     // 1 = continuous line, <1 = dotted (lower = sparser dots)
@@ -2970,7 +2847,12 @@ const AXIS_GROUPS = [
   ['noiseAxis',  'Noise'],
   ['filterAxis', 'Filter'],
   ['syncAxis',   'Sync'],
+  ['subAxis',    'Sub'],
 ];
+
+// Sub oscillator period multiplier. With the sub on, a figure lap (and one audio
+// wavetable cycle) only closes after 2 or 4 main cycles.
+function subDiv() { return (params.subMix || 0) > 0.001 ? ((params.subOct | 0) >= 2 ? 4 : 2) : 1; }
 
 function processWave(carrierArg, freqT, type, axis) {
   type = type || waveTypeX;
@@ -3045,6 +2927,13 @@ function processWave(carrierArg, freqT, type, axis) {
     const L = Math.pow(2, Math.max(0, params.crushBits - 1));
     s = Math.round(s * L) / L;
   }
+  // Sub oscillator: the axis's base wave one or two octaves down, mixed in last so
+  // nothing upstream reshapes it. Every sampler spans subDiv() main cycles, so the
+  // sum stays periodic for the figure and the wavetable alike.
+  if ((params.subMix || 0) > 0.001 && onAxis('subAxis', axis)) {
+    const m = params.subMix;
+    s = (s + m * morphWaveFn(carrierArg / subDiv(), mrp)) / (1 + m);
+  }
   // Noise — visual only; live audio gets a dedicated white-noise source so the
   // periodic wavetable stays clean/periodic.
   if (!_audioSampling && params.noiseAmt > 0.001 && onAxis('noiseAxis', axis)) s += params.noiseAmt * (Math.random() * 2 - 1);
@@ -3063,7 +2952,8 @@ function modComplexity() {
     + params.ringAmt * 1.0
     + params.fbAmt * 1.5
     + Math.abs(params.warp || 0) * 2.5
-    + params.crushRate * 0.5;
+    + params.crushRate * 0.5
+    + (params.subMix || 0) * 0.5;
 }
 
 function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
@@ -3071,7 +2961,7 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
   zoom = zoom || 1;
   // Base resolution from user setting (or override from caller)
   const baseRes = resolution ?? params.resolution;
-  const periodFactor = lcm(fx, fy) / Math.min(fx, fy);
+  const periodFactor = lcm(fx, fy) / Math.min(fx, fy) * subDiv();
   const modCx = modComplexity();
   const minPts = Math.ceil(Math.max(fx, fy) * periodFactor * 80 * Math.min(modCx, 10));
   resolution = Math.min(Math.max(baseRes, minPts), resCap || 160000);
@@ -3099,7 +2989,7 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
   if ((lift || polar) && _figBufZ.length < N) _figBufZ = new Float64Array(N);
   if (polar && _figBufYQ.length < N) _figBufYQ = new Float64Array(N);
   const sxArr = _figBufX, syArr = _figBufY, szArr = _figBufZ, syqArr = _figBufYQ;
-  const span = Math.PI * 2 * lcm(fx, fy) / Math.min(fx, fy);
+  const span = Math.PI * 2 * periodFactor;
   // Memo on (phase, resolution), reset once per frame by render(). KEEP trails
   // stroke each copy twice — once to clear what is under it, once to draw it —
   // and both passes want the same samples, so this halves the sampling work.
@@ -3181,12 +3071,26 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
   // both axes together would just retrace the same closed curve (invisible).
   // The lift's depth is indexed with the SAME k as X: the two are one oscillator
   // seen in quadrature, so sliding one and not the other would buckle the cylinder.
+  // Damping (harmonograph): the curve runs `laps` times round, shrinking as it
+  // goes, with X slipping a little each lap so the passes weave rather than stack.
+  // The sample arrays are periodic, so the extra laps reuse them for free.
+  const damp = params.damp || 0;
+  const laps = damp > 0.001 ? Math.max(2, Math.min(12, Math.floor(160000 / resolution))) : 1;
+  const total = resolution * laps;
+  const dampRate = 4 * damp / laps;           // e^-4 ≈ 2% left at the end, at full damping
   const pt = (i, k, mx, my, zFlip) => {
-    const idx = k ? (i + k) % resolution : i;
+    let a = 1, j = i;
+    if (laps > 1) {
+      a = Math.exp(-dampRate * i / resolution);
+      j = i % resolution;
+      k = (k || 0) + Math.floor(i * 0.004);   // 0.4% of a lap per lap
+    }
+    const idx = k ? (j + k) % resolution : j;
     let xs = sxArr[idx];
-    let ys = syArr[i];
-    if (polar) { geoPoint(geo, xs, szArr[idx], ys, syqArr[i], _G); xs = _G.x; ys = _G.y; }
-    figureXform(visualSwap ? ys : xs, visualSwap ? xs : ys, lift ? szArr[idx] : (solid ? _G.z : 0), zFlip);
+    let ys = syArr[j];
+    if (polar) { geoPoint(geo, xs, szArr[idx], ys, syqArr[j], _G); xs = _G.x; ys = _G.y; }
+    const zs = lift ? szArr[idx] : (solid ? _G.z : 0);
+    figureXform((visualSwap ? ys : xs) * a, (visualSwap ? xs : ys) * a, zs * a, zFlip);
     _P.x = cx + rx * _Q.x * mx;
     _P.y = cy + ry * _Q.y * my;
   };
@@ -3204,7 +3108,7 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
     targetCtx.lineWidth = Math.max(1, lineWidth * 0.9);
     for (const [mx, my] of mirrors) {
       targetCtx.beginPath();
-      for (let i = 0; i <= resolution; i++) {
+      for (let i = 0; i <= total; i++) {
         pt(i, 0, mx, my, false);
         i === 0 ? targetCtx.moveTo(_P.x, _P.y) : targetCtx.lineTo(_P.x, _P.y);
       }
@@ -3223,7 +3127,7 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
       targetCtx.fillStyle = hexToRgba(strokeColor, alpha);
       for (const [mx, my] of mirrors) {
         targetCtx.beginPath();
-        for (let i = 0; i <= resolution; i++) {
+        for (let i = 0; i <= total; i++) {
           pt(i, 0, mx, my, zFlip);
           i === 0 ? targetCtx.moveTo(_P.x, _P.y) : targetCtx.lineTo(_P.x, _P.y);
         }
@@ -3269,7 +3173,7 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
     for (const [mx, my] of mirrors) {
       if (!shaded) {
         targetCtx.beginPath();
-        for (let i = 0; i <= resolution; i++) {
+        for (let i = 0; i <= total; i++) {
           pt(i, k, mx, my, false);
           i === 0 ? targetCtx.moveTo(_P.x, _P.y) : targetCtx.lineTo(_P.x, _P.y);
         }
@@ -3278,12 +3182,15 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
       }
       const bins = new Array(DEPTH_BINS);   // filled lazily: a shallow curve touches few
       let prevX = 0, prevY = 0, prevBin = -1;
-      for (let i = 0; i <= resolution; i++) {
+      for (let i = 0; i <= total; i++) {
         pt(i, k, mx, my, false);
         const x = _P.x, y = _P.y;
         if (i > 0) {
           // _Q.z is view depth, positive away from the viewer — so bin 0 is nearest.
-          let b = ((_Q.z + 1) * 0.5 * DEPTH_BINS) | 0;
+          // Hysteresis: stay in the current bin until z is well past its edge, so a
+          // curve hovering on a boundary doesn't chop into a string of short runs.
+          const bf = (_Q.z + 1) * 0.5 * DEPTH_BINS;
+          let b = (prevBin >= 0 && bf > prevBin - 0.35 && bf < prevBin + 1.35) ? prevBin : (bf | 0);
           if (b < 0) b = 0; else if (b >= DEPTH_BINS) b = DEPTH_BINS - 1;
           const path = bins[b] || (bins[b] = new Path2D());
           if (b !== prevBin) path.moveTo(prevX, prevY);   // a run starts where the bin changes
@@ -3295,7 +3202,9 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
       for (let b = DEPTH_BINS - 1; b >= 0; b--) {          // painter's order: far first
         if (!bins[b]) continue;
         const near = 1 - b / (DEPTH_BINS - 1);             // 0 = farthest, 1 = nearest
-        targetCtx.strokeStyle = hexToRgba(strokeColor, 0.28 + 0.72 * near);
+        // Opaque, pre-mixed with the background: translucent runs stacked their
+        // round caps where one bin hands over to the next, beading the line.
+        targetCtx.strokeStyle = mixHex(strokeColor, params.bgColor, 0.28 + 0.72 * near);
         targetCtx.lineWidth = lineWidth * (0.62 + 0.5 * near);
         targetCtx.stroke(bins[b]);
       }
@@ -4089,7 +3998,7 @@ const WS_LABELS = ['X', 'Y', 'X+Y'];
 let _wsX = new Float64Array(0), _wsY = new Float64Array(0), _wsS = new Float64Array(0);
 function waveStackSamples(phase, n) {
   const { fx, fy, ax, ay } = params;
-  const g = gcd(fx, fy), T = TWO_PI / g;
+  const g = gcd(fx, fy) / subDiv(), T = TWO_PI / g;   // the sub stretches the lap
   const N = n + 1;
   if (_wsX.length < N) { _wsX = new Float64Array(N); _wsY = new Float64Array(N); _wsS = new Float64Array(N); }
   for (let i = 0; i <= n; i++) {
@@ -4205,7 +4114,7 @@ function drawWavePreview() {
   const w = waveCanvas.width, h = waveCanvas.height;
   waveCtx.fillStyle = '#0c0c0e';
   waveCtx.fillRect(0, 0, w, h);
-  const CYC = 2;                         // preview shows 2 cycles
+  const CYC = Math.max(2, subDiv());     // preview shows 2 cycles (a whole sub cycle)
   // Build, filter (same waveform stage as the figure), then plot each axis.
   const drawAxis = (type, axis, color, lw) => {
     const n = w + 1;
@@ -4232,6 +4141,13 @@ function hexToRgba(hex, alpha) {
   const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
   return `rgba(${r},${g},${b},${alpha})`;
 }
+// Opaque blend of two hex colours (t = 1 → a, t = 0 → b). Used where a
+// translucent stroke would double up on itself.
+function mixHex(a, b, t) {
+  const A = a.replace('#',''), B = b.replace('#','');
+  const c = i => Math.round(parseInt(B.slice(i,i+2),16) + (parseInt(A.slice(i,i+2),16) - parseInt(B.slice(i,i+2),16)) * t);
+  return `rgb(${c(0)},${c(2)},${c(4)})`;
+}
 
 // ── Mode 4 ───────────────────────────────────────────────────────────────────
 const _S = { x: 0, y: 0 };   // scratch point for the construction-view strip mappers
@@ -4241,7 +4157,7 @@ let _m4MemoLift = null;                    // ...and which depth mode built it
 // The tracer advances once per FRAME. drawMode4 runs several times per frame now
 // (figure, chrome, one pass per KEEP ghost), so it cannot own the clock.
 function advanceMode4() {
-  const T = TWO_PI / gcd(params.fx, params.fy);
+  const T = TWO_PI / gcd(params.fx, params.fy) * subDiv();
   mode4T = (mode4T + T * (params.traceSpeed ?? 1) * 0.003) % T;
 }
 let _m4BufX = new Float64Array(0), _m4BufY = new Float64Array(0);
@@ -4271,10 +4187,13 @@ function drawMode4(ctx, w, h, phase, noBg, zoom, part, resCap) {  // w,h are log
   const ry = (figH / 2 - pad) * ay;
 
   // True fundamental period so cycle counts read correctly (e.g. 2:1 → 2 & 1).
-  const T = TWO_PI / gcd(fx, fy);
+  const T = TWO_PI / gcd(fx, fy) * subDiv();
   const t = mode4T;
 
-  const res = Math.min(Math.max(params.resolution, Math.ceil(Math.max(fx, fy) * 96)), resCap || 40000);
+  // RINGS draw each generator as large as the figure, so give every generator
+  // cycle at least ~1000 samples or the ring reads as a polygon.
+  const ringFloor = params.m4Rings ? Math.ceil(Math.max(fx, fy) / gcd(fx, fy) * subDiv() * 1024) : 0;
+  const res = Math.min(Math.max(params.resolution, Math.ceil(Math.max(fx, fy) * 96), ringFloor), resCap || 40000);
 
   // Background (trail-aware, same afterglow behaviour as the main view). Skipped
   // when the caller has already painted the backdrop across the whole window.
@@ -4341,13 +4260,16 @@ function drawMode4(ctx, w, h, phase, noBg, zoom, part, resCap) {  // w,h are log
 
   // Cycles each generator fits into one lap, after the X/Y display swap.
   const gR = gcd(fx, fy);
-  const cycH = Math.max(1, Math.round((visualSwap ? fy : fx) / gR));
-  const cycV = Math.max(1, Math.round((visualSwap ? fx : fy) / gR));
+  const cycH = Math.max(1, Math.round((visualSwap ? fy : fx) / gR * subDiv()));
+  const cycV = Math.max(1, Math.round((visualSwap ? fx : fy) / gR * subDiv()));
   const Th = T / cycH, Tv = T / cycV;                    // one cycle of each
   const hStart = m4Rot ? mode4T - Th : 0;      // window ends AT the tracer
   const vStart = m4Rot ? mode4T - Tv : 0;
-  const hSpan  = (m4Rot || m4Rings) ? Th : T;
-  const vSpan  = (m4Rot || m4Rings) ? Tv : T;
+  // RINGS trace the full period T: anything coupling the axes (ring mod, cross FM,
+  // AM/FM at odd ratios) makes a generator repeat only over T, and a single
+  // generator cycle then fails to close — the ring showed a gap.
+  const hSpan  = m4Rot ? Th : T;
+  const vSpan  = m4Rot ? Tv : T;
   // RINGS: each wave is plotted against itself a quarter cycle back, so a sine is
   // an exact circle and the ring's horizontal (top) / vertical (left) reading IS
   // the wave's amplitude. The ring closes after one cycle of that generator.
@@ -4394,7 +4316,7 @@ function drawMode4(ctx, w, h, phase, noBg, zoom, part, resCap) {  // w,h are log
         ampZArr[i] = processWave(fx * τ + Math.PI / 2, fx * τ, waveTypeX, 'x');
       }
     }
-    const g = gcd(fx, fy);
+    const g = gcd(fx, fy) / subDiv();
     const cyclesX = fx / g, cyclesY = fy / g;   // waveform cycles within one period T
     if (filterIsOn()) {
       const HC = filterHarmonics();
@@ -4410,17 +4332,23 @@ function drawMode4(ctx, w, h, phase, noBg, zoom, part, resCap) {  // w,h are log
   // The scrolling window reaches back past τ=0, and the waveform is periodic in T,
   // so the index wraps rather than clamping (clamping would flatten the leading
   // edge of the strip into a straight line).
-  const idxAt = τ => { let k = Math.round((τ / T) * res) % res; return k < 0 ? k + res : k; };
-  const hAt = τ => visualSwap ? ampYArr[idxAt(τ)] : ampXArr[idxAt(τ)];
-  const vAt = τ => visualSwap ? ampXArr[idxAt(τ)] : ampYArr[idxAt(τ)];
+  // Linear interpolation between neighbouring samples: rounding to the nearest one
+  // stair-stepped the rings, which are drawn as large as the figure itself.
+  const lerpAt = (arr, τ) => {
+    let u = ((τ / T) * res) % res; if (u < 0) u += res;
+    const k = Math.floor(u), f = u - k, k1 = k + 1 >= res ? 0 : k + 1;
+    return arr[k] + (arr[k1] - arr[k]) * f;
+  };
+  const hAt = τ => lerpAt(visualSwap ? ampYArr : ampXArr, τ);
+  const vAt = τ => lerpAt(visualSwap ? ampXArr : ampYArr, τ);
   // Depth always partners the X axis (the phased one), whichever way visualSwap
   // has laid it on screen — so it is sampled at the X axis's own time.
-  const zAt = τ => ampZArr[idxAt(τ)];
+  const zAt = τ => lerpAt(ampZArr, τ);
   const zTime = (τh, τv) => (visualSwap ? τv : τh);
 
   if (wantChrome) {
     // ── The horizontal generator: top strip
-    const stripRes = Math.min(res, 2048);
+    const stripRes = Math.min(res, m4Rings ? 4096 : 2048);
     ctx.strokeStyle = hexToRgba(strokeColor, 0.55);
     ctx.lineWidth = Math.max(1, lineWidth * 0.8);
     ctx.lineJoin = 'round'; ctx.lineCap = 'round';
@@ -4500,7 +4428,7 @@ function drawMode4(ctx, w, h, phase, noBg, zoom, part, resCap) {  // w,h are log
   // Unison ghosts (± detune copies), dimmer than the untraced figure.
   if (wantFigure && (params.unisonMix || 0) > 0.01) {
     const gxy = gcd(fx, fy);
-    const τOff = ((unisonOffsetCycles() % 1) * T) / (fx / gxy);   // in X-cycles
+    const τOff = ((unisonOffsetCycles() % 1) * T) / (fx / gxy * subDiv());   // in X-cycles
     if (τOff > 0.0001) {
       ctx.strokeStyle = hexToRgba(strokeColor, Math.min(1, params.unisonMix * 0.4));
       for (const [mx, my] of m4Mirrors) {
@@ -4590,14 +4518,14 @@ let _woBufX = new Float64Array(WO_N + 1), _woBufY = new Float64Array(WO_N + 1);
 
 function woBuild() {
   const { fx, fy } = params;
-  const T = TWO_PI / gcd(fx, fy);
+  const T = TWO_PI / gcd(fx, fy) * subDiv();
   for (let i = 0; i <= WO_N; i++) {
     const τ = (i / WO_N) * T;
     _woBufX[i] = processWave(fx * τ + params.phase * Math.PI, fx * τ, waveTypeX, 'x');
     _woBufY[i] = processWave(fy * τ, fy * τ, waveTypeY, 'y');
   }
   if (filterIsOn()) {
-    const g = gcd(fx, fy), HC = filterHarmonics();
+    const g = gcd(fx, fy) / subDiv(), HC = filterHarmonics();
     const wX = Math.PI * 2 * Math.min(0.49, (HC * (fx / g)) / WO_N);
     const wY = Math.PI * 2 * Math.min(0.49, (HC * (fy / g)) / WO_N);
     if (onAxis('filterAxis', 'x')) filterPeriodic(_woBufX, WO_N + 1, biquadCoeffs(filterType, wX, params.filterQ));
@@ -4612,7 +4540,7 @@ function tickWaveOut(dt) {
   // Position in the lap. Following the tracer keeps the stream and the moving dot
   // on the construction view in lockstep — what is sent is exactly what is shown.
   if (woFollow && m4Active()) {
-    woLap = (mode4T / (TWO_PI / gcd(params.fx, params.fy))) % 1;
+    woLap = (mode4T / (TWO_PI / gcd(params.fx, params.fy) * subDiv())) % 1;
   } else {
     woLap = (woLap + woRate * dt) % 1;
     if (woLap < 0) woLap += 1;
@@ -4729,7 +4657,7 @@ function render(now) {
   // Adaptive resolution and the phase step read fx/fy/animSpeed, so they are
   // computed from the modulated values rather than the base ones.
   const { fx, fy } = params;
-  const pf = lcm(fx, fy) / Math.min(fx, fy);
+  const pf = lcm(fx, fy) / Math.min(fx, fy) * subDiv();
   const minResAdaptive = Math.ceil(Math.max(fx, fy) * pf * (midiActive ? 36 : 80) * Math.min(modComplexity(), 10));
   const res = Math.min(Math.max(params.resolution, minResAdaptive), 160000);
 
@@ -4983,7 +4911,7 @@ document.getElementById('btn-export').addEventListener('click', () => {
     });
   } else {
   const steps = resolution * 2;
-  const T = Math.PI * 2 * lcm(fx, fy) / Math.min(fx, fy);
+  const T = Math.PI * 2 * lcm(fx, fy) / Math.min(fx, fy) * subDiv();
   for (let i = 0; i <= steps; i++) {
     const t = (i / steps) * T;
     let sx = processWave(fx * t + phase * Math.PI, fx * t, waveTypeX, 'x');
@@ -5382,6 +5310,8 @@ const PARAM_UI = {
   crushRate: { slider: 'crush-rate', disp: 'crush-rate-val', fmt: v => (v < 0.005 ? 'off' : Math.round(v*100) + '%') },
   unisonDetune: { slider: 'unison-detune', disp: 'unison-detune-val', fmt: v => v.toFixed(1) + '¢' },
   unisonMix: { slider: 'unison-mix', disp: 'unison-mix-val', fmt: v => Math.round(v*100) + '%' },
+  subMix:    { slider: 'sub-mix',    disp: 'sub-mix-val',    fmt: v => (v < 0.005 ? 'off' : Math.round(v*100) + '%') },
+  damp:      { slider: 'damp',       disp: 'damp-val',       fmt: v => (v < 0.005 ? 'off' : Math.round(v*100) + '%') },
   trailAmt:  { slider: 'trail-amt',  disp: 'trail-amt-val',  fmt: v => (v < 0.01 ? 'off' : Math.round(v*100) + '%') },
   az:        { slider: 'az',         disp: 'az-val',         fmt: v => Math.round(v*100) + '%' },
   ax:        { slider: 'ax',         disp: 'ax-val',         fmt: v => v.toFixed(2) },
@@ -5441,7 +5371,7 @@ function lfoSet(key, v) {
 let LFO_TARGET_OPTIONS = [];   // filled by completeVelRanges(), below MAP_TARGETS
 // Keys whose modulation requires rebuilding the periodic wavetable (noise and the
 // unison pair are live audio nodes tracked in pwTick, so they're excluded here).
-const LFO_SYNTH_KEYS = ['fmAmount','fmRatio','crossFm','ringAmt','fbAmt','shapeAmt','syncAmt','foldDrive','foldBias','crushBits','crushRate','amAmt','amRatio','filterCutoff','filterQ','waveX','waveY','noiseAmt','warp']
+const LFO_SYNTH_KEYS = ['fmAmount','fmRatio','crossFm','ringAmt','fbAmt','shapeAmt','syncAmt','foldDrive','foldBias','crushBits','crushRate','amAmt','amRatio','filterCutoff','filterQ','waveX','waveY','noiseAmt','warp','subMix','subOct']
   .concat(AXIS_GROUPS.map(([k]) => k));
 
 function lfoWaveFn(phase, type) {
@@ -5617,6 +5547,7 @@ let audioCtx = null;
 let oscX = null, oscY = null;
 let panX = null, panY = null;
 let oscX2 = null, oscY2 = null;                 // unison pair (detuned ± cents)
+let audioDiv = 1;                               // main cycles per wavetable cycle (sub oscillator)
 let unisonGainX = null, unisonGainY = null;     // unison level (params.unisonMix)
 let masterGain = null;
 let noiseGain = null, noiseSrc = null;
@@ -5771,8 +5702,9 @@ function startAudio() {
   eqGainX.gain.value = elcGain(params.fx * baseFreq);
   eqGainX.connect(panX);
 
+  audioDiv = subDiv();
   oscX = audioCtx.createOscillator();
-  oscX.frequency.value = params.fx * baseFreq;
+  oscX.frequency.value = params.fx * baseFreq / audioDiv;
   oscX.connect(eqGainX);
   oscX.start();
 
@@ -5785,7 +5717,7 @@ function startAudio() {
   eqGainY.connect(panY);
 
   oscY = audioCtx.createOscillator();
-  oscY.frequency.value = params.fy * baseFreq;
+  oscY.frequency.value = params.fy * baseFreq / audioDiv;
   oscY.connect(eqGainY);
   oscY.start();
 
@@ -5798,12 +5730,12 @@ function startAudio() {
   unisonGainX.connect(eqGainX);   // the pair shares its axis's weighting
   unisonGainY.connect(eqGainY);
   oscX2 = audioCtx.createOscillator();
-  oscX2.frequency.value = params.fx * baseFreq;
+  oscX2.frequency.value = params.fx * baseFreq / audioDiv;
   oscX2.detune.value = params.unisonDetune || 0;
   oscX2.connect(unisonGainX);
   oscX2.start();
   oscY2 = audioCtx.createOscillator();
-  oscY2.frequency.value = params.fy * baseFreq;
+  oscY2.frequency.value = params.fy * baseFreq / audioDiv;
   oscY2.detune.value = -(params.unisonDetune || 0);
   oscY2.connect(unisonGainY);
   oscY2.start();
@@ -5867,10 +5799,13 @@ function syncAudioParams() {
   updateIntervalLabel();
   if (!audioEnabled || !oscX) return;
   const t = audioCtx.currentTime;
-  oscX.frequency.setTargetAtTime(fxHz, t, 0.02);
-  oscY.frequency.setTargetAtTime(fyHz, t, 0.02);
-  if (oscX2) oscX2.frequency.setTargetAtTime(fxHz, t, 0.02);
-  if (oscY2) oscY2.frequency.setTargetAtTime(fyHz, t, 0.02);
+  // The wavetable spans audioDiv main cycles (the sub's period), so the
+  // oscillators run that much slower to keep the main pitch where it was.
+  const d = audioDiv;
+  oscX.frequency.setTargetAtTime(fxHz / d, t, 0.02);
+  oscY.frequency.setTargetAtTime(fyHz / d, t, 0.02);
+  if (oscX2) oscX2.frequency.setTargetAtTime(fxHz / d, t, 0.02);
+  if (oscY2) oscY2.frequency.setTargetAtTime(fyHz / d, t, 0.02);
   // Oscillators always carry a PeriodicWave (rebuilt via pwTick when dirty);
   // frequency changes here don't require a wave rebuild.
 }
@@ -6206,7 +6141,11 @@ document.getElementById('dots-line').addEventListener('input', e => {
 const fmtDeg   = v => Math.round(v) + '°';
 const fmtTrail = v => v < 0.01 ? 'off' : Math.round(v * 100) + '%';
 const fmtPct   = v => Math.round(v * 100) + '%';
+function fmtSubMix(v) { return v < 0.005 ? 'off' : Math.round(v * 100) + '%'; }
+function fmtSubOct(v) { return '−' + Math.round(v); }
+function fmtDamp(v) { return v < 0.005 ? 'off' : Math.round(v * 100) + '%'; }
 const VISUAL_SLIDERS = [
+  ['damp',         'damp',        fmtDamp],
   ['trail-amt',    'trailAmt',    fmtTrail],
   ['az',           'az',          v => Math.round(v * 100) + '%'],
   ['tilt-angle',   'tiltAngle',   fmtDeg],
@@ -6614,6 +6553,8 @@ const SYNTH_SLIDERS = [
   ['crush-rate',  'crushRate', fmtDecimate],
   ['am-amt',      'amAmt',     v => v.toFixed(2)],
   ['noise-amt',   'noiseAmt',  v => v.toFixed(3)],
+  ['sub-mix',     'subMix',    fmtSubMix],
+  ['sub-oct',     'subOct',    fmtSubOct],
 ];
 SYNTH_SLIDERS.forEach(([id, key, fmt]) => {
   document.getElementById(id).addEventListener('input', e => {
@@ -7190,6 +7131,9 @@ const MAP_TARGETS = {
   depthShade:{ label:'Depth Shading', toggle:true, apply:b => { params.depthShade = b ? 1 : 0; const cb=document.getElementById('depth-shade'); if (cb) cb.checked = b; } },
   showShadow:{ label:'Flat Shadow',   toggle:true, apply:b => { params.showShadow = b ? 1 : 0; const cb=document.getElementById('show-shadow'); if (cb) cb.checked = b; } },
   az:        { label:'Depth',         min:0,    max:1,              apply:v => setSliderParam('az','az','az-val',x=>Math.round(x*100)+'%',v) },
+  subMix:    { label:'Sub Mix',       min:0,    max:1,              apply:_synthApply('subMix','sub-mix','sub-mix-val',fmtSubMix) },
+  subOct:    { label:'Sub Octave',    min:1,    max:2,   step:1,    apply:_synthApply('subOct','sub-oct','sub-oct-val',fmtSubOct) },
+  damp:      { label:'Damping',       min:0,    max:1,              apply:v => setSliderParam('damp','damp','damp-val',fmtDamp,v) },
   waveX:     { label:'X Wave Cycle',  min:0,    max:3,   step:1,    apply:v => setBaseWave('x', WAVES[Math.max(0,Math.min(3,Math.round(v)))]) },
   waveY:     { label:'Y Wave Cycle',  min:0,    max:3,   step:1,    apply:v => setBaseWave('y', WAVES[Math.max(0,Math.min(3,Math.round(v)))]) },
   lfo0Rate:  { label:'LFO 1 Rate',    min:0.01, max:6,              apply:v => { lfos[0].freq = v; const e=document.getElementById('lfo0-freq'); if(e)e.value=v; const d=document.getElementById('lfo0-freq-val'); if(d)d.textContent=v.toFixed(2)+' Hz'; } },
@@ -7229,8 +7173,8 @@ const TARGET_CATEGORIES = [
                  'crossFm', 'ringAmt', 'crossAxis', 'shapeAmt', 'shapeAxis', 'fbAmt', 'fbAxis',
                  'warp', 'foldDrive', 'foldBias', 'warpAxis', 'crushBits', 'crushRate', 'crushAxis',
                  'noiseAmt', 'noiseAxis', 'filterCutoff', 'filterQ', 'filterAxis',
-                 'syncAmt', 'syncAxis', 'unisonDetune', 'unisonMix']],
-  ['Frequency', ['geometry', 'ax', 'fx', 'ay', 'fy', 'visualSwap', 'preset']],
+                 'syncAmt', 'syncAxis', 'subMix', 'subOct', 'subAxis', 'unisonDetune', 'unisonMix']],
+  ['Frequency', ['geometry', 'ax', 'fx', 'ay', 'fy', 'visualSwap', 'damp', 'preset']],
   ['Audio',     ['volume']],
   ['Figure',    ['hue', 'sat', 'light', 'lineWidth', 'dotsLine', 'mirrorMode', 'fillSurface',
                  'trailMode', 'trailAmt', 'trailCount', 'trailSpacing',
@@ -7296,7 +7240,7 @@ const MAP_DEFAULTS = {
   ...Object.fromEntries(AXIS_GROUPS.map(([k]) => [k, 0])),
   syncAmt:1, foldDrive:1, amAmt:0, amRatio:2, noiseAmt:0, waveX:0, waveY:0,
   crossFm:0, ringAmt:0, fbAmt:0, foldBias:0, crushBits:16, crushRate:0,
-  unisonDetune:0, unisonMix:0,
+  unisonDetune:0, unisonMix:0, subMix:0, subOct:1, damp:0,
   geometry:0, fillSurface:0, trailAmt:0, trailMode:0, trailCount:4, trailSpacing:0.08, mirrorMode:0, m4Rotate:1, az:0,
   lfo0Rate:0.5, lfo0Depth:0.5, lfo1Rate:1.0, lfo1Depth:0.5,
   hue:79, sat:84, light:66, lineWidth:1.5, phase:0.5, animSpeed:1, volume:0.5,
@@ -7621,8 +7565,9 @@ document.getElementById('btn-export-wav').addEventListener('click', () => {
   // One carrier cycle of each axis' processed wave.
   const xs = new Float32Array(N), ys = new Float32Array(N);
   _audioSampling = true;
+  const div = subDiv();   // with the sub on, one cycle spans the sub's period
   for (let i = 0; i < N; i++) {
-    const t = (i / N) * Math.PI * 2;
+    const t = (i / N) * Math.PI * 2 * div;
     xs[i] = processWave(t, t, waveTypeX, 'x');
     ys[i] = processWave(t, t, waveTypeY, 'y');
   }
@@ -7670,38 +7615,42 @@ const PW_H = 256;  // number of harmonics to keep (≤ PW_N/2)
 
 function buildPeriodicWave(type, axis) {
   if (!audioCtx) return null;
-  // Sample one period of the processed wave for the given base waveform.
-  const x = new Float32Array(PW_N);
+  // Sample one period of the processed wave for the given base waveform. With the
+  // sub on, that period is the SUB's: the table holds subDiv() main cycles and the
+  // oscillator runs subDiv() times slower (see audioDiv / syncAudioParams).
+  const div = subDiv();
+  const NS = PW_N * div, H = PW_H * Math.min(div, 2);
+  const x = new Float32Array(NS);
   _audioSampling = true;
-  for (let i = 0; i < PW_N; i++) {
-    const t = (i / PW_N) * Math.PI * 2;
+  for (let i = 0; i < NS; i++) {
+    const t = (i / NS) * Math.PI * 2 * div;
     x[i] = processWave(t, t, type, axis || 'x');
   }
   _audioSampling = false;
-  // Apply the same waveform filter (one cycle in the wavetable → fundamental = 1).
+  // Apply the same waveform filter (div main cycles in the wavetable).
   if (filterIsOn() && onAxis('filterAxis', axis || 'x')) {
-    const wc = Math.PI * 2 * Math.min(0.49, filterHarmonics() / PW_N);
-    filterPeriodic(x, PW_N, biquadCoeffs(filterType, wc, params.filterQ));
+    const wc = Math.PI * 2 * Math.min(0.49, filterHarmonics() * div / NS);
+    filterPeriodic(x, NS, biquadCoeffs(filterType, wc, params.filterQ));
   }
   // Normalize to avoid clipping at oscillator output.
   let peak = 0;
-  for (let i = 0; i < PW_N; i++) { const a = Math.abs(x[i]); if (a > peak) peak = a; }
-  if (peak > 0.0001) { const g = 0.9 / peak; for (let i = 0; i < PW_N; i++) x[i] *= g; }
+  for (let i = 0; i < NS; i++) { const a = Math.abs(x[i]); if (a > peak) peak = a; }
+  if (peak > 0.0001) { const g = 0.9 / peak; for (let i = 0; i < NS; i++) x[i] *= g; }
 
   // Naive DFT for low harmonic count — fine off the audio thread.
-  const real = new Float32Array(PW_H + 1);
-  const imag = new Float32Array(PW_H + 1);
-  for (let k = 1; k <= PW_H; k++) {
+  const real = new Float32Array(H + 1);
+  const imag = new Float32Array(H + 1);
+  for (let k = 1; k <= H; k++) {
     let re = 0, im = 0;
-    const w = (2 * Math.PI * k) / PW_N;
-    for (let n = 0; n < PW_N; n++) {
+    const w = (2 * Math.PI * k) / NS;
+    for (let n = 0; n < NS; n++) {
       const c = Math.cos(w * n);
       const s = Math.sin(w * n);
       re += x[n] * c;
       im -= x[n] * s;
     }
-    real[k] = (2 / PW_N) * re;
-    imag[k] = (2 / PW_N) * im;
+    real[k] = (2 / NS) * re;
+    imag[k] = (2 / NS) * im;
   }
   return audioCtx.createPeriodicWave(real, imag, { disableNormalization: false });
 }
@@ -7756,6 +7705,19 @@ function pwTick(now) {
   // Track the (possibly LFO/MIDI-modulated) noise amount + unison in real time.
   if (noiseGain) noiseGain.gain.setTargetAtTime(Math.max(0, params.noiseAmt) * NOISE_SCALE, audioCtx.currentTime, 0.03);
   applyUnisonAudio();
+  // Sub on/off or octave change: the wavetable's period changes, so the
+  // oscillator frequencies and the wave must switch in the same frame.
+  if (subDiv() !== audioDiv) {
+    audioDiv = subDiv();
+    const t = audioCtx.currentTime, d = audioDiv;
+    oscX.frequency.setValueAtTime(params.fx * baseFreq / d, t);
+    oscY.frequency.setValueAtTime(params.fy * baseFreq / d, t);
+    if (oscX2) oscX2.frequency.setValueAtTime(params.fx * baseFreq / d, t);
+    if (oscY2) oscY2.frequency.setValueAtTime(params.fy * baseFreq / d, t);
+    _lastPwBuild = now; pwDirty = false;
+    applyPeriodicWave();
+    return;
+  }
   const continuous = lfoHasSynthTargets();
   if ((pwDirty || continuous) && now - _lastPwBuild >= PW_MIN_INTERVAL) {
     _lastPwBuild = now;
@@ -8574,7 +8536,7 @@ function setMorphStepMode(m) {
 // wave types are derived from them — so they belong with the stepped set, or a
 // recall would slide the timbre through two other shapes on its way and IGNORE
 // would stop protecting the waveform it promises to leave alone.
-const MORPH_DISCRETE = new Set(['fx', 'fy', 'geometry', 'mirrorMode', 'fillSurface', 'trailMode', 'trailCount', 'm4Rotate', 'phase',
+const MORPH_DISCRETE = new Set(['subOct', 'fx', 'fy', 'geometry', 'mirrorMode', 'fillSurface', 'trailMode', 'trailCount', 'm4Rotate', 'phase',
                                 'depthSrc', 'depthShade', 'showShadow', 'morphX', 'morphY']);
 // The rest of a patch's stepped state lives outside `params` — the waveforms, the
 // filter type, the view toggles. Same treatment, same list.
@@ -8813,7 +8775,9 @@ function buildSynthReadout() {
     ['noise', `${P.noiseAmt.toFixed(3)} ${ax('noiseAxis')}`, P.noiseAmt > 0],
     ['filt',  `${FILTER_TAG[filterType] || filterType} ${fmtCutoff(P.filterCutoff)} Q${P.filterQ.toFixed(1)} ${ax('filterAxis')}`, filterIsOn()],
     ['sync',  `${P.syncAmt.toFixed(2)} ${syncHard ? 'hard' : 'soft'} ${ax('syncAxis')}`, Math.abs(P.syncAmt - 1) > 1e-3],
+    ['sub',   `${Math.round((P.subMix || 0) * 100)}% −${P.subOct | 0}oct ${ax('subAxis')}`, (P.subMix || 0) > 0.001],
     ['uni',   `${P.unisonDetune.toFixed(1)}¢ mix ${Math.round(P.unisonMix * 100)}%`, P.unisonMix > 0],
+    ['damp',  `${Math.round((P.damp || 0) * 100)}% (visual)`, (P.damp || 0) > 0.001],
   ];
   lfos.forEach(l => {
     const tg = l.assignments.map(k => (MAP_TARGETS[k] ? MAP_TARGETS[k].label : k)).join(', ');
@@ -8861,6 +8825,7 @@ const TARGET_CONTROL = {
   shapeAmt: 'shape-amt', fbAmt: 'fb-amt', warp: 'warp', foldDrive: 'fold-drive', foldBias: 'fold-bias',
   crushBits: 'crush-bits', crushRate: 'crush-rate', noiseAmt: 'noise-amt', filterCutoff: 'filter-freq', filterQ: 'filter-res',
   syncAmt: 'sync-amt', unisonDetune: 'unison-detune', unisonMix: 'unison-mix', volume: 'audio-vol',
+  subMix: 'sub-mix', subOct: 'sub-oct', damp: 'damp',
   hue: 'hsl-h', sat: 'hsl-s', light: 'hsl-l', lineWidth: 'line-width', dotsLine: 'dots-line',
   mirrorMode: '[data-mirror]', fillSurface: 'fill-surface', trailMode: '[data-trailmode]', trailAmt: 'trail-amt',
   trailCount: 'trail-count', trailSpacing: 'trail-spacing', phase: 'phase', animatePhase: 'animate', animSpeed: 'anim-speed',
@@ -9157,7 +9122,7 @@ const READOUT_KEYS = {
   am: ['amAmt', 'amRatio', 'amAxis'], fm: ['fmAmount', 'fmRatio', 'fmAxis'], cross: ['crossFm', 'ringAmt', 'crossAxis'],
   shape: ['shapeAmt', 'shapeAxis'], fb: ['fbAmt', 'fbAxis'], warp: ['warp', 'foldDrive', 'foldBias', 'warpAxis'],
   crush: ['crushBits', 'crushRate', 'crushAxis'], noise: ['noiseAmt', 'noiseAxis'], filt: ['filterCutoff', 'filterQ', 'filterAxis'],
-  sync: ['syncAmt', 'syncAxis'], uni: ['unisonDetune', 'unisonMix'], lfo1: ['lfo0Rate', 'lfo0Depth'], lfo2: ['lfo1Rate', 'lfo1Depth'],
+  sync: ['syncAmt', 'syncAxis'], sub: ['subMix', 'subOct', 'subAxis'], damp: ['damp'], uni: ['unisonDetune', 'unisonMix'], lfo1: ['lfo0Rate', 'lfo0Depth'], lfo2: ['lfo1Rate', 'lfo1Depth'],
 };
 let roOpen = null;
 const roPop = document.getElementById('ro-pop');
@@ -9267,7 +9232,7 @@ function initInfoToggles() {
       btn.setAttribute('aria-expanded', open ? 'false' : 'true');
       bodies.forEach(b => { b.hidden = open; });
     });
-    if (label) label.after(btn); else sec.prepend(btn);
+    if (label) { label.classList.add('has-help'); label.after(btn); } else sec.prepend(btn);
   });
   document.querySelectorAll('.info-text').forEach(body => {
     if (body.dataset.infoWired) return;
