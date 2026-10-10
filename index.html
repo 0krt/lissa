@@ -1653,7 +1653,7 @@
         </div>
         <div id="geo-hint" style="font-size:10.5px;color:var(--label);margin-bottom:10px;line-height:1.45"></div>
         <div class="info-text" data-info-label="figure geometry">
-          <strong>Lateral</strong>: X moves the point left–right, Y up–down. <strong>Con-current</strong> and <strong>counter-current</strong> turn each oscillator into a rotating circle and add the two, drawing rings or stars. <strong>Rose</strong>: r = cos(fx/fy · θ). <strong>Torus knot</strong> and <strong>Sphere</strong> wrap the path on a solid; drag to orbit. <strong>Waves</strong> plots the raw waves. Construction view and the 3D lift work in Lateral only.
+          <strong>Lateral</strong>: X moves the point left–right, Y up–down. <strong>Con-current</strong> and <strong>counter-current</strong> turn each oscillator into a rotating circle and add the two, drawing rings or stars. <strong>Rose</strong>: r = cos(fx/fy · θ). <strong>Torus knot</strong> and <strong>Sphere</strong> wrap the path on a solid; drag to orbit. <strong>Waves</strong> plots the raw waves. Construction view and the 3D lift work in Lateral only; Column view in every flat geometry.
         </div>
         <div class="mod-group">
           <div class="vel-row"><span class="vel-label">X Axis</span></div>
@@ -2241,6 +2241,43 @@
           </div>
         </div>
       </div>
+
+      <div class="section" id="section-column">
+        <div class="section-label">Column view</div>
+        <div class="checkbox-row" style="margin-top:6px">
+          <input type="checkbox" id="column-view">
+          <label for="column-view">Column view</label>
+        </div>
+        <div id="column-controls" class="mod-group" style="margin-top:6px">
+          <div class="info-text" data-info-label="the column">
+            The figure at evenly spaced phase positions, stacked bottom to top: one full δ rotation becomes a column. Drag to orbit. Replaces the construction view while on; works in every flat geometry.
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Slices</label><span class="val" id="col-slices-val">48</span></div>
+            <input type="range" id="col-slices" min="4" max="160" step="1" value="48">
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Turns</label><span class="val" id="col-turns-val">1.00</span></div>
+            <input type="range" id="col-turns" min="0.25" max="4" step="0.25" value="1">
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Height</label><span class="val" id="col-height-val">2.0</span></div>
+            <input type="range" id="col-height" min="0.5" max="5" step="0.1" value="2">
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Elevation</label><span class="val" id="col-elev-val">25°</span></div>
+            <input type="range" id="col-elev" min="-89" max="89" step="1" value="25">
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Yaw</label><span class="val" id="col-yaw-val">0°</span></div>
+            <input type="range" id="col-yaw" min="0" max="359" step="1" value="0">
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="col-hide" checked>
+            <label for="col-hide">Solid slices (hide lines behind)</label>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="tab-panel" id="tab-motion" data-tab="motion" role="tabpanel" aria-labelledby="tabbtn-motion" tabindex="-1">
@@ -2502,6 +2539,7 @@
       <button class="view-tg" type="button" id="vt-3d" aria-pressed="false" title="3D — phase lift on / off">3D</button>
       <button class="view-tg" type="button" id="vt-frame" aria-pressed="false" title="Coordinate frame on / off">XYZ</button>
       <button class="view-tg" type="button" id="vt-construct" aria-pressed="false" title="Construction view on / off">CON</button>
+      <button class="view-tg" type="button" id="vt-column" aria-pressed="false" title="Column view on / off — the phase rotation stacked into a column">COL</button>
       <button class="view-tg" type="button" id="vt-readout" aria-pressed="false" title="Synthesis readout on / off">INFO</button>
     </div>
     <pre class="synth-readout" id="synth-readout" aria-live="off" hidden></pre>
@@ -2651,6 +2689,13 @@ let params = {
   untracedAlpha: 0.2, // construction view: opacity of the not-yet-traced background figure
   m4Rotate: 1,        // construction view: 1 = quarter-turned scrolling generators (default)
   m4Rings: 0,         // construction view: 1 = generators rolled into rings (overrides m4Rotate)
+  columnView: 0,      // column view: the δ rotation stacked into a column (see drawColumn)
+  colSlices: 48,      // column view: phase positions per column
+  colTurns: 1,        // column view: full δ rotations from bottom to top
+  colHeight: 2,       // column view: height in figure units (the figure spans -1..1)
+  colElev: 25,        // column view: camera elevation, degrees (drag vertically)
+  colYaw: 0,          // column view: yaw about the column axis, degrees (drag horizontally)
+  colHide: 1,         // column view: fill each slice with the background (hidden lines)
   // ── Coordinate frame (visual furniture — see drawCoordFrame) ───────────────
   frameShow: 0,        // master switch for the whole reference frame
   frameAxes: 2,        // axes: 0 = none, 1 = positive rays, 2 = full plus/minus
@@ -3342,12 +3387,14 @@ function solidGeometry() { const g = figGeometry(); return g === 4 || g === 5; }
 const GEO_WAVES = 6;
 function waveGeometry() { return figGeometry() === GEO_WAVES; }
 // Anything the view can orbit: the lifted lateral figure or a solid geometry.
-function orbitable() { return liftActive() || solidGeometry(); }
+function orbitable() { return liftActive() || solidGeometry() || columnActive(); }
 const TORUS_TUBE = 0.6;     // tube radius over major radius at ay = 1
 const SPHERE_LAT = 1.2;     // latitude swing in radians at ay = 1 (short of the poles)
 // The construction view explains the lateral figure (two generators projected on
 // two axes); in the rotary geometries the plain figure is shown instead.
-function m4Active() { return constructionView && !polarGeometry(); }
+function m4Active() { return constructionView && !polarGeometry() && !columnActive(); }
+// The column view stacks the flat figure; the solids and WAVES have no flat slice.
+function columnActive() { const g = figGeometry(); return !!params.columnView && !solidGeometry() && g !== GEO_WAVES; }
 // Combine the samples into the figure point (normalised, before the view
 // transform). xs/ys are the wave values, xq/yq their quarter-period-ahead copies.
 // out.z is view depth (positive = away from the viewer), 0 for the flat ones.
@@ -3983,9 +4030,116 @@ function drawFigureInto(target, phase, res, zoom, phaseBack, resCap) {
   }
   target.save();
   target.translate(figBox.x, figBox.y);
-  if (m4Active()) drawMode4(target, figBox.size, figBox.size, phase, true, zoom, M4_FIGURE, resCap);
+  if (columnActive()) drawColumn(target, figBox.size, figBox.size, phase, zoom);
+  else if (m4Active()) drawMode4(target, figBox.size, figBox.size, phase, true, zoom, M4_FIGURE, resCap);
   else drawLissajous(target, figBox.size, figBox.size, phase, res, zoom, true, resCap);
   target.restore();
+}
+
+// ── Column view: the δ rotation stacked into a solid ─────────────────────────
+// Every slice is the flat figure at one phase position, from δ at the bottom to
+// δ + 2·turns at the top, laid in a horizontal plane at its own height. The
+// camera yaws about the column's axis and looks down (or up) at colElev.
+// Hidden lines are painter's order: slices go far-to-near along the view
+// direction, each filled with the background before it is stroked, so a slice
+// covers whatever lies behind it — the stacked-contour look of a sliced vase.
+// The samples run the same waveform chain as drawLissajous, filter included;
+// Y carries no δ, so it is built once and only X is re-sampled per slice.
+let _colX = new Float64Array(0), _colXQ = new Float64Array(0);
+let _colY = new Float64Array(0), _colYQ = new Float64Array(0);
+let _colPX = new Float32Array(0), _colPY = new Float32Array(0);
+function drawColumn(g, w, h, phase, zoom) {
+  const { ax, ay, fx, fy, strokeColor, bgColor, lineWidth } = params;
+  const geo = figGeometry(), polar = geo !== 0;
+  const n = Math.max(2, Math.min(400, Math.round(params.colSlices || 48)));
+  const span = Math.PI * 2 * lcm(fx, fy) / Math.min(fx, fy) * subDiv();
+  const periodFactor = span / (Math.PI * 2);
+  const minPts = Math.ceil(Math.max(fx, fy) * periodFactor * 40 * Math.min(modComplexity(), 10));
+  // Per-slice resolution: enough for the figure, but the whole stack stays inside
+  // a fixed point budget so 160 slices of a busy figure still hold the frame rate.
+  const res = Math.max(64, Math.min(Math.max(minPts, 360), 6000, Math.floor(240000 / n)));
+  const N = res + 1;
+  if (_colX.length < N) {
+    _colX = new Float64Array(N); _colXQ = new Float64Array(N);
+    _colY = new Float64Array(N); _colYQ = new Float64Array(N);
+    _colPX = new Float32Array(N); _colPY = new Float32Array(N);
+  }
+  const filt = filterIsOn();
+  for (let i = 0; i <= res; i++) {
+    const t = (i / res) * span;
+    _colY[i] = processWave(fy * t, fy * t, waveTypeY, 'y');
+    if (polar) _colYQ[i] = processWave(fy * t + Math.PI / 2, fy * t, waveTypeY, 'y');
+  }
+  if (filt && onAxis('filterAxis', 'y')) {
+    const wY = Math.PI * 2 * Math.min(0.49, (filterHarmonics() * fy * periodFactor) / res);
+    filterPeriodic(_colY, N, biquadCoeffs(filterType, wY, params.filterQ));
+    if (polar) filterPeriodic(_colYQ, N, biquadCoeffs(filterType, wY, params.filterQ));
+  }
+  const filtX = filt && onAxis('filterAxis', 'x');
+  const wX = Math.PI * 2 * Math.min(0.49, (filterHarmonics() * fx * periodFactor) / res);
+
+  // Camera. Figure plane = (X, depth); the column axis is up the screen.
+  const yaw = ((params.colYaw || 0) * Math.PI) / 180;
+  const el = ((params.colElev ?? 25) * Math.PI) / 180;
+  const cyw = Math.cos(yaw), syw = Math.sin(yaw), ce = Math.cos(el), se = Math.sin(el);
+  const H = Math.max(0.05, params.colHeight ?? 2);
+  // Fit the column in the box: the figure's footprint is at most ±ax × ±ay (the
+  // rotary ones are normalised into the unit disc), and a yaw can swing it out
+  // to the diagonal.
+  const rad = polar ? Math.max(ax, 1) : Math.hypot(ax, ay);
+  const fitR = Math.max(rad, (H / 2) * Math.abs(ce) + rad * Math.abs(se));
+  const pad = Math.min(w, h) * 0.034;
+  const S = ((Math.min(w, h) / 2 - pad) * zoom) / fitR;
+  const cx = w / 2, cy = h / 2;
+  const K = 0.45 * (params.az || 0) / fitR;   // perspective, from the 3D depth amount
+  const turns = Math.max(0.05, params.colTurns ?? 1);
+  const hide = !!params.colHide;
+
+  g.setLineDash([]);
+  g.lineJoin = 'round';
+  g.lineCap = 'round';
+  g.lineWidth = lineWidth;
+  // Looking down, the top slice is nearest; looking up, the bottom one.
+  const up = se >= 0;
+  for (let s = 0; s < n; s++) {
+    const k = up ? s : n - 1 - s;
+    const f = n > 1 ? k / (n - 1) : 0.5;
+    const ph = phase + 2 * turns * (k / n);
+    const hgt = (f - 0.5) * H;
+    for (let i = 0; i <= res; i++) {
+      const t = (i / res) * span;
+      _colX[i] = processWave(fx * t + ph * Math.PI, fx * t, waveTypeX, 'x');
+      if (polar) _colXQ[i] = processWave(fx * t + ph * Math.PI + Math.PI / 2, fx * t, waveTypeX, 'x');
+    }
+    if (filtX) {
+      filterPeriodic(_colX, N, biquadCoeffs(filterType, wX, params.filterQ));
+      if (polar) filterPeriodic(_colXQ, N, biquadCoeffs(filterType, wX, params.filterQ));
+    }
+    for (let i = 0; i <= res; i++) {
+      let px, py;
+      if (polar) { geoPoint(geo, _colX[i], _colXQ[i], _colY[i], _colYQ[i], _G); px = _G.x; py = _G.y; }
+      else { px = _colX[i]; py = _colY[i]; }
+      if (visualSwap) { const tmp = px; px = py; py = tmp; }
+      if (!polar) { px *= ax; py *= ay; }
+      // py runs down the figure, i.e. toward the viewer once the plane is laid flat.
+      const X = px * cyw - py * syw, Z = px * syw + py * cyw;
+      const sy = hgt * ce - Z * se;          // screen up
+      const d = hgt * se + Z * ce;           // toward the viewer
+      const pf = K > 0 ? 1 / Math.max(0.35, 1 - K * d) : 1;
+      _colPX[i] = cx + S * X * pf;
+      _colPY[i] = cy - S * sy * pf;
+    }
+    g.beginPath();
+    g.moveTo(_colPX[0], _colPY[0]);
+    for (let i = 1; i <= res; i++) g.lineTo(_colPX[i], _colPY[i]);
+    g.closePath();
+    if (hide && !_eraseMode) { g.fillStyle = bgColor; g.fill(); }
+    // Depth cue: the far end of the stack recedes toward the background.
+    g.strokeStyle = params.depthShade ? mixHex(strokeColor, bgColor, 0.4 + 0.6 * (s / Math.max(1, n - 1))) : strokeColor;
+    g.stroke();
+  }
+  g.strokeStyle = strokeColor;
+  g.fillStyle = strokeColor;
 }
 
 // ── WAVES view: X, Y and their normalised sum as three stacked lanes ──────────
@@ -4681,9 +4835,13 @@ function render(now) {
   _m4MemoPhase = NaN; _figMemoPhase = NaN; _figMemoYRes = -1;   // the sample memos are per-frame
 
   paintBackdrop();
-  if (!params.frameFront) drawFrameLayer(drawPhase, zoom);
+  const column = columnActive();
+  if (!params.frameFront && !column) drawFrameLayer(drawPhase, zoom);
 
-  if (trailKeeps() && (params.trailCount || 0) >= 1) {
+  if (column) {
+    // The column already IS every phase at once: trails would only smear it.
+    drawFigureInto(ctx, drawPhase, res, zoom, 0);
+  } else if (trailKeeps() && (params.trailCount || 0) >= 1) {
     // Ghosts oldest-first so newer copies sit on top, then the live curve erases
     // its way through them and is drawn solid.
     const g = beginGhostLayer();
@@ -4725,7 +4883,7 @@ function render(now) {
     ctx.restore();
     advanceMode4();
   }
-  if (params.frameFront) drawFrameLayer(drawPhase, zoom);
+  if (params.frameFront && !column) drawFrameLayer(drawPhase, zoom);
 
   if (recording) captureRecFrame(phase);
 
@@ -4997,8 +5155,10 @@ function orbitEnd() {
 document.addEventListener('pointerdown', e => {
   if (!orbitable() || e.button !== 0) return;
   if (e.target.closest && e.target.closest(ORBIT_CHROME)) return;
-  orbitDrag = { id: e.pointerId, x: e.clientX, y: e.clientY,
-                rot: params.rotateAngle || 0, tilt: params.tiltAngle || 0 };
+  const col = columnActive();
+  orbitDrag = { id: e.pointerId, x: e.clientX, y: e.clientY, col,
+                rot: col ? params.colYaw || 0 : params.rotateAngle || 0,
+                tilt: col ? params.colElev ?? 25 : params.tiltAngle || 0 };
   document.body.classList.add('orbit-dragging');
   e.preventDefault();
 });
@@ -5006,14 +5166,16 @@ window.addEventListener('pointermove', e => {
   if (!orbitDrag || e.pointerId !== orbitDrag.id) return;
   const dx = e.clientX - orbitDrag.x, dy = e.clientY - orbitDrag.y;
   let rot = (orbitDrag.rot + dx * 0.5) % 360; if (rot < 0) rot += 360;   // 720px = a full turn
-  orbitSet('rotateAngle', 'rotate-angle', rot);
-  orbitSet('tiltAngle', 'tilt-angle', Math.max(-89, Math.min(89, orbitDrag.tilt + dy * 0.4)));
+  const tilt = Math.max(-89, Math.min(89, orbitDrag.tilt + dy * 0.4));
+  if (orbitDrag.col) { orbitSet('colYaw', 'col-yaw', rot); orbitSet('colElev', 'col-elev', tilt); }
+  else { orbitSet('rotateAngle', 'rotate-angle', rot); orbitSet('tiltAngle', 'tilt-angle', tilt); }
   e.preventDefault();
 });
 ['pointerup', 'pointercancel'].forEach(ev => window.addEventListener(ev, orbitEnd));
 document.addEventListener('dblclick', e => {
   if (!orbitable()) return;
   if (e.target.closest && e.target.closest(ORBIT_CHROME)) return;
+  if (columnActive()) { orbitSet('colYaw', 'col-yaw', PARAM_DEFAULTS.colYaw); orbitSet('colElev', 'col-elev', PARAM_DEFAULTS.colElev); return; }
   orbitSet('rotateAngle', 'rotate-angle', 0);
   orbitSet('tiltAngle', 'tilt-angle', 0);
 });
@@ -6354,6 +6516,11 @@ function setGeometry(g) {
   if (vc) vc.hidden = !!g;
   const vf = document.getElementById('vt-frame');
   if (vf) vf.hidden = g === GEO_WAVES;
+  const colOk = !solidGeometry() && g !== GEO_WAVES;
+  const csc = document.getElementById('section-column');
+  if (csc) csc.hidden = !colOk;
+  const vcol = document.getElementById('vt-column');
+  if (vcol) vcol.hidden = !colOk;
   document.querySelectorAll('.wave-btn[data-depthsrc]').forEach(b => { b.disabled = !!g; b.style.opacity = g ? 0.4 : ''; });
   document.body.classList.toggle('orbit', orbitable());
   refreshDepthChecks();
@@ -6597,6 +6764,35 @@ document.getElementById('construction-view').addEventListener('change', e => {
   constructionView = e.target.checked;
   mode4T = 0;
   updateConstructionControls();
+  // The two are alternatives: turning one on stands the other down.
+  if (constructionView && params.columnView) clickCheckbox('column-view', false);
+});
+
+// ── Column view ──────────────────────────────────────────────────────────────
+const COLUMN_SLIDERS = [
+  ['col-slices', 'colSlices', v => String(Math.round(v))],
+  ['col-turns',  'colTurns',  v => v.toFixed(2)],
+  ['col-height', 'colHeight', v => v.toFixed(1)],
+  ['col-elev',   'colElev',   fmtDeg],
+  ['col-yaw',    'colYaw',    fmtDeg],
+];
+function updateColumnControls() {
+  const p = document.getElementById('column-controls');
+  if (p) p.style.display = params.columnView ? '' : 'none';
+  document.body.classList.toggle('orbit', orbitable());
+}
+document.getElementById('column-view').addEventListener('change', e => {
+  params.columnView = e.target.checked ? 1 : 0;
+  if (params.columnView && constructionView) clickCheckbox('construction-view', false);
+  updateColumnControls();
+  clearTrail();
+});
+document.getElementById('col-hide').addEventListener('change', e => { params.colHide = e.target.checked ? 1 : 0; });
+COLUMN_SLIDERS.forEach(([id, key, fmt]) => {
+  document.getElementById(id).addEventListener('input', e => {
+    params[key] = parseFloat(e.target.value);
+    document.getElementById(id + '-val').textContent = fmt(params[key]);
+  });
 });
 
 document.getElementById('trace-speed').addEventListener('input', e => {
@@ -7151,6 +7347,7 @@ const MAP_TARGETS = {
   filterQ:   { label:'Filter Reso',   min:0.1,  max:20,             apply:v => { params.filterQ=v; const e=document.getElementById('filter-res'); if(e)e.value=v; const d=document.getElementById('filter-res-val'); if(d)d.textContent=v.toFixed(1); drawWavePreview(); schedulePeriodicWaveUpdate(); } },
   dotsLine:  { label:'Dots ↔ Line',   min:0,    max:1,              apply:v => { params.dotsLine=v; const e=document.getElementById('dots-line'); if(e)e.value=v; const d=document.getElementById('dots-line-val'); if(d)d.textContent=fmtDotSpacing(v); } },
   preset:    { label:'Preset Scroll', min:0,    max:PRESETS.length-1, step:1, apply:v => { const p = PRESETS[Math.max(0,Math.min(PRESETS.length-1,Math.round(v)))]; if (p) applyPreset(p.fx, p.fy); } },
+  columnView:       { label:'Column View',       toggle:true, apply:b => clickCheckbox('column-view', b) },
   constructionView: { label:'Construction View', toggle:true, apply:b => { constructionView = b; const cb=document.getElementById('construction-view'); cb.checked=b; if (b) mode4T=0; } },
   animatePhase:     { label:'Animate Phase',     toggle:true, apply:b => { animating = b; document.getElementById('animate').checked=b; document.getElementById('anim-speed-row').style.opacity = b ? '1' : '0.4'; } },
   visualSwap:       { label:'Visual X/Y Swap',   toggle:true, apply:b => { visualSwap = b; updateSwapBtn(); } },
@@ -7178,7 +7375,7 @@ const TARGET_CATEGORIES = [
   ['Audio',     ['volume']],
   ['Figure',    ['hue', 'sat', 'light', 'lineWidth', 'dotsLine', 'mirrorMode', 'fillSurface',
                  'trailMode', 'trailAmt', 'trailCount', 'trailSpacing',
-                 'phase', 'animatePhase', 'animSpeed', 'constructionView', 'm4Rotate']],
+                 'phase', 'animatePhase', 'animSpeed', 'constructionView', 'm4Rotate', 'columnView']],
   ['3D',        ['depthSrc', 'az', 'tiltAngle', 'depthShade', 'showShadow',
                  'frameShow', 'frameAxisLen', 'framePlanes', 'frameOrbits', 'frameAngles',
                  'frameOpacity', 'frameRadius', 'frameFollow']],
@@ -7245,7 +7442,7 @@ const MAP_DEFAULTS = {
   lfo0Rate:0.5, lfo0Depth:0.5, lfo1Rate:1.0, lfo1Depth:0.5,
   hue:79, sat:84, light:66, lineWidth:1.5, phase:0.5, animSpeed:1, volume:0.5,
   filterCutoff:1, filterQ:0.7, dotsLine:1,
-  preset:0, constructionView:0, animatePhase:1, visualSwap:0,
+  preset:0, constructionView:0, columnView:0, animatePhase:1, visualSwap:0,
   frameShow:0, frameFollow:1, frameOpacity:0.55, frameRadius:1, frameAxisLen:1.15,
   frameOrbits:1, frameAngles:0, framePlanes:0,
 };
@@ -7777,6 +7974,10 @@ function refreshAllControls() {
   setS('trace-speed', params.traceSpeed ?? 1, 'trace-speed-val', v => v.toFixed(1) + '×');
   setS('untraced-alpha', params.untracedAlpha ?? 0.2, 'untraced-alpha-val', v => Math.round(v * 100) + '%');
   updateConstructionControls();
+  document.getElementById('column-view').checked = !!params.columnView;
+  document.getElementById('col-hide').checked = !!params.colHide;
+  COLUMN_SLIDERS.forEach(([id, key, fmt]) => setS(id, params[key] ?? PARAM_DEFAULTS[key], id + '-val', fmt));
+  updateColumnControls();
   document.getElementById('sync-hard').checked = syncHard;
   setFilterType(filterType);
   setS('filter-freq', params.filterCutoff, 'filter-freq-val', () => fmtCutoff(params.filterCutoff));
@@ -7963,6 +8164,10 @@ function captureRecFrame(phase) {
     fullCtx.fillStyle = params.bgColor;
     fullCtx.fillRect(0, 0, F, F);
     drawWaveStack(fullCtx, F, F, phase, params.resolution, Math.max(ZOOM_MIN, recZoom), WS_ALL);
+  } else if (columnActive()) {
+    fullCtx.fillStyle = params.bgColor;
+    fullCtx.fillRect(0, 0, F, F);
+    drawColumn(fullCtx, F, F, phase, Math.max(ZOOM_MIN, recZoom));
   } else if (trailKeeps() || (params.frameShow && trailFades())) {
     const d = viewDpr, s = Math.max(1, Math.round(figBox.size * d));
     fullCtx.fillStyle = params.bgColor;
@@ -8295,7 +8500,7 @@ document.addEventListener('dblclick', e => {
 // value within its range by the Deviation amount (1 = fully random).
 const EVOLVE_KEYS = orderedTargetKeys(Object.keys(MAP_TARGETS).filter(k => k !== 'preset'));
 // Default-excluded: view toggles + master volume (disruptive / non-musical).
-const EVOLVE_DEFAULT_OFF = new Set(['constructionView', 'animatePhase', 'visualSwap', 'volume', 'geometry',
+const EVOLVE_DEFAULT_OFF = new Set(['constructionView', 'columnView', 'animatePhase', 'visualSwap', 'volume', 'geometry',
   'depthSrc', 'depthShade', 'showShadow',
   'frameShow', 'frameFollow', 'frameOpacity', 'frameRadius', 'frameAxisLen',
   'frameOrbits', 'frameAngles', 'framePlanes',
@@ -8537,7 +8742,8 @@ function setMorphStepMode(m) {
 // recall would slide the timbre through two other shapes on its way and IGNORE
 // would stop protecting the waveform it promises to leave alone.
 const MORPH_DISCRETE = new Set(['subOct', 'fx', 'fy', 'geometry', 'mirrorMode', 'fillSurface', 'trailMode', 'trailCount', 'm4Rotate', 'phase',
-                                'depthSrc', 'depthShade', 'showShadow', 'morphX', 'morphY']);
+                                'depthSrc', 'depthShade', 'showShadow', 'morphX', 'morphY',
+                                'columnView', 'colSlices', 'colHide']);
 // The rest of a patch's stepped state lives outside `params` — the waveforms, the
 // filter type, the view toggles. Same treatment, same list.
 const MORPH_DISCRETE_TOP = ['waveTypeX', 'waveTypeY', 'visualSwap', 'audioStereo', 'syncHard',
@@ -8691,6 +8897,7 @@ buildAxisToggles();
 buildGrid();
 setMorphStepMode(morphStepMode);
 updateConstructionControls();
+updateColumnControls();
 buildPresetGrid();
 highlightActivePreset();
 buildLFOPanels();
@@ -8741,6 +8948,7 @@ document.getElementById('vt-geo').addEventListener('click', () => setGeometry((f
 document.getElementById('vt-3d').addEventListener('click', () => { if (!polarGeometry()) setDepthSrc(liftActive() ? 0 : 1); });
 document.getElementById('vt-frame').addEventListener('click', () => clickCheckbox('frame-show', !params.frameShow));
 document.getElementById('vt-construct').addEventListener('click', () => clickCheckbox('construction-view', !constructionView));
+document.getElementById('vt-column').addEventListener('click', () => clickCheckbox('column-view', !params.columnView));
 document.getElementById('vt-readout').addEventListener('click', () => {
   readoutOn = !readoutOn;
   try { localStorage.setItem('lissa.readout', readoutOn ? '1' : '0'); } catch (e) {}
@@ -8802,6 +9010,7 @@ function syncViewToggles() {
   setViewTg('vt-3d', liftActive());
   setViewTg('vt-frame', !!params.frameShow);
   setViewTg('vt-construct', m4Active());
+  setViewTg('vt-column', columnActive());
   setViewTg('vt-readout', readoutOn);
   const ro = document.getElementById('synth-readout');
   ro.hidden = !readoutOn;
@@ -8829,7 +9038,7 @@ const TARGET_CONTROL = {
   hue: 'hsl-h', sat: 'hsl-s', light: 'hsl-l', lineWidth: 'line-width', dotsLine: 'dots-line',
   mirrorMode: '[data-mirror]', fillSurface: 'fill-surface', trailMode: '[data-trailmode]', trailAmt: 'trail-amt',
   trailCount: 'trail-count', trailSpacing: 'trail-spacing', phase: 'phase', animatePhase: 'animate', animSpeed: 'anim-speed',
-  constructionView: 'construction-view', m4Rotate: '[data-m4rot]',
+  constructionView: 'construction-view', m4Rotate: '[data-m4rot]', columnView: 'column-view',
   depthSrc: '[data-depthsrc]', az: 'az', tiltAngle: 'tilt-angle', depthShade: 'depth-shade', showShadow: 'show-shadow',
   frameShow: 'frame-show', frameFollow: 'frame-follow', frameOpacity: 'frame-opacity', frameRadius: 'frame-radius',
   frameAxisLen: 'frame-axis-len', frameOrbits: '[data-frameorbits]', frameAngles: '[data-frameangles]', framePlanes: 'frame-plane-xy',
