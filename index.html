@@ -2272,6 +2272,19 @@
             <div class="param-header"><label>Yaw</label><span class="val" id="col-yaw-val">0°</span></div>
             <input type="range" id="col-yaw" min="0" max="359" step="1" value="0">
           </div>
+          <div class="param-header" style="margin:6px 0 4px"><label>Skin</label></div>
+          <div class="wave-toggle" style="margin-bottom:6px">
+            <button class="wave-btn active" type="button" data-colsurf="0" aria-pressed="true">SLICES</button>
+            <button class="wave-btn" type="button" data-colsurf="1" aria-pressed="false">SURFACE</button>
+            <button class="wave-btn" type="button" data-colsurf="2" aria-pressed="false">BOTH</button>
+          </div>
+          <div class="info-text" data-info-label="the skin">
+            <strong>SLICES</strong>: the stacked figures. <strong>SURFACE</strong>: a lit skin spanned from each slice to the next, so the column reads as one smooth solid; more slices make it smoother. <strong>BOTH</strong>: the skin with the slice lines drawn on it.
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Depth shading</label><span class="val" id="col-shade-val">70%</span></div>
+            <input type="range" id="col-shade" min="0" max="1" step="0.01" value="0.7">
+          </div>
           <div class="checkbox-row">
             <input type="checkbox" id="col-hide" checked>
             <label for="col-hide">Solid slices (hide lines behind)</label>
@@ -2696,6 +2709,8 @@ let params = {
   colElev: 25,        // column view: camera elevation, degrees (drag vertically)
   colYaw: 0,          // column view: yaw about the column axis, degrees (drag horizontally)
   colHide: 1,         // column view: fill each slice with the background (hidden lines)
+  colSurface: 0,      // column view: 0 = slice lines, 1 = a lit surface spanned over them, 2 = surface + lines
+  colShade: 0.7,      // column view: depth shading amount (how far the back recedes into the background)
   // ── Coordinate frame (visual furniture — see drawCoordFrame) ───────────────
   frameShow: 0,        // master switch for the whole reference frame
   frameAxes: 2,        // axes: 0 = none, 1 = positive rays, 2 = full plus/minus
@@ -4040,16 +4055,22 @@ function drawFigureInto(target, phase, res, zoom, phaseBack, resCap) {
 // Every slice is the flat figure at one phase position, from δ at the bottom to
 // δ + 2·turns at the top, laid in a horizontal plane at its own height. The
 // camera yaws about the column's axis and looks down (or up) at colElev.
-// Hidden lines are painter's order: slices go far-to-near along the view
-// direction, each filled with the background before it is stroked, so a slice
-// covers whatever lies behind it — the stacked-contour look of a sliced vase.
+// buildColumn() does the sampling and the projection once; the canvas and the
+// SVG export both draw from what it returns, so the export is the picture.
+// Lines: painter's order — slices far-to-near, each filled with the background
+// before it is stroked, so a slice covers whatever lies behind it.
+// Surface: a skin spanned between neighbouring slices, one quad per sample
+// interval per slice gap, Lambert-lit, depth-sorted and drawn far to near.
 // The samples run the same waveform chain as drawLissajous, filter included;
 // Y carries no δ, so it is built once and only X is re-sampled per slice.
 let _colX = new Float64Array(0), _colXQ = new Float64Array(0);
 let _colY = new Float64Array(0), _colYQ = new Float64Array(0);
-let _colPX = new Float32Array(0), _colPY = new Float32Array(0);
-function drawColumn(g, w, h, phase, zoom) {
-  const { ax, ay, fx, fy, strokeColor, bgColor, lineWidth } = params;
+let _colSX = new Float32Array(0), _colSY = new Float32Array(0);    // screen, per slice × sample
+let _colVX = new Float32Array(0), _colVY = new Float32Array(0), _colVZ = new Float32Array(0); // view space
+const COL_SURF_OFF = 0, COL_SURF_ON = 1, COL_SURF_LINES = 2;
+function colSurfaceMode() { return Math.max(0, Math.min(2, Math.round(params.colSurface || 0))); }
+function buildColumn(w, h, phase, zoom) {
+  const { ax, ay, fx, fy } = params;
   const geo = figGeometry(), polar = geo !== 0;
   const n = Math.max(2, Math.min(400, Math.round(params.colSlices || 48)));
   const span = Math.PI * 2 * lcm(fx, fy) / Math.min(fx, fy) * subDiv();
@@ -4062,7 +4083,10 @@ function drawColumn(g, w, h, phase, zoom) {
   if (_colX.length < N) {
     _colX = new Float64Array(N); _colXQ = new Float64Array(N);
     _colY = new Float64Array(N); _colYQ = new Float64Array(N);
-    _colPX = new Float32Array(N); _colPY = new Float32Array(N);
+  }
+  if (_colSX.length < n * N) {
+    _colSX = new Float32Array(n * N); _colSY = new Float32Array(n * N);
+    _colVX = new Float32Array(n * N); _colVY = new Float32Array(n * N); _colVZ = new Float32Array(n * N);
   }
   const filt = filterIsOn();
   for (let i = 0; i <= res; i++) {
@@ -4093,16 +4117,8 @@ function drawColumn(g, w, h, phase, zoom) {
   const cx = w / 2, cy = h / 2;
   const K = 0.45 * (params.az || 0) / fitR;   // perspective, from the 3D depth amount
   const turns = Math.max(0.05, params.colTurns ?? 1);
-  const hide = !!params.colHide;
 
-  g.setLineDash([]);
-  g.lineJoin = 'round';
-  g.lineCap = 'round';
-  g.lineWidth = lineWidth;
-  // Looking down, the top slice is nearest; looking up, the bottom one.
-  const up = se >= 0;
-  for (let s = 0; s < n; s++) {
-    const k = up ? s : n - 1 - s;
+  for (let k = 0; k < n; k++) {
     const f = n > 1 ? k / (n - 1) : 0.5;
     const ph = phase + 2 * turns * (k / n);
     const hgt = (f - 0.5) * H;
@@ -4115,6 +4131,7 @@ function drawColumn(g, w, h, phase, zoom) {
       filterPeriodic(_colX, N, biquadCoeffs(filterType, wX, params.filterQ));
       if (polar) filterPeriodic(_colXQ, N, biquadCoeffs(filterType, wX, params.filterQ));
     }
+    const o = k * N;
     for (let i = 0; i <= res; i++) {
       let px, py;
       if (polar) { geoPoint(geo, _colX[i], _colXQ[i], _colY[i], _colYQ[i], _G); px = _G.x; py = _G.y; }
@@ -4126,20 +4143,191 @@ function drawColumn(g, w, h, phase, zoom) {
       const sy = hgt * ce - Z * se;          // screen up
       const d = hgt * se + Z * ce;           // toward the viewer
       const pf = K > 0 ? 1 / Math.max(0.35, 1 - K * d) : 1;
-      _colPX[i] = cx + S * X * pf;
-      _colPY[i] = cy - S * sy * pf;
+      _colVX[o + i] = X; _colVY[o + i] = sy; _colVZ[o + i] = d;
+      _colSX[o + i] = cx + S * X * pf;
+      _colSY[o + i] = cy - S * sy * pf;
     }
-    g.beginPath();
-    g.moveTo(_colPX[0], _colPY[0]);
-    for (let i = 1; i <= res; i++) g.lineTo(_colPX[i], _colPY[i]);
-    g.closePath();
-    if (hide && !_eraseMode) { g.fillStyle = bgColor; g.fill(); }
-    // Depth cue: the far end of the stack recedes toward the background.
-    g.strokeStyle = params.depthShade ? mixHex(strokeColor, bgColor, 0.4 + 0.6 * (s / Math.max(1, n - 1))) : strokeColor;
-    g.stroke();
   }
+  // Looking down, the top slice is nearest; looking up, the bottom one.
+  return { n, res, N, up: se >= 0, S };
+}
+
+// The colour ramp, parsed once per draw rather than per quad.
+function _rgb(hex) { const v = parseInt(hex.replace('#', ''), 16); return [(v >> 16) & 255, (v >> 8) & 255, v & 255]; }
+function _mixRgb(a, b, t) {
+  return `rgb(${Math.round(b[0] + (a[0] - b[0]) * t)},${Math.round(b[1] + (a[1] - b[1]) * t)},${Math.round(b[2] + (a[2] - b[2]) * t)})`;
+}
+// Far-to-near nearness of slice k in drawing order: 0 = farthest, 1 = nearest.
+function _colNear(C, k) { const f = C.n > 1 ? k / (C.n - 1) : 1; return C.up ? f : 1 - f; }
+// How much of the stroke colour a thing at `near` keeps under the depth shading.
+function colFade(near) { return 1 - Math.max(0, Math.min(1, params.colShade ?? 0.7)) * 0.85 * (1 - near); }
+
+// The surface as depth-sorted, lit quads. Sample columns are thinned so the
+// quad count stays bounded however busy the figure. Instead of sorting quads one
+// by one, they are counting-sorted into depth buckets (far to near) and, inside a
+// bucket, by quantised colour — so the draw is a few hundred filled runs, not
+// one call per quad. A bucket is a sliver of the depth range, so reordering
+// inside it cannot visibly break the occlusion.
+// onRun(color, isLine, xy, count): xy holds count items, 8 floats per quad, 4 per
+// line segment (the slice lines of BOTH, drawn after the skin in their bucket).
+const COL_QUAD_BUDGET = 16000;
+const COL_LEVELS = 32;
+const COL_BUCKETS = 128;
+function columnQuads(C, stroke, bg, lines, onRun) {
+  const { n, res, N } = C;
+  const M = Math.max(48, Math.min(res, Math.floor(COL_QUAD_BUDGET / Math.max(1, n - 1))));
+  const step = res / M;
+  const cnt = (n - 1) * M;
+  const dep = new Float32Array(cnt), shade = new Float32Array(cnt);
+  // Key light from upper left, toward the viewer; two-sided, plus an ambient floor.
+  let lx = -0.45, ly = 0.6, lz = 0.66; const ll = Math.hypot(lx, ly, lz); lx /= ll; ly /= ll; lz /= ll;
+  const sIdx = j => Math.min(res, Math.round(j * step));
+  let dLo = Infinity, dHi = -Infinity;
+  for (let k = 0, q = 0; k < n - 1; k++) {
+    const a = k * N, b = (k + 1) * N;
+    for (let j = 0; j < M; j++, q++) {
+      const i0 = sIdx(j), i1 = sIdx(j + 1);
+      const ux = _colVX[a + i1] - _colVX[a + i0], uy = _colVY[a + i1] - _colVY[a + i0], uz = _colVZ[a + i1] - _colVZ[a + i0];
+      const vx = _colVX[b + i0] - _colVX[a + i0], vy = _colVY[b + i0] - _colVY[a + i0], vz = _colVZ[b + i0] - _colVZ[a + i0];
+      const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+      const nl = Math.hypot(nx, ny, nz) || 1;
+      shade[q] = 0.3 + 0.7 * Math.abs((nx * lx + ny * ly + nz * lz) / nl);
+      const d = (_colVZ[a + i0] + _colVZ[a + i1] + _colVZ[b + i0] + _colVZ[b + i1]) * 0.25;
+      dep[q] = d;
+      if (d < dLo) dLo = d; if (d > dHi) dHi = d;
+    }
+  }
+  const B = COL_BUCKETS, L = COL_LEVELS + 1;
+  const dScale = B / Math.max(1e-6, dHi - dLo);
+  const key = new Uint16Array(cnt), lkey = lines ? new Uint16Array(cnt) : null;
+  const qCount = new Uint32Array(B * L), lCount = new Uint32Array(B * L);
+  for (let q = 0; q < cnt; q++) {
+    const bk = Math.min(B - 1, ((dep[q] - dLo) * dScale) | 0);
+    const fade = colFade((bk + 0.5) / B);
+    key[q] = bk * L + Math.round(shade[q] * fade * 0.9 * COL_LEVELS);
+    qCount[key[q]]++;
+    if (lines) { lkey[q] = bk * L + Math.round(fade * COL_LEVELS); lCount[lkey[q]]++; }
+  }
+  const sc = _rgb(stroke), bc = _rgb(bg);
+  const ramp = [];
+  for (let l = 0; l < L; l++) ramp.push(_mixRgb(sc, bc, l / COL_LEVELS));
+  // Prefix sums → each key's slot range in one flat order array.
+  const order = new Uint32Array(cnt), lorder = lines ? new Uint32Array(cnt) : null;
+  const qStart = new Uint32Array(B * L + 1), lStart = new Uint32Array(B * L + 1);
+  for (let k = 0; k < B * L; k++) { qStart[k + 1] = qStart[k] + qCount[k]; lStart[k + 1] = lStart[k] + lCount[k]; }
+  const qFill = qStart.slice(0, B * L), lFill = lStart.slice(0, B * L);
+  for (let q = 0; q < cnt; q++) {
+    order[qFill[key[q]]++] = q;
+    if (lines) lorder[lFill[lkey[q]]++] = q;
+  }
+  const xy = new Float32Array(Math.max(1, cnt) * 8 + 8);
+  const corners = (q, o) => {
+    const k = (q / M) | 0, j = q - k * M, a = k * N, b = (k + 1) * N, i0 = sIdx(j), i1 = sIdx(j + 1);
+    xy[o] = _colSX[a + i0]; xy[o + 1] = _colSY[a + i0];
+    xy[o + 2] = _colSX[a + i1]; xy[o + 3] = _colSY[a + i1];
+    xy[o + 4] = _colSX[b + i1]; xy[o + 5] = _colSY[b + i1];
+    xy[o + 6] = _colSX[b + i0]; xy[o + 7] = _colSY[b + i0];
+    return k;
+  };
+  for (let bk = 0; bk < B; bk++) {
+    for (let l = 0; l < L; l++) {
+      const k = bk * L + l, s0 = qStart[k], s1 = qStart[k + 1];
+      if (s1 === s0) continue;
+      for (let p = s0; p < s1; p++) corners(order[p], (p - s0) * 8);
+      onRun(ramp[l], false, xy, s1 - s0);
+    }
+    if (!lines) continue;
+    for (let l = 0; l < L; l++) {
+      const k = bk * L + l, s0 = lStart[k], s1 = lStart[k + 1];
+      if (s1 === s0) continue;
+      let m = 0;
+      const seg = new Float32Array((s1 - s0) * 8);
+      for (let p = s0; p < s1; p++) {
+        const sk = corners(lorder[p], 0);
+        seg[m++] = xy[0]; seg[m++] = xy[1]; seg[m++] = xy[2]; seg[m++] = xy[3];
+        // The last gap also carries the top slice's line.
+        if (sk === n - 2) { seg[m++] = xy[6]; seg[m++] = xy[7]; seg[m++] = xy[4]; seg[m++] = xy[5]; }
+      }
+      onRun(ramp[l], true, seg, m / 4);
+    }
+  }
+}
+
+function drawColumn(g, w, h, phase, zoom) {
+  const { strokeColor, bgColor, lineWidth } = params;
+  const C = buildColumn(w, h, phase, zoom);
+  const surf = colSurfaceMode();
+  g.setLineDash([]);
+  g.lineJoin = 'round';
+  g.lineCap = 'round';
+  if (surf !== COL_SURF_OFF) {
+    // Each run is also stroked in its own colour, hairline-wide, so the seams
+    // between neighbouring quads never let the background through.
+    columnQuads(C, strokeColor, bgColor, surf === COL_SURF_LINES, (col, isLine, xy, count) => {
+      const P = new Path2D();
+      if (isLine) {
+        for (let i = 0, o = 0; i < count; i++, o += 4) { P.moveTo(xy[o], xy[o + 1]); P.lineTo(xy[o + 2], xy[o + 3]); }
+        g.strokeStyle = col; g.lineWidth = lineWidth * 0.6; g.stroke(P);
+        return;
+      }
+      for (let i = 0, o = 0; i < count; i++, o += 8) {
+        P.moveTo(xy[o], xy[o + 1]); P.lineTo(xy[o + 2], xy[o + 3]); P.lineTo(xy[o + 4], xy[o + 5]); P.lineTo(xy[o + 6], xy[o + 7]); P.closePath();
+      }
+      g.fillStyle = col; g.strokeStyle = col; g.lineWidth = 0.75;
+      g.fill(P); g.stroke(P);
+    });
+  } else {
+    const hide = !!params.colHide && !_eraseMode;
+    const sc = _rgb(strokeColor), bc = _rgb(bgColor);
+    for (let s = 0; s < C.n; s++) {
+      const k = C.up ? s : C.n - 1 - s;
+      const o = k * C.N;
+      g.beginPath();
+      g.moveTo(_colSX[o], _colSY[o]);
+      for (let i = 1; i <= C.res; i++) g.lineTo(_colSX[o + i], _colSY[o + i]);
+      g.closePath();
+      if (hide) { g.fillStyle = bgColor; g.fill(); }
+      const near = s / Math.max(1, C.n - 1), fade = colFade(near);
+      g.strokeStyle = _mixRgb(sc, bc, fade);
+      g.lineWidth = lineWidth * (1 - 0.45 * (1 - fade));
+      g.stroke();
+    }
+  }
+  g.lineWidth = lineWidth;
   g.strokeStyle = strokeColor;
   g.fillStyle = strokeColor;
+}
+
+// The same column as SVG elements, in drawing order.
+function columnSvg(w, h, phase) {
+  const { strokeColor, bgColor, lineWidth } = params;
+  const C = buildColumn(w, h, phase, 1);
+  const surf = colSurfaceMode(), out = [];
+  const f = v => v.toFixed(2);
+  if (surf !== COL_SURF_OFF) {
+    columnQuads(C, strokeColor, bgColor, surf === COL_SURF_LINES, (col, isLine, xy, count) => {
+      const d = [];
+      if (isLine) {
+        for (let i = 0, o = 0; i < count; i++, o += 4) d.push(`M${f(xy[o])},${f(xy[o + 1])}L${f(xy[o + 2])},${f(xy[o + 3])}`);
+        out.push(`<path d="${d.join('')}" fill="none" stroke="${col}" stroke-width="${f(lineWidth * 0.6)}" stroke-linecap="round"/>`);
+        return;
+      }
+      for (let i = 0, o = 0; i < count; i++, o += 8)
+        d.push(`M${f(xy[o])},${f(xy[o + 1])}L${f(xy[o + 2])},${f(xy[o + 3])}L${f(xy[o + 4])},${f(xy[o + 5])}L${f(xy[o + 6])},${f(xy[o + 7])}Z`);
+      out.push(`<path d="${d.join('')}" fill="${col}" stroke="${col}" stroke-width="0.75" stroke-linejoin="round"/>`);
+    });
+  } else {
+    const hide = !!params.colHide;
+    const sc = _rgb(strokeColor), bc = _rgb(bgColor);
+    for (let s = 0; s < C.n; s++) {
+      const k = C.up ? s : C.n - 1 - s, o = k * C.N;
+      const d = [`M${f(_colSX[o])},${f(_colSY[o])}`];
+      for (let i = 1; i <= C.res; i++) d.push(`L${f(_colSX[o + i])},${f(_colSY[o + i])}`);
+      const fade = colFade(s / Math.max(1, C.n - 1));
+      out.push(`<path d="${d.join('')}Z" fill="${hide ? bgColor : 'none'}" stroke="${_mixRgb(sc, bc, fade)}" stroke-width="${f(lineWidth * (1 - 0.45 * (1 - fade)))}" stroke-linejoin="round"/>`);
+    }
+  }
+  return out.join('\n  ');
 }
 
 // ── WAVES view: X, Y and their normalised sum as three stacked lanes ──────────
@@ -5048,6 +5236,7 @@ document.getElementById('btn-export').addEventListener('click', () => {
   // The canvas bitmap is the whole window now, so the export takes its size from
   // the figure's own box — the square the figure is actually composed in.
   const wave = waveGeometry();
+  const column = columnActive();
   const w = Math.round((wave ? waveBox.w : figBox.size) * viewDpr);
   const h = wave ? Math.round(waveBox.h * viewDpr) : w;
   const { ax, fx, ay, fy, strokeColor, bgColor, lineWidth, resolution } = params;
@@ -5067,7 +5256,7 @@ document.getElementById('btn-export').addEventListener('click', () => {
       for (let i = 0; i <= n; i++)
         points.push(`${i === 0 ? 'M' : 'L'}${((i / n) * w).toFixed(3)},${(ly - buf[i] * amp).toFixed(3)}`);
     });
-  } else {
+  } else if (!column) {
   const steps = resolution * 2;
   const T = Math.PI * 2 * lcm(fx, fy) / Math.min(fx, fy) * subDiv();
   for (let i = 0; i <= steps; i++) {
@@ -5085,19 +5274,21 @@ document.getElementById('btn-export').addEventListener('click', () => {
   }
   }
 
-  const pathD = points.join(' ');
+  // The column is many paths (or quads), so it brings its own body.
+  const body = column ? columnSvg(w, h, phase)
+    : `<path d="${points.join(' ')}" fill="none" stroke="${strokeColor}" stroke-width="${lineWidth}" stroke-linejoin="round" stroke-linecap="round"/>`;
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
-  <title>${GEO_NAMES[geo]} fx=${fx} fy=${fy} waveX=${waveTypeX} waveY=${waveTypeY}</title>
+  <title>${GEO_NAMES[geo]}${column ? ' column' : ''} fx=${fx} fy=${fy} waveX=${waveTypeX} waveY=${waveTypeY}</title>
   <rect width="${w}" height="${h}" fill="${bgColor}"/>
-  <path d="${pathD}" fill="none" stroke="${strokeColor}" stroke-width="${lineWidth}" stroke-linejoin="round" stroke-linecap="round"/>
+  ${body}
 </svg>`;
 
   const blob = new Blob([svg], { type: 'image/svg+xml' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `lissajous_${fx}x${fy}_${waveTypeX}-${waveTypeY}.svg`;
+  a.download = `lissajous_${fx}x${fy}_${waveTypeX}-${waveTypeY}${column ? '_column' : ''}.svg`;
   a.click();
   URL.revokeObjectURL(url);
 });
@@ -6775,7 +6966,21 @@ const COLUMN_SLIDERS = [
   ['col-height', 'colHeight', v => v.toFixed(1)],
   ['col-elev',   'colElev',   fmtDeg],
   ['col-yaw',    'colYaw',    fmtDeg],
+  ['col-shade',  'colShade',  fmtPct],
 ];
+function setColSurface(m) {
+  params.colSurface = Math.max(0, Math.min(2, Math.round(m)));
+  document.querySelectorAll('.wave-btn[data-colsurf]').forEach(b => {
+    const on = parseInt(b.dataset.colsurf) === params.colSurface;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  // Hidden lines are a slices-only option: the surface occludes by itself.
+  const hr = document.getElementById('col-hide');
+  if (hr) hr.closest('.checkbox-row').style.opacity = params.colSurface ? '0.4' : '';
+}
+document.querySelectorAll('.wave-btn[data-colsurf]').forEach(b =>
+  b.addEventListener('click', () => setColSurface(parseInt(b.dataset.colsurf))));
 function updateColumnControls() {
   const p = document.getElementById('column-controls');
   if (p) p.style.display = params.columnView ? '' : 'none';
@@ -7348,6 +7553,14 @@ const MAP_TARGETS = {
   dotsLine:  { label:'Dots ↔ Line',   min:0,    max:1,              apply:v => { params.dotsLine=v; const e=document.getElementById('dots-line'); if(e)e.value=v; const d=document.getElementById('dots-line-val'); if(d)d.textContent=fmtDotSpacing(v); } },
   preset:    { label:'Preset Scroll', min:0,    max:PRESETS.length-1, step:1, apply:v => { const p = PRESETS[Math.max(0,Math.min(PRESETS.length-1,Math.round(v)))]; if (p) applyPreset(p.fx, p.fy); } },
   columnView:       { label:'Column View',       toggle:true, apply:b => clickCheckbox('column-view', b) },
+  colSlices:  { label:'Column Slices',    min:4,    max:160,  step:1,   apply:v => setSliderParam('colSlices','col-slices','col-slices-val',x=>String(Math.round(x)),Math.round(v)) },
+  colTurns:   { label:'Column Turns',     min:0.25, max:4,              apply:v => setSliderParam('colTurns','col-turns','col-turns-val',x=>x.toFixed(2),v) },
+  colHeight:  { label:'Column Height',    min:0.5,  max:5,              apply:v => setSliderParam('colHeight','col-height','col-height-val',x=>x.toFixed(1),v) },
+  colElev:    { label:'Column Elevation', min:-89,  max:89,             apply:v => setSliderParam('colElev','col-elev','col-elev-val',fmtDeg,v) },
+  colYaw:     { label:'Column Yaw',       min:0,    max:359,            apply:v => setSliderParam('colYaw','col-yaw','col-yaw-val',fmtDeg,v) },
+  colShade:   { label:'Column Shading',   min:0,    max:1,              apply:v => setSliderParam('colShade','col-shade','col-shade-val',fmtPct,v) },
+  colSurface: { label:'Column Skin',      min:0,    max:2,    step:1,   apply:v => setColSurface(v) },
+  colHide:    { label:'Column Solid Slices', toggle:true, apply:b => { params.colHide = b ? 1 : 0; const cb=document.getElementById('col-hide'); if (cb) cb.checked = b; } },
   constructionView: { label:'Construction View', toggle:true, apply:b => { constructionView = b; const cb=document.getElementById('construction-view'); cb.checked=b; if (b) mode4T=0; } },
   animatePhase:     { label:'Animate Phase',     toggle:true, apply:b => { animating = b; document.getElementById('animate').checked=b; document.getElementById('anim-speed-row').style.opacity = b ? '1' : '0.4'; } },
   visualSwap:       { label:'Visual X/Y Swap',   toggle:true, apply:b => { visualSwap = b; updateSwapBtn(); } },
@@ -7375,7 +7588,9 @@ const TARGET_CATEGORIES = [
   ['Audio',     ['volume']],
   ['Figure',    ['hue', 'sat', 'light', 'lineWidth', 'dotsLine', 'mirrorMode', 'fillSurface',
                  'trailMode', 'trailAmt', 'trailCount', 'trailSpacing',
-                 'phase', 'animatePhase', 'animSpeed', 'constructionView', 'm4Rotate', 'columnView']],
+                 'phase', 'animatePhase', 'animSpeed', 'constructionView', 'm4Rotate']],
+  ['Column',    ['columnView', 'colSlices', 'colTurns', 'colHeight', 'colElev', 'colYaw',
+                 'colShade', 'colSurface', 'colHide']],
   ['3D',        ['depthSrc', 'az', 'tiltAngle', 'depthShade', 'showShadow',
                  'frameShow', 'frameAxisLen', 'framePlanes', 'frameOrbits', 'frameAngles',
                  'frameOpacity', 'frameRadius', 'frameFollow']],
@@ -7443,6 +7658,7 @@ const MAP_DEFAULTS = {
   hue:79, sat:84, light:66, lineWidth:1.5, phase:0.5, animSpeed:1, volume:0.5,
   filterCutoff:1, filterQ:0.7, dotsLine:1,
   preset:0, constructionView:0, columnView:0, animatePhase:1, visualSwap:0,
+  colSlices:48, colTurns:1, colHeight:2, colElev:25, colYaw:0, colShade:0.7, colSurface:0, colHide:1,
   frameShow:0, frameFollow:1, frameOpacity:0.55, frameRadius:1, frameAxisLen:1.15,
   frameOrbits:1, frameAngles:0, framePlanes:0,
 };
@@ -7977,6 +8193,7 @@ function refreshAllControls() {
   document.getElementById('column-view').checked = !!params.columnView;
   document.getElementById('col-hide').checked = !!params.colHide;
   COLUMN_SLIDERS.forEach(([id, key, fmt]) => setS(id, params[key] ?? PARAM_DEFAULTS[key], id + '-val', fmt));
+  setColSurface(params.colSurface ?? 0);
   updateColumnControls();
   document.getElementById('sync-hard').checked = syncHard;
   setFilterType(filterType);
@@ -8500,7 +8717,7 @@ document.addEventListener('dblclick', e => {
 // value within its range by the Deviation amount (1 = fully random).
 const EVOLVE_KEYS = orderedTargetKeys(Object.keys(MAP_TARGETS).filter(k => k !== 'preset'));
 // Default-excluded: view toggles + master volume (disruptive / non-musical).
-const EVOLVE_DEFAULT_OFF = new Set(['constructionView', 'columnView', 'animatePhase', 'visualSwap', 'volume', 'geometry',
+const EVOLVE_DEFAULT_OFF = new Set(['constructionView', 'columnView', 'colSurface', 'colHide', 'animatePhase', 'visualSwap', 'volume', 'geometry',
   'depthSrc', 'depthShade', 'showShadow',
   'frameShow', 'frameFollow', 'frameOpacity', 'frameRadius', 'frameAxisLen',
   'frameOrbits', 'frameAngles', 'framePlanes',
@@ -8743,7 +8960,7 @@ function setMorphStepMode(m) {
 // would stop protecting the waveform it promises to leave alone.
 const MORPH_DISCRETE = new Set(['subOct', 'fx', 'fy', 'geometry', 'mirrorMode', 'fillSurface', 'trailMode', 'trailCount', 'm4Rotate', 'phase',
                                 'depthSrc', 'depthShade', 'showShadow', 'morphX', 'morphY',
-                                'columnView', 'colSlices', 'colHide']);
+                                'columnView', 'colSlices', 'colHide', 'colSurface']);
 // The rest of a patch's stepped state lives outside `params` — the waveforms, the
 // filter type, the view toggles. Same treatment, same list.
 const MORPH_DISCRETE_TOP = ['waveTypeX', 'waveTypeY', 'visualSwap', 'audioStereo', 'syncHard',
@@ -9039,6 +9256,8 @@ const TARGET_CONTROL = {
   mirrorMode: '[data-mirror]', fillSurface: 'fill-surface', trailMode: '[data-trailmode]', trailAmt: 'trail-amt',
   trailCount: 'trail-count', trailSpacing: 'trail-spacing', phase: 'phase', animatePhase: 'animate', animSpeed: 'anim-speed',
   constructionView: 'construction-view', m4Rotate: '[data-m4rot]', columnView: 'column-view',
+  colSlices: 'col-slices', colTurns: 'col-turns', colHeight: 'col-height', colElev: 'col-elev', colYaw: 'col-yaw',
+  colShade: 'col-shade', colSurface: '[data-colsurf]', colHide: 'col-hide',
   depthSrc: '[data-depthsrc]', az: 'az', tiltAngle: 'tilt-angle', depthShade: 'depth-shade', showShadow: 'show-shadow',
   frameShow: 'frame-show', frameFollow: 'frame-follow', frameOpacity: 'frame-opacity', frameRadius: 'frame-radius',
   frameAxisLen: 'frame-axis-len', frameOrbits: '[data-frameorbits]', frameAngles: '[data-frameangles]', framePlanes: 'frame-plane-xy',
