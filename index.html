@@ -205,6 +205,8 @@
   }
   .tab-panel { display: flex; flex-direction: column; gap: 16px; }
   .tab-panel[hidden], .sidebar .section[hidden], .view-tg[hidden] { display: none !important; }
+  /* A control that cannot take effect in the current state is not shown (refreshVisibility). */
+  .vis-off { display: none !important; }
   .tab-panel:focus { outline: none; }
   /* ── Parameter search ( / ) ───────────────────────────────────────────── */
   .search-toggle {
@@ -1975,6 +1977,17 @@
           <div class="param-header"><label>Lightness</label><span class="val" id="hsl-l-val">66</span></div>
           <input type="range" id="hsl-l" min="0" max="100" step="1" value="66">
         </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="grad-on">
+          <label for="grad-on">Gradient</label>
+        </div>
+        <div id="grad-controls">
+          <div class="color-row"><label>Gradient to</label><input type="color" id="grad-color" value="#5b8def"></div>
+          <div class="param-row" id="grad-angle-row">
+            <div class="param-header"><label>Gradient angle</label><span class="val" id="grad-angle-val">90°</span></div>
+            <input type="range" id="grad-angle" min="0" max="359" step="1" value="90">
+          </div>
+        </div>
         <div class="color-row"><label>Background</label><input type="color" id="bg-color" value="#0c0c0e"></div>
 
         <div class="subsection-label">Stroke</div>
@@ -1982,11 +1995,12 @@
           <div class="param-header"><label>Line width</label><span class="val" id="line-width-val">1.5</span></div>
           <input type="range" id="line-width" min="0.5" max="8" step="0.1" value="1.5">
         </div>
-        <div class="param-row">
+        <div class="param-row" id="dots-line-row">
           <div class="param-header"><label>Dots ↔ Line</label><span class="val" id="dots-line-val">line</span></div>
           <input type="range" id="dots-line" min="0" max="1" step="0.01" value="1">
         </div>
 
+        <div id="flat-only-look">
         <div class="subsection-label">Symmetry</div>
         <div class="param-header" style="margin-bottom:4px"><label>Mirror</label></div>
         <div class="wave-toggle" style="margin-bottom:8px">
@@ -2033,6 +2047,7 @@
         <div class="info-text" data-info-label="trail modes">
           <strong>FADE</strong>: an afterglow that fades at the <em>Persistence</em> rate. <strong>KEEP</strong>: <em>Count</em> standing copies, each <em>Spacing</em> further back in phase. Only the figure trails, never the construction view.
         </div>
+        </div>
 
       </div>
 
@@ -2040,28 +2055,30 @@
         <div class="section-label">3D</div>
         <div class="mod-group">
           <div class="vel-row"><span class="vel-label">Depth</span></div>
+          <div id="depthsrc-block">
           <div class="param-header" style="margin-bottom:4px"><label>Depth source</label></div>
           <div class="wave-toggle" style="margin-bottom:6px">
             <button class="wave-btn active" data-depthsrc="0" aria-pressed="true">FLAT</button>
             <button class="wave-btn" data-depthsrc="1" aria-pressed="false">PHASE LIFT</button>
           </div>
+          </div>
           <div class="param-row">
             <div class="param-header"><label id="az-label">Depth</label><span class="val" id="az-val">0%</span></div>
             <input type="range" id="az" min="0" max="1" step="0.01" value="0">
           </div>
-          <div class="param-row">
+          <div class="param-row" id="tilt-row">
             <div class="param-header"><label>Tilt</label><span class="val" id="tilt-angle-val">0°</span></div>
             <input type="range" id="tilt-angle" min="-89" max="89" step="1" value="0">
           </div>
-          <div class="checkbox-row">
+          <div class="checkbox-row" id="depth-shade-row">
             <input type="checkbox" id="depth-shade" checked>
             <label for="depth-shade">Depth shading &mdash; far strokes dimmer, thinner (lift only)</label>
           </div>
-          <div class="checkbox-row">
+          <div class="checkbox-row" id="show-shadow-row">
             <input type="checkbox" id="show-shadow">
             <label for="show-shadow">Show the flat shadow</label>
           </div>
-          <div class="info-text" data-info-label="the phase lift">
+          <div class="info-text" data-info-label="the phase lift" id="lift-info">
             Shows the figure as the shadow of a 3D curve wound on a cylinder; animating δ spins it. At Tilt and Depth 0 the picture is unchanged. Raise <strong>Tilt</strong> (or drag) and <strong>Depth</strong> to see it in 3D. Exact for sine waves only.
           </div>
         </div>
@@ -2272,6 +2289,11 @@
             <div class="param-header"><label>Yaw</label><span class="val" id="col-yaw-val">0°</span></div>
             <input type="range" id="col-yaw" min="0" max="359" step="1" value="0">
           </div>
+          <div class="param-header" style="margin:6px 0 4px"><label>Axis</label></div>
+          <div class="wave-toggle" style="margin-bottom:6px">
+            <button class="wave-btn active" type="button" data-colaxis="0" aria-pressed="true">VERTICAL</button>
+            <button class="wave-btn" type="button" data-colaxis="1" aria-pressed="false">HORIZONTAL</button>
+          </div>
           <div class="param-header" style="margin:6px 0 4px"><label>Skin</label></div>
           <div class="wave-toggle" style="margin-bottom:6px">
             <button class="wave-btn active" type="button" data-colsurf="0" aria-pressed="true">SLICES</button>
@@ -2279,13 +2301,13 @@
             <button class="wave-btn" type="button" data-colsurf="2" aria-pressed="false">BOTH</button>
           </div>
           <div class="info-text" data-info-label="the skin">
-            <strong>SLICES</strong>: the stacked figures. <strong>SURFACE</strong>: a lit skin spanned from each slice to the next, so the column reads as one smooth solid; more slices make it smoother. <strong>BOTH</strong>: the skin with the slice lines drawn on it.
+            <strong>SLICES</strong>: the stacked figures. <strong>SURFACE</strong>: one smooth, lit, closed solid through all phase positions. <strong>BOTH</strong>: the solid with the slices drawn on it as lines.
           </div>
           <div class="param-row">
             <div class="param-header"><label>Depth shading</label><span class="val" id="col-shade-val">70%</span></div>
             <input type="range" id="col-shade" min="0" max="1" step="0.01" value="0.7">
           </div>
-          <div class="checkbox-row">
+          <div class="checkbox-row" id="col-hide-row">
             <input type="checkbox" id="col-hide" checked>
             <label for="col-hide">Solid slices (hide lines behind)</label>
           </div>
@@ -2300,7 +2322,7 @@
           <div class="param-header"><label id="phase-label">δ (phase position)</label><span class="val" id="phase-val">0.50π</span></div>
           <input type="range" id="phase" min="0" max="2" step="0.01" value="0.5">
         </div>
-        <div class="checkbox-row">
+        <div class="checkbox-row" id="phase-modulators-row">
           <input type="checkbox" id="phase-modulators">
           <label for="phase-modulators">Phase rotates FM/AM modulators</label>
         </div>
@@ -2711,6 +2733,10 @@ let params = {
   colHide: 1,         // column view: fill each slice with the background (hidden lines)
   colSurface: 0,      // column view: 0 = slice lines, 1 = a lit surface spanned over them, 2 = surface + lines
   colShade: 0.7,      // column view: depth shading amount (how far the back recedes into the background)
+  colAxis: 0,         // column view: 0 = vertical column, 1 = turned a quarter turn into a horizontal bar
+  gradOn: 0,          // colour gradient from the stroke colour to gradColor
+  gradColor: '#5b8def',
+  gradAngle: 90,      // flat figures: gradient direction in degrees (90 = top → bottom); the column runs it along its axis
   // ── Coordinate frame (visual furniture — see drawCoordFrame) ───────────────
   frameShow: 0,        // master switch for the whole reference frame
   frameAxes: 2,        // axes: 0 = none, 1 = positive rays, 2 = full plus/minus
@@ -3016,6 +3042,19 @@ function modComplexity() {
     + (params.subMix || 0) * 0.5;
 }
 
+// The figure's paint: the stroke colour, or with the gradient on, a linear
+// gradient across the w × h box at gradAngle (0° = left → right, 90° = top →
+// bottom), from the stroke colour to the gradient colour. alpha scales both ends.
+function figPaint(g, w, h, alpha) {
+  const a = alpha ?? 1;
+  if (!params.gradOn) return a >= 1 ? params.strokeColor : hexToRgba(params.strokeColor, a);
+  const t = ((params.gradAngle ?? 90) * Math.PI) / 180, r = Math.min(w, h) / 2;
+  const dx = Math.cos(t) * r, dy = Math.sin(t) * r;
+  const gr = g.createLinearGradient(w / 2 - dx, h / 2 - dy, w / 2 + dx, h / 2 + dy);
+  gr.addColorStop(0, hexToRgba(params.strokeColor, a));
+  gr.addColorStop(1, hexToRgba(params.gradColor || '#5b8def', a));
+  return gr;
+}
 function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
   const { ax, fx, ay, fy, strokeColor, bgColor, lineWidth } = params;
   zoom = zoom || 1;
@@ -3115,8 +3154,9 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
   }
   const cyclesX = fx * periodFactor, cyclesY = fy * periodFactor;
 
-  targetCtx.strokeStyle = strokeColor;
-  targetCtx.fillStyle = strokeColor;
+  const paint = figPaint(targetCtx, w, h);
+  targetCtx.strokeStyle = paint;
+  targetCtx.fillStyle = paint;
   targetCtx.lineWidth = lineWidth;
   targetCtx.lineJoin = 'round';
   targetCtx.lineCap = 'round';
@@ -3164,7 +3204,7 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
   if (lift && params.showShadow && !_eraseMode) {
     beginFigureXform(phase, true, rx / ry);
     targetCtx.setLineDash([]);
-    targetCtx.strokeStyle = hexToRgba(strokeColor, 0.18);
+    targetCtx.strokeStyle = figPaint(targetCtx, w, h, 0.18);
     targetCtx.lineWidth = Math.max(1, lineWidth * 0.9);
     for (const [mx, my] of mirrors) {
       targetCtx.beginPath();
@@ -3174,7 +3214,7 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
       }
       targetCtx.stroke();
     }
-    targetCtx.strokeStyle = strokeColor;
+    targetCtx.strokeStyle = paint;
     targetCtx.lineWidth = lineWidth;
     beginFigureXform(phase, false, rx / ry);
   }
@@ -3184,7 +3224,7 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
   // filled first, dimmer — front and back of the 3D object.
   if (params.fillSurface) {
     const fillPass = (zFlip, alpha) => {
-      targetCtx.fillStyle = hexToRgba(strokeColor, alpha);
+      targetCtx.fillStyle = figPaint(targetCtx, w, h, alpha);
       for (const [mx, my] of mirrors) {
         targetCtx.beginPath();
         for (let i = 0; i <= total; i++) {
@@ -3197,7 +3237,7 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
     };
     if (figureHasDepth()) fillPass(true, 0.10);
     fillPass(false, 0.17);
-    targetCtx.fillStyle = strokeColor;   // dots mode fills with the stroke colour
+    targetCtx.fillStyle = paint;   // dots mode fills with the stroke colour
   }
 
 
@@ -3268,7 +3308,7 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
         targetCtx.lineWidth = lineWidth * (0.62 + 0.5 * near);
         targetCtx.stroke(bins[b]);
       }
-      targetCtx.strokeStyle = strokeColor;
+      targetCtx.strokeStyle = paint;
       targetCtx.lineWidth = lineWidth;
     }
   };
@@ -3407,9 +3447,11 @@ const TORUS_TUBE = 0.6;     // tube radius over major radius at ay = 1
 const SPHERE_LAT = 1.2;     // latitude swing in radians at ay = 1 (short of the poles)
 // The construction view explains the lateral figure (two generators projected on
 // two axes); in the rotary geometries the plain figure is shown instead.
-function m4Active() { return constructionView && !polarGeometry() && !columnActive(); }
+// The two are alternatives (the checkboxes turn each other off); should both ever
+// be set at once, the construction view wins and the column stands down.
+function m4Active() { return constructionView && !polarGeometry(); }
 // The column view stacks the flat figure; the solids and WAVES have no flat slice.
-function columnActive() { const g = figGeometry(); return !!params.columnView && !solidGeometry() && g !== GEO_WAVES; }
+function columnActive() { const g = figGeometry(); return !!params.columnView && !solidGeometry() && g !== GEO_WAVES && !m4Active(); }
 // Combine the samples into the figure point (normalised, before the view
 // transform). xs/ys are the wave values, xq/yq their quarter-period-ahead copies.
 // out.z is view depth (positive = away from the viewer), 0 for the flat ones.
@@ -4053,40 +4095,46 @@ function drawFigureInto(target, phase, res, zoom, phaseBack, resCap) {
 
 // ── Column view: the δ rotation stacked into a solid ─────────────────────────
 // Every slice is the flat figure at one phase position, from δ at the bottom to
-// δ + 2·turns at the top, laid in a horizontal plane at its own height. The
-// camera yaws about the column's axis and looks down (or up) at colElev.
-// buildColumn() does the sampling and the projection once; the canvas and the
-// SVG export both draw from what it returns, so the export is the picture.
-// Lines: painter's order — slices far-to-near, each filled with the background
+// δ + 2·turns at the top, laid in a plane at its own height along the column's
+// axis. The camera yaws about that axis and looks down (or up) at colElev;
+// HORIZONTAL turns the whole picture a quarter turn so the column lies as a bar.
+// buildColumn() samples and projects once; the slice drawing, the WebGL surface
+// and the SVG export all read what it leaves in the _col* buffers.
+// SLICES: painter's order — slices far-to-near, each filled with the background
 // before it is stroked, so a slice covers whatever lies behind it.
-// Surface: a skin spanned between neighbouring slices, one quad per sample
-// interval per slice gap, Lambert-lit, depth-sorted and drawn far to near.
+// SURFACE: a smooth-shaded mesh through the rows, depth-buffered and capped at
+// both ends on the GPU, so only the outside of the solid is ever seen.
 // The samples run the same waveform chain as drawLissajous, filter included;
-// Y carries no δ, so it is built once and only X is re-sampled per slice.
+// Y carries no δ, so it is built once and only X is re-sampled per row.
 let _colX = new Float64Array(0), _colXQ = new Float64Array(0);
 let _colY = new Float64Array(0), _colYQ = new Float64Array(0);
-let _colSX = new Float32Array(0), _colSY = new Float32Array(0);    // screen, per slice × sample
+let _colSX = new Float32Array(0), _colSY = new Float32Array(0);    // screen, per row × sample
 let _colVX = new Float32Array(0), _colVY = new Float32Array(0), _colVZ = new Float32Array(0); // view space
 const COL_SURF_OFF = 0, COL_SURF_ON = 1, COL_SURF_LINES = 2;
 function colSurfaceMode() { return Math.max(0, Math.min(2, Math.round(params.colSurface || 0))); }
-function buildColumn(w, h, phase, zoom) {
+function colHorizontal() { return Math.round(params.colAxis || 0) === 1; }
+// rows: how many rows to sample (the slices themselves by default; the surface
+// asks for more, so it is smooth along the axis whatever the slice count).
+// Row r sits at slice coordinate v = r·(n−1)/(rows−1), so integer v are slices.
+function buildColumn(w, h, phase, zoom, rows, budget) {
   const { ax, ay, fx, fy } = params;
   const geo = figGeometry(), polar = geo !== 0;
   const n = Math.max(2, Math.min(400, Math.round(params.colSlices || 48)));
+  const R = Math.max(2, rows || n);
   const span = Math.PI * 2 * lcm(fx, fy) / Math.min(fx, fy) * subDiv();
   const periodFactor = span / (Math.PI * 2);
   const minPts = Math.ceil(Math.max(fx, fy) * periodFactor * 40 * Math.min(modComplexity(), 10));
-  // Per-slice resolution: enough for the figure, but the whole stack stays inside
+  // Per-row resolution: enough for the figure, but the whole stack stays inside
   // a fixed point budget so 160 slices of a busy figure still hold the frame rate.
-  const res = Math.max(64, Math.min(Math.max(minPts, 360), 6000, Math.floor(240000 / n)));
+  const res = Math.max(64, Math.min(Math.max(minPts, 360), 6000, Math.floor((budget || 240000) / R)));
   const N = res + 1;
   if (_colX.length < N) {
     _colX = new Float64Array(N); _colXQ = new Float64Array(N);
     _colY = new Float64Array(N); _colYQ = new Float64Array(N);
   }
-  if (_colSX.length < n * N) {
-    _colSX = new Float32Array(n * N); _colSY = new Float32Array(n * N);
-    _colVX = new Float32Array(n * N); _colVY = new Float32Array(n * N); _colVZ = new Float32Array(n * N);
+  if (_colSX.length < R * N) {
+    _colSX = new Float32Array(R * N); _colSY = new Float32Array(R * N);
+    _colVX = new Float32Array(R * N); _colVY = new Float32Array(R * N); _colVZ = new Float32Array(R * N);
   }
   const filt = filterIsOn();
   for (let i = 0; i <= res; i++) {
@@ -4107,9 +4155,10 @@ function buildColumn(w, h, phase, zoom) {
   const el = ((params.colElev ?? 25) * Math.PI) / 180;
   const cyw = Math.cos(yaw), syw = Math.sin(yaw), ce = Math.cos(el), se = Math.sin(el);
   const H = Math.max(0.05, params.colHeight ?? 2);
-  // Fit the column in the box: the figure's footprint is at most ±ax × ±ay (the
-  // rotary ones are normalised into the unit disc), and a yaw can swing it out
-  // to the diagonal.
+  const horiz = colHorizontal();
+  // Fit the column in the (square) box: the figure's footprint is at most ±ax ×
+  // ±ay (the rotary ones are normalised into the unit disc), and a yaw can swing
+  // it out to the diagonal. The quarter turn keeps the same extents.
   const rad = polar ? Math.max(ax, 1) : Math.hypot(ax, ay);
   const fitR = Math.max(rad, (H / 2) * Math.abs(ce) + rad * Math.abs(se));
   const pad = Math.min(w, h) * 0.034;
@@ -4118,10 +4167,10 @@ function buildColumn(w, h, phase, zoom) {
   const K = 0.45 * (params.az || 0) / fitR;   // perspective, from the 3D depth amount
   const turns = Math.max(0.05, params.colTurns ?? 1);
 
-  for (let k = 0; k < n; k++) {
-    const f = n > 1 ? k / (n - 1) : 0.5;
-    const ph = phase + 2 * turns * (k / n);
-    const hgt = (f - 0.5) * H;
+  for (let r = 0; r < R; r++) {
+    const v = R > 1 ? r * (n - 1) / (R - 1) : 0;
+    const ph = phase + 2 * turns * (v / n);
+    const hgt = (v / (n - 1) - 0.5) * H;
     for (let i = 0; i <= res; i++) {
       const t = (i / res) * span;
       _colX[i] = processWave(fx * t + ph * Math.PI, fx * t, waveTypeX, 'x');
@@ -4131,7 +4180,7 @@ function buildColumn(w, h, phase, zoom) {
       filterPeriodic(_colX, N, biquadCoeffs(filterType, wX, params.filterQ));
       if (polar) filterPeriodic(_colXQ, N, biquadCoeffs(filterType, wX, params.filterQ));
     }
-    const o = k * N;
+    const o = r * N;
     for (let i = 0; i <= res; i++) {
       let px, py;
       if (polar) { geoPoint(geo, _colX[i], _colXQ[i], _colY[i], _colYQ[i], _G); px = _G.x; py = _G.y; }
@@ -4140,192 +4189,301 @@ function buildColumn(w, h, phase, zoom) {
       if (!polar) { px *= ax; py *= ay; }
       // py runs down the figure, i.e. toward the viewer once the plane is laid flat.
       const X = px * cyw - py * syw, Z = px * syw + py * cyw;
-      const sy = hgt * ce - Z * se;          // screen up
+      let sx = X, sy = hgt * ce - Z * se;    // screen right, screen up
       const d = hgt * se + Z * ce;           // toward the viewer
+      if (horiz) { const tmp = sx; sx = sy; sy = -tmp; }   // a quarter turn: the axis runs left → right
       const pf = K > 0 ? 1 / Math.max(0.35, 1 - K * d) : 1;
-      _colVX[o + i] = X; _colVY[o + i] = sy; _colVZ[o + i] = d;
-      _colSX[o + i] = cx + S * X * pf;
+      _colVX[o + i] = sx; _colVY[o + i] = sy; _colVZ[o + i] = d;
+      _colSX[o + i] = cx + S * sx * pf;
       _colSY[o + i] = cy - S * sy * pf;
     }
   }
-  // Looking down, the top slice is nearest; looking up, the bottom one.
-  return { n, res, N, up: se >= 0, S };
+  // Looking down, the top slice is nearest; looking up, the bottom one. The axis
+  // in view space is what the end caps face.
+  let axx = 0, axy = ce;
+  if (horiz) { axx = ce; axy = 0; }
+  // How far anything can be from the centre along the view direction (the depth range).
+  const dHalf = (H / 2) * Math.abs(se) + rad * Math.abs(ce) + 1e-3;
+  return { n, R, res, N, up: se >= 0, S, dHalf, axis: [axx, axy, se] };
 }
 
-// The colour ramp, parsed once per draw rather than per quad.
+// Colours: the stroke colour, or with the gradient on, a blend toward the
+// gradient colour along the column (bottom → top).
 function _rgb(hex) { const v = parseInt(hex.replace('#', ''), 16); return [(v >> 16) & 255, (v >> 8) & 255, v & 255]; }
 function _mixRgb(a, b, t) {
   return `rgb(${Math.round(b[0] + (a[0] - b[0]) * t)},${Math.round(b[1] + (a[1] - b[1]) * t)},${Math.round(b[2] + (a[2] - b[2]) * t)})`;
 }
-// Far-to-near nearness of slice k in drawing order: 0 = farthest, 1 = nearest.
-function _colNear(C, k) { const f = C.n > 1 ? k / (C.n - 1) : 1; return C.up ? f : 1 - f; }
+function _lerpRgb(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; }
+function gradientOn() { return !!params.gradOn; }
 // How much of the stroke colour a thing at `near` keeps under the depth shading.
 function colFade(near) { return 1 - Math.max(0, Math.min(1, params.colShade ?? 0.7)) * 0.85 * (1 - near); }
+function colSliceColor(k, n, near) {
+  const c0 = _rgb(params.strokeColor);
+  const c = gradientOn() ? _lerpRgb(c0, _rgb(params.gradColor || '#5b8def'), n > 1 ? k / (n - 1) : 0) : c0;
+  return _mixRgb(c, _rgb(params.bgColor), colFade(near));
+}
 
-// The surface as depth-sorted, lit quads. Sample columns are thinned so the
-// quad count stays bounded however busy the figure. Instead of sorting quads one
-// by one, they are counting-sorted into depth buckets (far to near) and, inside a
-// bucket, by quantised colour — so the draw is a few hundred filled runs, not
-// one call per quad. A bucket is a sliver of the depth range, so reordering
-// inside it cannot visibly break the occlusion.
-// onRun(color, isLine, xy, count): xy holds count items, 8 floats per quad, 4 per
-// line segment (the slice lines of BOTH, drawn after the skin in their bucket).
-const COL_QUAD_BUDGET = 16000;
-const COL_LEVELS = 32;
-const COL_BUCKETS = 128;
-function columnQuads(C, stroke, bg, lines, onRun) {
-  const { n, res, N } = C;
-  const M = Math.max(48, Math.min(res, Math.floor(COL_QUAD_BUDGET / Math.max(1, n - 1))));
-  const step = res / M;
-  const cnt = (n - 1) * M;
-  const dep = new Float32Array(cnt), shade = new Float32Array(cnt);
-  // Key light from upper left, toward the viewer; two-sided, plus an ambient floor.
-  let lx = -0.45, ly = 0.6, lz = 0.66; const ll = Math.hypot(lx, ly, lz); lx /= ll; ly /= ll; lz /= ll;
-  const sIdx = j => Math.min(res, Math.round(j * step));
-  let dLo = Infinity, dHi = -Infinity;
-  for (let k = 0, q = 0; k < n - 1; k++) {
-    const a = k * N, b = (k + 1) * N;
-    for (let j = 0; j < M; j++, q++) {
-      const i0 = sIdx(j), i1 = sIdx(j + 1);
-      const ux = _colVX[a + i1] - _colVX[a + i0], uy = _colVY[a + i1] - _colVY[a + i0], uz = _colVZ[a + i1] - _colVZ[a + i0];
-      const vx = _colVX[b + i0] - _colVX[a + i0], vy = _colVY[b + i0] - _colVY[a + i0], vz = _colVZ[b + i0] - _colVZ[a + i0];
-      const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
-      const nl = Math.hypot(nx, ny, nz) || 1;
-      shade[q] = 0.3 + 0.7 * Math.abs((nx * lx + ny * ly + nz * lz) / nl);
-      const d = (_colVZ[a + i0] + _colVZ[a + i1] + _colVZ[b + i0] + _colVZ[b + i1]) * 0.25;
-      dep[q] = d;
-      if (d < dLo) dLo = d; if (d > dHi) dHi = d;
+// ── The surface, on the GPU ───────────────────────────────────────────────────
+// One offscreen WebGL2 canvas, grown to the largest size asked of it and drawn
+// through a viewport, so the live view and a recording at another size can share
+// it without reallocating every frame. Walls are smooth-shaded from per-vertex
+// normals (two-sided, turned toward the viewer), the slice lines of BOTH are
+// drawn in the fragment shader where the slice coordinate crosses an integer,
+// and the two ends are capped with a stencil-counted (nonzero) fill, so the
+// inside of the column is never visible. null when WebGL2 is unavailable.
+const _cgl = { tried: false, gl: null, cv: null, prog: null, loc: null, vbo: null, ibo: null, cbo: null,
+               vData: new Float32Array(0), iData: new Uint32Array(0), cData: new Float32Array(0), iKey: '' };
+const COL_GL_VS = `#version 300 es
+in vec3 aPos; in vec3 aN; in float aV; in float aF;
+out vec3 vN; out float vV; out float vF; out float vZ;
+void main() { gl_Position = vec4(aPos, 1.0); vN = aN; vV = aV; vF = aF; vZ = aPos.z; }`;
+const COL_GL_FS = `#version 300 es
+precision highp float;
+in vec3 vN; in float vV; in float vF; in float vZ;
+uniform vec3 uC0, uC1, uBg, uL;
+uniform float uShade, uLines, uLineW;
+out vec4 o;
+void main() {
+  vec3 n = normalize(vN);
+  if (n.z < 0.0) n = -n;                       // two-sided: always lit from the viewer's side
+  float lam = max(dot(n, uL), 0.0);
+  vec3 hv = normalize(uL + vec3(0.0, 0.0, 1.0));
+  float spec = pow(max(dot(n, hv), 0.0), 40.0);
+  vec3 base = mix(uC0, uC1, vF);
+  vec3 col = base * (0.26 + 0.74 * lam) + vec3(0.22 * spec);
+  if (uLines > 0.5) {
+    float fw = fwidth(vV);
+    float d = abs(fract(vV + 0.5) - 0.5);
+    float w = fw * uLineW;
+    float l = (1.0 - smoothstep(w, w + fw, d)) * (1.0 - smoothstep(0.18, 0.45, fw));
+    col = mix(col, base * 0.22, l);
+  }
+  float near = clamp(0.5 - 0.5 * vZ / 0.98, 0.0, 1.0);
+  col = mix(uBg, col, 1.0 - uShade * 0.85 * (1.0 - near));
+  o = vec4(col, 1.0);
+}`;
+function colGL() {
+  if (_cgl.tried) return _cgl.gl ? _cgl : null;
+  _cgl.tried = true;
+  try {
+    const cv = document.createElement('canvas');
+    const gl = cv.getContext('webgl2', { stencil: true, antialias: true, premultipliedAlpha: true, alpha: true });
+    if (!gl) return null;
+    const sh = (type, src) => {
+      const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+      return s;
+    };
+    const prog = gl.createProgram();
+    gl.attachShader(prog, sh(gl.VERTEX_SHADER, COL_GL_VS));
+    gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, COL_GL_FS));
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+    _cgl.loc = {
+      aPos: gl.getAttribLocation(prog, 'aPos'), aN: gl.getAttribLocation(prog, 'aN'),
+      aV: gl.getAttribLocation(prog, 'aV'), aF: gl.getAttribLocation(prog, 'aF'),
+    };
+    ['uC0', 'uC1', 'uBg', 'uL', 'uShade', 'uLines', 'uLineW'].forEach(u => { _cgl.loc[u] = gl.getUniformLocation(prog, u); });
+    _cgl.gl = gl; _cgl.cv = cv; _cgl.prog = prog;
+    _cgl.vbo = gl.createBuffer(); _cgl.ibo = gl.createBuffer(); _cgl.cbo = gl.createBuffer();
+    cv.addEventListener('webglcontextlost', e => { e.preventDefault(); _cgl.gl = null; });
+  } catch (e) {
+    console.warn('Column surface: WebGL2 unavailable, falling back to slices.', e);
+    _cgl.gl = null;
+  }
+  return _cgl.gl ? _cgl : null;
+}
+const COL_VSTRIDE = 8;   // x, y, z, nx, ny, nz, v, f
+function colBindAttribs(G, buf) {
+  const gl = G.gl, L = G.loc, B = COL_VSTRIDE * 4;
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.enableVertexAttribArray(L.aPos); gl.vertexAttribPointer(L.aPos, 3, gl.FLOAT, false, B, 0);
+  gl.enableVertexAttribArray(L.aN);   gl.vertexAttribPointer(L.aN, 3, gl.FLOAT, false, B, 12);
+  gl.enableVertexAttribArray(L.aV);   gl.vertexAttribPointer(L.aV, 1, gl.FLOAT, false, B, 24);
+  gl.enableVertexAttribArray(L.aF);   gl.vertexAttribPointer(L.aF, 1, gl.FLOAT, false, B, 28);
+}
+// Renders the surface for C (from buildColumn) into the shared GL canvas at
+// pw × ph device pixels. Returns the canvas (its bottom-left pw × ph region holds
+// the picture) or null.
+function renderColumnGL(C, w, h, pw, ph) {
+  const G = colGL();
+  if (!G) return null;
+  const gl = G.gl;
+  const { R, res, N, n } = C;
+  if (G.cv.width < pw || G.cv.height < ph) {
+    G.cv.width = Math.max(G.cv.width, pw); G.cv.height = Math.max(G.cv.height, ph);
+  }
+  // Clip space from the screen positions buildColumn computed, so perspective and
+  // the box fit are exactly the slices' own; depth from the view-space distance.
+  const dHalf = C.dHalf * 1.02;
+  const toX = x => (x / w) * 2 - 1, toY = y => 1 - (y / h) * 2, toZ = d => -0.98 * d / dHalf;
+  const nv = R * N;
+  if (G.vData.length < nv * COL_VSTRIDE) G.vData = new Float32Array(nv * COL_VSTRIDE);
+  const V = G.vData;
+  for (let r = 0; r < R; r++) {
+    const o = r * N, up = (r < R - 1 ? r + 1 : r) * N, dn = (r > 0 ? r - 1 : r) * N;
+    const vRow = R > 1 ? r * (n - 1) / (R - 1) : 0, fRow = R > 1 ? r / (R - 1) : 0;
+    for (let i = 0; i <= res; i++) {
+      // Around the curve (closed: sample res is sample 0) and along the axis.
+      const ip = i < res ? i + 1 : 1, im = i > 0 ? i - 1 : res - 1;
+      const tx = _colVX[o + ip] - _colVX[o + im], ty = _colVY[o + ip] - _colVY[o + im], tz = _colVZ[o + ip] - _colVZ[o + im];
+      const bx = _colVX[up + i] - _colVX[dn + i], by = _colVY[up + i] - _colVY[dn + i], bz = _colVZ[up + i] - _colVZ[dn + i];
+      const p = (o + i) * COL_VSTRIDE;
+      V[p] = toX(_colSX[o + i]); V[p + 1] = toY(_colSY[o + i]); V[p + 2] = toZ(_colVZ[o + i]);
+      V[p + 3] = ty * bz - tz * by; V[p + 4] = tz * bx - tx * bz; V[p + 5] = tx * by - ty * bx;
+      V[p + 6] = vRow; V[p + 7] = fRow;
     }
   }
-  const B = COL_BUCKETS, L = COL_LEVELS + 1;
-  const dScale = B / Math.max(1e-6, dHi - dLo);
-  const key = new Uint16Array(cnt), lkey = lines ? new Uint16Array(cnt) : null;
-  const qCount = new Uint32Array(B * L), lCount = new Uint32Array(B * L);
-  for (let q = 0; q < cnt; q++) {
-    const bk = Math.min(B - 1, ((dep[q] - dLo) * dScale) | 0);
-    const fade = colFade((bk + 0.5) / B);
-    key[q] = bk * L + Math.round(shade[q] * fade * 0.9 * COL_LEVELS);
-    qCount[key[q]]++;
-    if (lines) { lkey[q] = bk * L + Math.round(fade * COL_LEVELS); lCount[lkey[q]]++; }
-  }
-  const sc = _rgb(stroke), bc = _rgb(bg);
-  const ramp = [];
-  for (let l = 0; l < L; l++) ramp.push(_mixRgb(sc, bc, l / COL_LEVELS));
-  // Prefix sums → each key's slot range in one flat order array.
-  const order = new Uint32Array(cnt), lorder = lines ? new Uint32Array(cnt) : null;
-  const qStart = new Uint32Array(B * L + 1), lStart = new Uint32Array(B * L + 1);
-  for (let k = 0; k < B * L; k++) { qStart[k + 1] = qStart[k] + qCount[k]; lStart[k + 1] = lStart[k] + lCount[k]; }
-  const qFill = qStart.slice(0, B * L), lFill = lStart.slice(0, B * L);
-  for (let q = 0; q < cnt; q++) {
-    order[qFill[key[q]]++] = q;
-    if (lines) lorder[lFill[lkey[q]]++] = q;
-  }
-  const xy = new Float32Array(Math.max(1, cnt) * 8 + 8);
-  const corners = (q, o) => {
-    const k = (q / M) | 0, j = q - k * M, a = k * N, b = (k + 1) * N, i0 = sIdx(j), i1 = sIdx(j + 1);
-    xy[o] = _colSX[a + i0]; xy[o + 1] = _colSY[a + i0];
-    xy[o + 2] = _colSX[a + i1]; xy[o + 3] = _colSY[a + i1];
-    xy[o + 4] = _colSX[b + i1]; xy[o + 5] = _colSY[b + i1];
-    xy[o + 6] = _colSX[b + i0]; xy[o + 7] = _colSY[b + i0];
-    return k;
-  };
-  for (let bk = 0; bk < B; bk++) {
-    for (let l = 0; l < L; l++) {
-      const k = bk * L + l, s0 = qStart[k], s1 = qStart[k + 1];
-      if (s1 === s0) continue;
-      for (let p = s0; p < s1; p++) corners(order[p], (p - s0) * 8);
-      onRun(ramp[l], false, xy, s1 - s0);
-    }
-    if (!lines) continue;
-    for (let l = 0; l < L; l++) {
-      const k = bk * L + l, s0 = lStart[k], s1 = lStart[k + 1];
-      if (s1 === s0) continue;
-      let m = 0;
-      const seg = new Float32Array((s1 - s0) * 8);
-      for (let p = s0; p < s1; p++) {
-        const sk = corners(lorder[p], 0);
-        seg[m++] = xy[0]; seg[m++] = xy[1]; seg[m++] = xy[2]; seg[m++] = xy[3];
-        // The last gap also carries the top slice's line.
-        if (sk === n - 2) { seg[m++] = xy[6]; seg[m++] = xy[7]; seg[m++] = xy[4]; seg[m++] = xy[5]; }
+  // The triangle index list depends only on the mesh shape: rebuild on change.
+  const key = R + 'x' + N;
+  if (G.iKey !== key) {
+    const ni = (R - 1) * res * 6;
+    if (G.iData.length < ni) G.iData = new Uint32Array(ni);
+    let q = 0;
+    for (let r = 0; r < R - 1; r++) {
+      const a = r * N, b = (r + 1) * N;
+      for (let i = 0; i < res; i++) {
+        G.iData[q++] = a + i; G.iData[q++] = a + i + 1; G.iData[q++] = b + i;
+        G.iData[q++] = a + i + 1; G.iData[q++] = b + i + 1; G.iData[q++] = b + i;
       }
-      onRun(ramp[l], true, seg, m / 4);
     }
+    G.iCount = ni; G.iKey = key;
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, G.ibo);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, G.iData.subarray(0, ni), gl.STATIC_DRAW);
+  }
+  // End caps: a fan from each end row's centroid, normal along the axis.
+  const capLen = res + 2;
+  if (G.cData.length < capLen * 2 * COL_VSTRIDE) G.cData = new Float32Array(capLen * 2 * COL_VSTRIDE);
+  const Cd = G.cData;
+  [0, R - 1].forEach((r, c) => {
+    const o = r * N, base = c * capLen * COL_VSTRIDE;
+    let mx = 0, my = 0, mz = 0;
+    for (let i = 0; i < res; i++) { mx += _colSX[o + i]; my += _colSY[o + i]; mz += _colVZ[o + i]; }
+    const put = (k, x, y, z) => {
+      const p = base + k * COL_VSTRIDE;
+      Cd[p] = toX(x); Cd[p + 1] = toY(y); Cd[p + 2] = toZ(z);
+      Cd[p + 3] = C.axis[0]; Cd[p + 4] = C.axis[1]; Cd[p + 5] = C.axis[2];
+      Cd[p + 6] = (r === 0 ? 0 : n - 1) + 0.5;   // half-way between slices: no line on the cap
+      Cd[p + 7] = c;
+    };
+    put(0, mx / res, my / res, mz / res);
+    for (let i = 0; i <= res; i++) put(i + 1, _colSX[o + i], _colSY[o + i], _colVZ[o + i]);
+  });
+
+  gl.viewport(0, 0, pw, ph);
+  gl.clearColor(0, 0, 0, 0);
+  gl.clearDepth(1); gl.clearStencil(0);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+  gl.useProgram(G.prog);
+  const c0 = _rgb(params.strokeColor).map(v => v / 255), bg = _rgb(params.bgColor).map(v => v / 255);
+  const c1 = gradientOn() ? _rgb(params.gradColor || '#5b8def').map(v => v / 255) : c0;
+  let lx = -0.45, ly = 0.6, lz = 0.66; const ll = Math.hypot(lx, ly, lz);
+  gl.uniform3f(G.loc.uC0, c0[0], c0[1], c0[2]);
+  gl.uniform3f(G.loc.uC1, c1[0], c1[1], c1[2]);
+  gl.uniform3f(G.loc.uBg, bg[0], bg[1], bg[2]);
+  gl.uniform3f(G.loc.uL, lx / ll, ly / ll, lz / ll);
+  gl.uniform1f(G.loc.uShade, Math.max(0, Math.min(1, params.colShade ?? 0.7)));
+  gl.uniform1f(G.loc.uLines, colSurfaceMode() === COL_SURF_LINES ? 1 : 0);
+  gl.uniform1f(G.loc.uLineW, Math.max(0.5, (params.lineWidth || 1.5) * 0.5 * (pw / w)));
+  gl.disable(gl.CULL_FACE);
+  gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL); gl.depthMask(true);
+  gl.disable(gl.STENCIL_TEST);
+
+  colBindAttribs(G, G.vbo);
+  gl.bufferData(gl.ARRAY_BUFFER, V.subarray(0, nv * COL_VSTRIDE), gl.DYNAMIC_DRAW);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, G.ibo);
+  gl.drawElements(gl.TRIANGLES, G.iCount, gl.UNSIGNED_INT, 0);
+
+  colBindAttribs(G, G.cbo);
+  gl.bufferData(gl.ARRAY_BUFFER, Cd.subarray(0, capLen * 2 * COL_VSTRIDE), gl.DYNAMIC_DRAW);
+  gl.enable(gl.STENCIL_TEST);
+  for (let c = 0; c < 2; c++) {
+    // Pass 1: count the fan's winding into the stencil (front +1, back −1).
+    gl.colorMask(false, false, false, false); gl.depthMask(false); gl.disable(gl.DEPTH_TEST);
+    gl.stencilFunc(gl.ALWAYS, 0, 0xff);
+    gl.stencilOpSeparate(gl.FRONT, gl.KEEP, gl.KEEP, gl.INCR_WRAP);
+    gl.stencilOpSeparate(gl.BACK, gl.KEEP, gl.KEEP, gl.DECR_WRAP);
+    gl.drawArrays(gl.TRIANGLE_FAN, c * capLen, capLen);
+    // Pass 2: paint where the winding is nonzero, depth-tested, clearing as it goes.
+    gl.colorMask(true, true, true, true); gl.depthMask(true); gl.enable(gl.DEPTH_TEST);
+    gl.stencilFunc(gl.NOTEQUAL, 0, 0xff);
+    gl.stencilOp(gl.ZERO, gl.ZERO, gl.ZERO);
+    gl.drawArrays(gl.TRIANGLE_FAN, c * capLen, capLen);
+  }
+  gl.disable(gl.STENCIL_TEST);
+  return G.cv;
+}
+
+// Rows for the surface: never fewer than the slices, and enough that the skin is
+// smooth along the axis even at a handful of slices.
+function colSurfaceRows() {
+  const n = Math.max(2, Math.min(400, Math.round(params.colSlices || 48)));
+  return Math.max(n, 96);
+}
+const COL_SURF_BUDGET = 200000;   // vertices; the GPU does the rest
+
+function drawColumnSlices(g, C) {
+  const { bgColor, lineWidth } = params;
+  const hide = !!params.colHide && !_eraseMode;
+  for (let s = 0; s < C.n; s++) {
+    const k = C.up ? s : C.n - 1 - s;
+    const o = k * C.N;
+    g.beginPath();
+    g.moveTo(_colSX[o], _colSY[o]);
+    for (let i = 1; i <= C.res; i++) g.lineTo(_colSX[o + i], _colSY[o + i]);
+    g.closePath();
+    if (hide) { g.fillStyle = bgColor; g.fill(); }
+    const near = s / Math.max(1, C.n - 1);
+    g.strokeStyle = colSliceColor(k, C.n, near);
+    g.lineWidth = lineWidth * (1 - 0.45 * (1 - colFade(near)));
+    g.stroke();
   }
 }
 
 function drawColumn(g, w, h, phase, zoom) {
-  const { strokeColor, bgColor, lineWidth } = params;
-  const C = buildColumn(w, h, phase, zoom);
-  const surf = colSurfaceMode();
+  const { strokeColor, lineWidth } = params;
   g.setLineDash([]);
   g.lineJoin = 'round';
   g.lineCap = 'round';
-  if (surf !== COL_SURF_OFF) {
-    // Each run is also stroked in its own colour, hairline-wide, so the seams
-    // between neighbouring quads never let the background through.
-    columnQuads(C, strokeColor, bgColor, surf === COL_SURF_LINES, (col, isLine, xy, count) => {
-      const P = new Path2D();
-      if (isLine) {
-        for (let i = 0, o = 0; i < count; i++, o += 4) { P.moveTo(xy[o], xy[o + 1]); P.lineTo(xy[o + 2], xy[o + 3]); }
-        g.strokeStyle = col; g.lineWidth = lineWidth * 0.6; g.stroke(P);
-        return;
-      }
-      for (let i = 0, o = 0; i < count; i++, o += 8) {
-        P.moveTo(xy[o], xy[o + 1]); P.lineTo(xy[o + 2], xy[o + 3]); P.lineTo(xy[o + 4], xy[o + 5]); P.lineTo(xy[o + 6], xy[o + 7]); P.closePath();
-      }
-      g.fillStyle = col; g.strokeStyle = col; g.lineWidth = 0.75;
-      g.fill(P); g.stroke(P);
-    });
-  } else {
-    const hide = !!params.colHide && !_eraseMode;
-    const sc = _rgb(strokeColor), bc = _rgb(bgColor);
-    for (let s = 0; s < C.n; s++) {
-      const k = C.up ? s : C.n - 1 - s;
-      const o = k * C.N;
-      g.beginPath();
-      g.moveTo(_colSX[o], _colSY[o]);
-      for (let i = 1; i <= C.res; i++) g.lineTo(_colSX[o + i], _colSY[o + i]);
-      g.closePath();
-      if (hide) { g.fillStyle = bgColor; g.fill(); }
-      const near = s / Math.max(1, C.n - 1), fade = colFade(near);
-      g.strokeStyle = _mixRgb(sc, bc, fade);
-      g.lineWidth = lineWidth * (1 - 0.45 * (1 - fade));
-      g.stroke();
-    }
+  let done = false;
+  if (colSurfaceMode() !== COL_SURF_OFF && colGL()) {
+    const C = buildColumn(w, h, phase, zoom, colSurfaceRows(), COL_SURF_BUDGET);
+    const sc = Math.abs(g.getTransform ? g.getTransform().a : 1) || 1;
+    const pw = Math.max(1, Math.round(w * sc)), ph = Math.max(1, Math.round(h * sc));
+    const cv = renderColumnGL(C, w, h, pw, ph);
+    if (cv) { g.drawImage(cv, 0, cv.height - ph, pw, ph, 0, 0, w, h); done = true; }
   }
+  if (!done) drawColumnSlices(g, buildColumn(w, h, phase, zoom));
   g.lineWidth = lineWidth;
   g.strokeStyle = strokeColor;
   g.fillStyle = strokeColor;
 }
 
-// The same column as SVG elements, in drawing order.
+// The same column for the SVG export, in drawing order. Slices are true vector
+// paths. The surface is a shaded raster — its smoothness and hidden-surface
+// removal come from the depth buffer, which has no vector equivalent — so it is
+// rendered once at the export's size and embedded as a PNG.
 function columnSvg(w, h, phase) {
-  const { strokeColor, bgColor, lineWidth } = params;
-  const C = buildColumn(w, h, phase, 1);
-  const surf = colSurfaceMode(), out = [];
+  const { bgColor, lineWidth } = params;
   const f = v => v.toFixed(2);
-  if (surf !== COL_SURF_OFF) {
-    columnQuads(C, strokeColor, bgColor, surf === COL_SURF_LINES, (col, isLine, xy, count) => {
-      const d = [];
-      if (isLine) {
-        for (let i = 0, o = 0; i < count; i++, o += 4) d.push(`M${f(xy[o])},${f(xy[o + 1])}L${f(xy[o + 2])},${f(xy[o + 3])}`);
-        out.push(`<path d="${d.join('')}" fill="none" stroke="${col}" stroke-width="${f(lineWidth * 0.6)}" stroke-linecap="round"/>`);
-        return;
-      }
-      for (let i = 0, o = 0; i < count; i++, o += 8)
-        d.push(`M${f(xy[o])},${f(xy[o + 1])}L${f(xy[o + 2])},${f(xy[o + 3])}L${f(xy[o + 4])},${f(xy[o + 5])}L${f(xy[o + 6])},${f(xy[o + 7])}Z`);
-      out.push(`<path d="${d.join('')}" fill="${col}" stroke="${col}" stroke-width="0.75" stroke-linejoin="round"/>`);
-    });
-  } else {
-    const hide = !!params.colHide;
-    const sc = _rgb(strokeColor), bc = _rgb(bgColor);
-    for (let s = 0; s < C.n; s++) {
-      const k = C.up ? s : C.n - 1 - s, o = k * C.N;
-      const d = [`M${f(_colSX[o])},${f(_colSY[o])}`];
-      for (let i = 1; i <= C.res; i++) d.push(`L${f(_colSX[o + i])},${f(_colSY[o + i])}`);
-      const fade = colFade(s / Math.max(1, C.n - 1));
-      out.push(`<path d="${d.join('')}Z" fill="${hide ? bgColor : 'none'}" stroke="${_mixRgb(sc, bc, fade)}" stroke-width="${f(lineWidth * (1 - 0.45 * (1 - fade)))}" stroke-linejoin="round"/>`);
+  if (colSurfaceMode() !== COL_SURF_OFF && colGL()) {
+    const C = buildColumn(w, h, phase, 1, colSurfaceRows(), COL_SURF_BUDGET);
+    const cv = renderColumnGL(C, w, h, w, h);
+    if (cv) {
+      const tmp = document.createElement('canvas');
+      tmp.width = w; tmp.height = h;
+      tmp.getContext('2d').drawImage(cv, 0, cv.height - h, w, h, 0, 0, w, h);
+      return `<image width="${w}" height="${h}" href="${tmp.toDataURL('image/png')}"/>`;
     }
+  }
+  const C = buildColumn(w, h, phase, 1);
+  const hide = !!params.colHide, out = [];
+  for (let s = 0; s < C.n; s++) {
+    const k = C.up ? s : C.n - 1 - s, o = k * C.N;
+    const d = [`M${f(_colSX[o])},${f(_colSY[o])}`];
+    for (let i = 1; i <= C.res; i++) d.push(`L${f(_colSX[o + i])},${f(_colSY[o + i])}`);
+    const near = s / Math.max(1, C.n - 1);
+    out.push(`<path d="${d.join('')}Z" fill="${hide ? bgColor : 'none'}" stroke="${colSliceColor(k, C.n, near)}" stroke-width="${f(lineWidth * (1 - 0.45 * (1 - colFade(near))))}" stroke-linejoin="round"/>`);
   }
   return out.join('\n  ');
 }
@@ -4401,7 +4559,7 @@ function drawWaveStack(target, w, h, phase, res, zoom, part) {
   if (part === WS_CHROME) { target.restore(); return; }
   const n = Math.max(200, Math.min(res || 2000, Math.round(w * 4)));
   const lanes = waveStackSamples(phase, n);
-  target.strokeStyle = params.strokeColor;
+  target.strokeStyle = figPaint(target, w, h);
   target.lineWidth = lw;
   target.lineJoin = 'round';
   target.lineCap = 'round';
@@ -4762,7 +4920,7 @@ function drawMode4(ctx, w, h, phase, noBg, zoom, part, resCap) {  // w,h are log
 
   // Full Lissajous (dim = the untraced part), every mirror image.
   if (wantFigure) {
-    ctx.strokeStyle = hexToRgba(strokeColor, Math.max(0, Math.min(1, params.untracedAlpha)));
+    ctx.strokeStyle = figPaint(ctx, w, h, Math.max(0, Math.min(1, params.untracedAlpha)));
     if (!m4Dash) ctx.lineWidth = lineWidth;
     for (const [mx, my] of m4Mirrors) { m4Path(0, mx, my, false, false); ctx.stroke(); }
   }
@@ -4772,7 +4930,7 @@ function drawMode4(ctx, w, h, phase, noBg, zoom, part, resCap) {  // w,h are log
     const gxy = gcd(fx, fy);
     const τOff = ((unisonOffsetCycles() % 1) * T) / (fx / gxy * subDiv());   // in X-cycles
     if (τOff > 0.0001) {
-      ctx.strokeStyle = hexToRgba(strokeColor, Math.min(1, params.unisonMix * 0.4));
+      ctx.strokeStyle = figPaint(ctx, w, h, Math.min(1, params.unisonMix * 0.4));
       for (const [mx, my] of m4Mirrors) {
         m4Path(τOff, mx, my, false, false); ctx.stroke();
         m4Path(T - τOff, mx, my, false, false); ctx.stroke();
@@ -4814,7 +4972,7 @@ function drawMode4(ctx, w, h, phase, noBg, zoom, part, resCap) {  // w,h are log
   // ── Traced arc (0 → t, current cycle), transformed + mirrored like the figure
   if (wantFigure && t > 0.0001) {
     const trailRes = Math.max(4, Math.ceil(res * (t / T)));
-    ctx.strokeStyle = hexToRgba(strokeColor, 0.85);
+    ctx.strokeStyle = figPaint(ctx, w, h, 0.85);
     if (!m4Dash) ctx.lineWidth = lineWidth;   // dashed morph keeps its own width
     for (const [mx, my] of m4Mirrors) {
       ctx.beginPath();
@@ -5114,7 +5272,7 @@ document.getElementById('resolution').addEventListener('input', e => { params.re
 
 document.getElementById('animate').addEventListener('change', e => {
   animating = e.target.checked;
-  document.getElementById('anim-speed-row').style.opacity = animating ? '1' : '0.4';
+  document.getElementById('anim-speed-row').classList.toggle('vis-off', !animating);
 });
 
 document.getElementById('anim-speed').addEventListener('input', e => {
@@ -5275,8 +5433,16 @@ document.getElementById('btn-export').addEventListener('click', () => {
   }
 
   // The column is many paths (or quads), so it brings its own body.
+  // The gradient, as figPaint lays it on the canvas: across the box at gradAngle.
+  let defs = '', paint = strokeColor;
+  if (params.gradOn && !column) {
+    const t = ((params.gradAngle ?? 90) * Math.PI) / 180, r = Math.min(w, h) / 2;
+    const dx = Math.cos(t) * r, dy = Math.sin(t) * r;
+    defs = `<defs><linearGradient id="g" gradientUnits="userSpaceOnUse" x1="${(w / 2 - dx).toFixed(2)}" y1="${(h / 2 - dy).toFixed(2)}" x2="${(w / 2 + dx).toFixed(2)}" y2="${(h / 2 + dy).toFixed(2)}"><stop offset="0" stop-color="${strokeColor}"/><stop offset="1" stop-color="${params.gradColor}"/></linearGradient></defs>\n  `;
+    paint = 'url(#g)';
+  }
   const body = column ? columnSvg(w, h, phase)
-    : `<path d="${points.join(' ')}" fill="none" stroke="${strokeColor}" stroke-width="${lineWidth}" stroke-linejoin="round" stroke-linecap="round"/>`;
+    : `${defs}<path d="${points.join(' ')}" fill="none" stroke="${paint}" stroke-width="${lineWidth}" stroke-linejoin="round" stroke-linecap="round"/>`;
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
   <title>${GEO_NAMES[geo]}${column ? ' column' : ''} fx=${fx} fy=${fy} waveX=${waveTypeX} waveY=${waveTypeY}</title>
@@ -5358,7 +5524,15 @@ window.addEventListener('pointermove', e => {
   const dx = e.clientX - orbitDrag.x, dy = e.clientY - orbitDrag.y;
   let rot = (orbitDrag.rot + dx * 0.5) % 360; if (rot < 0) rot += 360;   // 720px = a full turn
   const tilt = Math.max(-89, Math.min(89, orbitDrag.tilt + dy * 0.4));
-  if (orbitDrag.col) { orbitSet('colYaw', 'col-yaw', rot); orbitSet('colElev', 'col-elev', tilt); }
+  if (orbitDrag.col) {
+    // Lying horizontal, the column spins under a vertical drag and tips under a
+    // horizontal one: the drag follows the picture, not the parameter names.
+    if (colHorizontal()) {
+      let r2 = (orbitDrag.rot - dy * 0.5) % 360; if (r2 < 0) r2 += 360;
+      orbitSet('colYaw', 'col-yaw', r2);
+      orbitSet('colElev', 'col-elev', Math.max(-89, Math.min(89, orbitDrag.tilt + dx * 0.4)));
+    } else { orbitSet('colYaw', 'col-yaw', rot); orbitSet('colElev', 'col-elev', tilt); }
+  }
   else { orbitSet('rotateAngle', 'rotate-angle', rot); orbitSet('tiltAngle', 'tilt-angle', tilt); }
   e.preventDefault();
 });
@@ -5970,7 +6144,7 @@ function applyEqLoudness() {
   // the slider the moment it reached 0, and a disabled slider can't be moved back.
   const on = eqLoudness;
   const row = document.getElementById('eq-loud-depth-row');
-  if (row) row.style.opacity = on ? 1 : 0.4;
+  if (row) row.classList.toggle('vis-off', !on);
   const dEl = document.getElementById('eq-loud-depth'); if (dEl) dEl.disabled = !on;
   if (!audioCtx || !eqGainX || !eqGainY) return;
   const t = audioCtx.currentTime;
@@ -6674,8 +6848,8 @@ function refreshDepthChecks() {
     const cb = document.getElementById(id);
     if (!cb) return;
     cb.disabled = !on;
-    if (cb.parentElement) cb.parentElement.style.opacity = on ? 1 : 0.4;
   });
+  if (typeof refreshVisibility === 'function') refreshVisibility();
 }
 const GEO_HINTS = [
   'x = X wave, y = Y wave',
@@ -6712,7 +6886,7 @@ function setGeometry(g) {
   if (csc) csc.hidden = !colOk;
   const vcol = document.getElementById('vt-column');
   if (vcol) vcol.hidden = !colOk;
-  document.querySelectorAll('.wave-btn[data-depthsrc]').forEach(b => { b.disabled = !!g; b.style.opacity = g ? 0.4 : ''; });
+  document.querySelectorAll('.wave-btn[data-depthsrc]').forEach(b => { b.disabled = !!g; });
   document.body.classList.toggle('orbit', orbitable());
   refreshDepthChecks();
   if (changed) clearTrail();
@@ -6799,7 +6973,7 @@ function setDepthSrc(n) {
   // δ no longer reaches the sampler in lift mode, so there is no phase offset for
   // the modulators to inherit — say so rather than leaving a dead checkbox.
   const pm = document.getElementById('phase-modulators');
-  if (pm) { pm.disabled = lift; if (pm.parentElement) pm.parentElement.style.opacity = lift ? 0.4 : 1; }
+  if (pm) pm.disabled = lift;
   document.body.classList.toggle('orbit', orbitable());
   if (changed) clearTrail();
 }
@@ -6948,8 +7122,8 @@ document.getElementById('sync-hard').addEventListener('change', e => {
 // ── Construction view ────────────────────────────────────────────────────────
 let constructionView = true;
 function updateConstructionControls() {
-  const p = document.getElementById('construction-controls');
-  if (p) p.style.display = constructionView ? '' : 'none';
+  if (typeof refreshVisibility === 'function') refreshVisibility();
+  document.body.classList.toggle('orbit', orbitable());
 }
 document.getElementById('construction-view').addEventListener('change', e => {
   constructionView = e.target.checked;
@@ -6975,15 +7149,39 @@ function setColSurface(m) {
     b.classList.toggle('active', on);
     b.setAttribute('aria-pressed', on ? 'true' : 'false');
   });
-  // Hidden lines are a slices-only option: the surface occludes by itself.
-  const hr = document.getElementById('col-hide');
-  if (hr) hr.closest('.checkbox-row').style.opacity = params.colSurface ? '0.4' : '';
+  refreshVisibility();
 }
+function setColAxis(a) {
+  params.colAxis = Math.round(a) === 1 ? 1 : 0;
+  document.querySelectorAll('.wave-btn[data-colaxis]').forEach(b => {
+    const on = parseInt(b.dataset.colaxis) === params.colAxis;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+}
+document.querySelectorAll('.wave-btn[data-colaxis]').forEach(b =>
+  b.addEventListener('click', () => setColAxis(parseInt(b.dataset.colaxis))));
+
+// ── Colour gradient ──────────────────────────────────────────────────────────
+// Stroke colour → gradColor. Flat figures run it across the figure's box at
+// gradAngle; the column runs it along its own axis, bottom to top.
+function updateGradControls() {
+  const cb = document.getElementById('grad-on'); if (cb) cb.checked = !!params.gradOn;
+  const gc = document.getElementById('grad-color'); if (gc) gc.value = params.gradColor;
+  const ga = document.getElementById('grad-angle'); if (ga) ga.value = params.gradAngle;
+  const gv = document.getElementById('grad-angle-val'); if (gv) gv.textContent = fmtDeg(params.gradAngle);
+  refreshVisibility();
+}
+document.getElementById('grad-on').addEventListener('change', e => { params.gradOn = e.target.checked ? 1 : 0; refreshVisibility(); });
+document.getElementById('grad-color').addEventListener('input', e => { params.gradColor = e.target.value; });
+document.getElementById('grad-angle').addEventListener('input', e => {
+  params.gradAngle = parseFloat(e.target.value);
+  document.getElementById('grad-angle-val').textContent = fmtDeg(params.gradAngle);
+});
 document.querySelectorAll('.wave-btn[data-colsurf]').forEach(b =>
   b.addEventListener('click', () => setColSurface(parseInt(b.dataset.colsurf))));
 function updateColumnControls() {
-  const p = document.getElementById('column-controls');
-  if (p) p.style.display = params.columnView ? '' : 'none';
+  refreshVisibility();
   document.body.classList.toggle('orbit', orbitable());
 }
 document.getElementById('column-view').addEventListener('change', e => {
@@ -7560,9 +7758,12 @@ const MAP_TARGETS = {
   colYaw:     { label:'Column Yaw',       min:0,    max:359,            apply:v => setSliderParam('colYaw','col-yaw','col-yaw-val',fmtDeg,v) },
   colShade:   { label:'Column Shading',   min:0,    max:1,              apply:v => setSliderParam('colShade','col-shade','col-shade-val',fmtPct,v) },
   colSurface: { label:'Column Skin',      min:0,    max:2,    step:1,   apply:v => setColSurface(v) },
+  colAxis:    { label:'Column Horizontal', toggle:true, apply:b => setColAxis(b ? 1 : 0) },
+  gradOn:     { label:'Gradient',          toggle:true, apply:b => { params.gradOn = b ? 1 : 0; updateGradControls(); } },
+  gradAngle:  { label:'Gradient Angle',   min:0,    max:359,            apply:v => { params.gradAngle = v; updateGradControls(); } },
   colHide:    { label:'Column Solid Slices', toggle:true, apply:b => { params.colHide = b ? 1 : 0; const cb=document.getElementById('col-hide'); if (cb) cb.checked = b; } },
-  constructionView: { label:'Construction View', toggle:true, apply:b => { constructionView = b; const cb=document.getElementById('construction-view'); cb.checked=b; if (b) mode4T=0; } },
-  animatePhase:     { label:'Animate Phase',     toggle:true, apply:b => { animating = b; document.getElementById('animate').checked=b; document.getElementById('anim-speed-row').style.opacity = b ? '1' : '0.4'; } },
+  constructionView: { label:'Construction View', toggle:true, apply:b => clickCheckbox('construction-view', b) },
+  animatePhase:     { label:'Animate Phase',     toggle:true, apply:b => { animating = b; document.getElementById('animate').checked=b; document.getElementById('anim-speed-row').classList.toggle('vis-off', !b); } },
   visualSwap:       { label:'Visual X/Y Swap',   toggle:true, apply:b => { visualSwap = b; updateSwapBtn(); } },
   frameShow:   { label:'Coord Frame',     toggle:true, apply:b => { params.frameShow = b ? 1 : 0; const cb=document.getElementById('frame-show'); if (cb) cb.checked = b; updateFrameControls(); } },
   frameFollow: { label:'Frame Follows',   toggle:true, apply:b => { params.frameFollow = b ? 1 : 0; const cb=document.getElementById('frame-follow'); if (cb) cb.checked = b; } },
@@ -7586,11 +7787,11 @@ const TARGET_CATEGORIES = [
                  'syncAmt', 'syncAxis', 'subMix', 'subOct', 'subAxis', 'unisonDetune', 'unisonMix']],
   ['Frequency', ['geometry', 'ax', 'fx', 'ay', 'fy', 'visualSwap', 'damp', 'preset']],
   ['Audio',     ['volume']],
-  ['Figure',    ['hue', 'sat', 'light', 'lineWidth', 'dotsLine', 'mirrorMode', 'fillSurface',
+  ['Figure',    ['hue', 'sat', 'light', 'gradOn', 'gradAngle', 'lineWidth', 'dotsLine', 'mirrorMode', 'fillSurface',
                  'trailMode', 'trailAmt', 'trailCount', 'trailSpacing',
                  'phase', 'animatePhase', 'animSpeed', 'constructionView', 'm4Rotate']],
   ['Column',    ['columnView', 'colSlices', 'colTurns', 'colHeight', 'colElev', 'colYaw',
-                 'colShade', 'colSurface', 'colHide']],
+                 'colShade', 'colSurface', 'colHide', 'colAxis']],
   ['3D',        ['depthSrc', 'az', 'tiltAngle', 'depthShade', 'showShadow',
                  'frameShow', 'frameAxisLen', 'framePlanes', 'frameOrbits', 'frameAngles',
                  'frameOpacity', 'frameRadius', 'frameFollow']],
@@ -7659,6 +7860,7 @@ const MAP_DEFAULTS = {
   filterCutoff:1, filterQ:0.7, dotsLine:1,
   preset:0, constructionView:0, columnView:0, animatePhase:1, visualSwap:0,
   colSlices:48, colTurns:1, colHeight:2, colElev:25, colYaw:0, colShade:0.7, colSurface:0, colHide:1,
+  colAxis:0, gradOn:0, gradAngle:90,
   frameShow:0, frameFollow:1, frameOpacity:0.55, frameRadius:1, frameAxisLen:1.15,
   frameOrbits:1, frameAngles:0, framePlanes:0,
 };
@@ -8185,7 +8387,7 @@ function refreshAllControls() {
   refreshAxisToggles();
   document.getElementById('animate').checked = animating;
   setS('anim-speed', animSpeed, 'speed-val', v => v.toFixed(1) + '×');
-  document.getElementById('anim-speed-row').style.opacity = animating ? '1' : '0.4';
+  document.getElementById('anim-speed-row').classList.toggle('vis-off', !animating);
   document.getElementById('construction-view').checked = constructionView;
   setS('trace-speed', params.traceSpeed ?? 1, 'trace-speed-val', v => v.toFixed(1) + '×');
   setS('untraced-alpha', params.untracedAlpha ?? 0.2, 'untraced-alpha-val', v => Math.round(v * 100) + '%');
@@ -8194,6 +8396,11 @@ function refreshAllControls() {
   document.getElementById('col-hide').checked = !!params.colHide;
   COLUMN_SLIDERS.forEach(([id, key, fmt]) => setS(id, params[key] ?? PARAM_DEFAULTS[key], id + '-val', fmt));
   setColSurface(params.colSurface ?? 0);
+  setColAxis(params.colAxis ?? 0);
+  // The two views are alternatives; a patch carrying both keeps the column
+  // (construction view is on by default, so an explicit column is the newer intent).
+  if (params.columnView && constructionView) { constructionView = false; document.getElementById('construction-view').checked = false; }
+  updateGradControls();
   updateColumnControls();
   document.getElementById('sync-hard').checked = syncHard;
   setFilterType(filterType);
@@ -8717,7 +8924,7 @@ document.addEventListener('dblclick', e => {
 // value within its range by the Deviation amount (1 = fully random).
 const EVOLVE_KEYS = orderedTargetKeys(Object.keys(MAP_TARGETS).filter(k => k !== 'preset'));
 // Default-excluded: view toggles + master volume (disruptive / non-musical).
-const EVOLVE_DEFAULT_OFF = new Set(['constructionView', 'columnView', 'colSurface', 'colHide', 'animatePhase', 'visualSwap', 'volume', 'geometry',
+const EVOLVE_DEFAULT_OFF = new Set(['constructionView', 'columnView', 'colSurface', 'colHide', 'colAxis', 'gradOn', 'animatePhase', 'visualSwap', 'volume', 'geometry',
   'depthSrc', 'depthShade', 'showShadow',
   'frameShow', 'frameFollow', 'frameOpacity', 'frameRadius', 'frameAxisLen',
   'frameOrbits', 'frameAngles', 'framePlanes',
@@ -8960,7 +9167,7 @@ function setMorphStepMode(m) {
 // would stop protecting the waveform it promises to leave alone.
 const MORPH_DISCRETE = new Set(['subOct', 'fx', 'fy', 'geometry', 'mirrorMode', 'fillSurface', 'trailMode', 'trailCount', 'm4Rotate', 'phase',
                                 'depthSrc', 'depthShade', 'showShadow', 'morphX', 'morphY',
-                                'columnView', 'colSlices', 'colHide', 'colSurface']);
+                                'columnView', 'colSlices', 'colHide', 'colSurface', 'colAxis', 'gradOn']);
 // The rest of a patch's stepped state lives outside `params` — the waveforms, the
 // filter type, the view toggles. Same treatment, same list.
 const MORPH_DISCRETE_TOP = ['waveTypeX', 'waveTypeY', 'visualSwap', 'audioStereo', 'syncHard',
@@ -9005,6 +9212,7 @@ function startPresetMorph(data) {
     fromHSL: { ...strokeHSL },
     toHSL: data.strokeHSL ? { ...data.strokeHSL } : (to.strokeColor ? hexToHsl(to.strokeColor) : { ...strokeHSL }),
     fromBg: params.bgColor, toBg: to.bgColor || params.bgColor,
+    fromGrad: params.gradColor, toGrad: to.gradColor || PARAM_DEFAULTS.gradColor,
   };
 }
 function tickPresetMorph(now) {
@@ -9023,6 +9231,7 @@ function tickPresetMorph(now) {
   strokeHSL.l = _morph.fromHSL.l + (_morph.toHSL.l - _morph.fromHSL.l) * u;
   params.strokeColor = hslToHex(strokeHSL.h, strokeHSL.s, strokeHSL.l);
   params.bgColor = lerpHex(_morph.fromBg, _morph.toBg, u);
+  params.gradColor = lerpHex(_morph.fromGrad, _morph.toGrad, u);
   applyPageBg();
   schedulePeriodicWaveUpdate();   // the audio timbre follows the glide
 }
@@ -9220,7 +9429,49 @@ function setViewTg(id, on) {
 }
 let _roLast = '';
 const GEO_TAGS = ['LAT', 'ROT+', 'ROT−', 'ROSE', 'KNOT', 'SPHR', 'WAVE'];
+// Controls that cannot take effect in the current state are hidden, not greyed.
+// Runs on every state change that matters and on the 150 ms UI tick, so modes
+// switched by a CC, an LFO or a preset are reflected too.
+// Calls made while the page is still wiring itself up (setGeometry and friends
+// run during init) are skipped; the first real pass runs once init is done.
+var _uiReady = false;
+var _visState = null;
+function setVis(id, on) {
+  if (!_visState) _visState = new Map();
+  if (_visState.get(id) === on) return;
+  const el = document.getElementById(id);
+  if (!el) return;
+  _visState.set(id, on);
+  el.classList.toggle('vis-off', !on);
+}
+function refreshVisibility() {
+  if (!_uiReady) return;
+  const col = columnActive(), con = m4Active(), lift = liftActive(), polar = polarGeometry();
+  const deep = lift || solidGeometry();
+  setVis('construction-controls', con);
+  setVis('column-controls', col);
+  setVis('col-hide-row', col && colSurfaceMode() === COL_SURF_OFF);
+  // The column is its own picture: mirrors, the dash morph, the surface fill and
+  // the trails don't reach it, and it has its own camera, shading and no frame.
+  setVis('dots-line-row', !col);
+  setVis('flat-only-look', !col);
+  setVis('depthsrc-block', !polar && !col);
+  setVis('tilt-row', !col);
+  setVis('depth-shade-row', deep && !col);
+  setVis('show-shadow-row', lift && !col);
+  setVis('lift-info', !polar && !col);
+  setVis('frame-group', !col && !waveGeometry());
+  setVis('phase-modulators-row', !lift);
+  setVis('anim-speed-row', !!animating);
+  setVis('grad-controls', !!params.gradOn);
+  setVis('grad-angle-row', !!params.gradOn && !col);
+  const vf = document.getElementById('vt-frame'); if (vf) vf.hidden = waveGeometry() || col;
+  const v3 = document.getElementById('vt-3d'); if (v3) v3.hidden = polar || col;
+  const azLbl = document.getElementById('az-label');
+  if (azLbl) { const t = (lift || col) ? 'Perspective' : 'Depth'; if (azLbl.textContent !== t) azLbl.textContent = t; }
+}
 function syncViewToggles() {
+  refreshVisibility();
   const geoBtn = document.getElementById('vt-geo');
   if (geoBtn && geoBtn.textContent !== GEO_TAGS[figGeometry()]) geoBtn.textContent = GEO_TAGS[figGeometry()];
   setViewTg('vt-geo', polarGeometry());
@@ -9257,7 +9508,8 @@ const TARGET_CONTROL = {
   trailCount: 'trail-count', trailSpacing: 'trail-spacing', phase: 'phase', animatePhase: 'animate', animSpeed: 'anim-speed',
   constructionView: 'construction-view', m4Rotate: '[data-m4rot]', columnView: 'column-view',
   colSlices: 'col-slices', colTurns: 'col-turns', colHeight: 'col-height', colElev: 'col-elev', colYaw: 'col-yaw',
-  colShade: 'col-shade', colSurface: '[data-colsurf]', colHide: 'col-hide',
+  colShade: 'col-shade', colSurface: '[data-colsurf]', colHide: 'col-hide', colAxis: '[data-colaxis]',
+  gradOn: 'grad-on', gradAngle: 'grad-angle',
   depthSrc: '[data-depthsrc]', az: 'az', tiltAngle: 'tilt-angle', depthShade: 'depth-shade', showShadow: 'show-shadow',
   frameShow: 'frame-show', frameFollow: 'frame-follow', frameOpacity: 'frame-opacity', frameRadius: 'frame-radius',
   frameAxisLen: 'frame-axis-len', frameOrbits: '[data-frameorbits]', frameAngles: '[data-frameangles]', framePlanes: 'frame-plane-xy',
@@ -9427,7 +9679,7 @@ function psGo(i) {
   if (!it) return;
   closeSearch(false);
   if (document.getElementById('layout').classList.contains('sidebar-hidden')) document.getElementById('sidebar-toggle').click();
-  if (it.el && it.el.closest('.section[hidden]')) return;   // e.g. construction view outside LATERAL
+  if (it.el && it.el.closest('.section[hidden], .vis-off')) return;   // e.g. construction view outside LATERAL, or a control the current mode hides
   revealControl(it.el);
 }
 function openSearch() {
@@ -9620,6 +9872,7 @@ renderDock();
 }
 window.addEventListener('resize', () => document.body.style.setProperty('--dock-h', (dockEl.offsetHeight || 0) + 'px'));
 
+_uiReady = true;
 syncViewToggles();
 setInterval(() => { syncViewToggles(); syncLiveControls(); }, 150);
 
