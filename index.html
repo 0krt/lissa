@@ -300,6 +300,12 @@
   .ro-pop .rp-t { display: flex; justify-content: space-between; align-items: center; color: var(--accent2); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; }
   .ro-pop .rp-t button { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 12px; }
   .param-header .val { cursor: text; }
+  .ico {
+    display: block; margin: 0 auto; fill: none; stroke: currentColor;
+    stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; overflow: visible;
+  }
+  .geo-toggle .wave-btn { padding: 4px 2px; }
+  .geo-toggle .ico { width: 20px; height: 20px; }
   .wave-icon {
     display: block; width: 22px; height: 11px; margin: 0 auto;
     fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
@@ -1090,13 +1096,15 @@
     display: flex; flex-direction: column; gap: 3px; pointer-events: auto;
   }
   .view-tg {
-    font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.08em;
-    line-height: 1; padding: 3px 4px; min-width: 26px;
+    display: flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; padding: 0;
     background: rgba(12,12,14,0.72); color: var(--muted);
     border: 1px solid var(--border); border-radius: 2px; cursor: pointer;
   }
-  .view-tg:hover { color: var(--text); border-color: var(--control-border); }
-  .view-tg.active { color: var(--accent); border-color: var(--accent); }
+  .view-tg .ico { width: 18px; height: 18px; }
+  .view-tg:not(:disabled):hover { color: var(--text); border-color: var(--control-border); }
+  .view-tg:disabled { opacity: 0.3; cursor: default; }
+  .view-tg.active, .view-tg.active:hover { color: var(--accent); border-color: var(--accent); }
   .view-tg:focus-visible { outline: 1px solid var(--focus); outline-offset: 1px; }
   .synth-readout {
     position: absolute; top: 6px; left: 6px; z-index: 2; margin: 0;
@@ -1642,20 +1650,17 @@
       <div class="section" id="section-axes">
         <div class="section-label">Figure</div>
         <div class="param-header" style="margin-bottom:4px"><label>Geometry</label></div>
-        <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="Figure geometry">
-          <button class="wave-btn active" data-geo="0" style="padding:5px 2px" title="Lateral — X horizontal, Y vertical (Lissajous)">LATERAL</button>
-          <button class="wave-btn" data-geo="1" style="padding:5px 2px" title="Rotary, con-current — two circles turning the same way">CON</button>
-          <button class="wave-btn" data-geo="2" style="padding:5px 2px" title="Rotary, counter-current — two circles turning opposite ways">COUNTER</button>
-          <button class="wave-btn" data-geo="3" style="padding:5px 2px" title="Rose — r(θ) = cos(n/d · θ)">ROSE</button>
-        </div>
-        <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="Solid figure geometry">
-          <button class="wave-btn" data-geo="4" style="padding:5px 2px" title="Torus knot — X round the ring, Y through the hole (3D)">TORUS KNOT</button>
-          <button class="wave-btn" data-geo="5" style="padding:5px 2px" title="Spherical Lissajous — X longitude, Y latitude (3D)">SPHERE</button>
-          <button class="wave-btn" data-geo="6" style="padding:5px 2px" title="Waves — X and Y stacked across the full view, their normalised sum below">WAVES</button>
+        <div class="wave-toggle geo-toggle" style="margin-bottom:6px" role="group" aria-label="Figure geometry">
+          <button class="wave-btn active" data-geo="0" title="Lateral — X horizontal, Y vertical (Lissajous)" aria-label="Lateral"></button>
+          <button class="wave-btn" data-geo="1" title="Con-current — two circles turning the same way" aria-label="Con-current"></button>
+          <button class="wave-btn" data-geo="2" title="Counter-current — two circles turning opposite ways" aria-label="Counter-current"></button>
+          <button class="wave-btn" data-geo="3" title="Rose — r(θ) = cos(n/d · θ)" aria-label="Rose"></button>
+          <button class="wave-btn" data-geo="4" title="Torus knot — X round the ring, Y through the hole (3D)" aria-label="Torus knot"></button>
+          <button class="wave-btn" data-geo="5" title="Waves — X and Y stacked across the full view, their normalised sum below" aria-label="Waves"></button>
         </div>
         <div id="geo-hint" style="font-size:10.5px;color:var(--label);margin-bottom:10px;line-height:1.45"></div>
         <div class="info-text" data-info-label="figure geometry">
-          <strong>Lateral</strong>: X moves the point left–right, Y up–down. <strong>Con-current</strong> and <strong>counter-current</strong> turn each oscillator into a rotating circle and add the two, drawing rings or stars. <strong>Rose</strong>: r = cos(fx/fy · θ). <strong>Torus knot</strong> and <strong>Sphere</strong> wrap the path on a solid; drag to orbit. <strong>Waves</strong> plots the raw waves. Construction view and the 3D lift work in Lateral only; Column view in every flat geometry.
+          <strong>Lateral</strong>: X moves the point left–right, Y up–down. <strong>Con-current</strong> and <strong>counter-current</strong> turn each oscillator into a rotating circle and add the two, drawing rings or stars. <strong>Rose</strong>: r = cos(fx/fy · θ). <strong>Torus knot</strong> wraps the path on a torus; drag to orbit. <strong>Waves</strong> plots the raw waves. Construction view and the 3D lift work in Lateral only; Column view in every flat geometry.
         </div>
         <div class="mod-group">
           <div class="vel-row"><span class="vel-label">X Axis</span></div>
@@ -1682,7 +1687,7 @@
         <button class="wave-btn" id="xy-swap-btn" style="width:100%;border:1px solid var(--border);border-radius:var(--radius);padding:7px;margin-top:4px">⇄ Swap X / Y</button>
         <div class="param-row" style="margin-top:10px">
           <div class="param-header"><label>Damping</label><span class="val" id="damp-val">off</span></div>
-          <input type="range" id="damp" min="0" max="1" step="0.01" value="0">
+          <input type="range" id="damp" min="0" max="1" step="0.001" value="0">
         </div>
 
         <div class="subsection-label">Ratio Presets</div>
@@ -2009,10 +2014,6 @@
           <button class="wave-btn" data-mirror="2">Y</button>
           <button class="wave-btn" data-mirror="3">X+Y</button>
         </div>
-        <div class="checkbox-row">
-          <input type="checkbox" id="fill-surface">
-          <label for="fill-surface">Fill surface (front &amp; back)</label>
-        </div>
 
         <div class="subsection-label">Trail</div>
         <div class="wave-toggle" style="margin-bottom:6px">
@@ -2311,6 +2312,13 @@
             <input type="checkbox" id="col-hide" checked>
             <label for="col-hide">Solid slices (hide lines behind)</label>
           </div>
+          <div class="checkbox-row" id="col-core-row">
+            <input type="checkbox" id="col-core">
+            <label for="col-core">Black core (fill the gaps between slices)</label>
+          </div>
+          <div class="info-text" data-info-label="the black core">
+            Fills the column's whole volume in black and draws the slices on its outside, so you can't see between them to the slices behind. Needs WebGL2.
+          </div>
         </div>
       </div>
     </div>
@@ -2515,6 +2523,28 @@
           <button class="wave-btn" data-aspect="16:9">16:9</button>
           <button class="wave-btn" data-aspect="9:16">9:16</button>
         </div>
+        <div style="font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Size (short side)</div>
+        <div class="wave-toggle" style="margin-bottom:8px">
+          <button class="wave-btn" data-recsize="720">720</button>
+          <button class="wave-btn active" data-recsize="1080">1080</button>
+          <button class="wave-btn" data-recsize="1440">1440</button>
+          <button class="wave-btn" data-recsize="2160">4K</button>
+        </div>
+        <div style="font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Quality</div>
+        <div class="wave-toggle" style="margin-bottom:8px">
+          <button class="wave-btn" data-recq="0" title="Smallest files">LOW</button>
+          <button class="wave-btn" data-recq="1">MED</button>
+          <button class="wave-btn active" data-recq="2">HIGH</button>
+          <button class="wave-btn" data-recq="3" title="Largest files; best for dense line work">MAX</button>
+        </div>
+        <div style="font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Frame rate</div>
+        <div class="wave-toggle" style="margin-bottom:8px">
+          <button class="wave-btn" data-recfps="30">30</button>
+          <button class="wave-btn active" data-recfps="60">60</button>
+        </div>
+        <div class="info-text" data-info-label="video size and quality">
+          <strong>Size</strong> is the frame's short side in pixels; lines scale with it, so the video looks like the screen. <strong>Quality</strong> sets the bitrate: dense figures (columns, high ratios) need HIGH or MAX to avoid blocky compression. If a heavy view can't keep up at 60, record at 30. The browser may cap the bitrate.
+        </div>
         <div class="checkbox-row">
           <input type="checkbox" id="rec-show-frame">
           <label for="rec-show-frame">Show frame preview</label>
@@ -2562,7 +2592,19 @@
         </div>
 
         <div class="subsection-label">Image</div>
-        <button class="btn btn-primary" id="btn-export" style="width:100%;margin-top:12px">Export SVG</button>
+        <div style="font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">PNG scale</div>
+        <div class="wave-toggle" style="margin-bottom:8px">
+          <button class="wave-btn" data-pngscale="1">1×</button>
+          <button class="wave-btn active" data-pngscale="2">2×</button>
+          <button class="wave-btn" data-pngscale="4">4×</button>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:12px">
+          <button class="btn btn-primary" id="btn-export" style="flex:1" title="Export SVG">⤓ SVG</button>
+          <button class="btn btn-primary" id="btn-export-png" style="flex:1" title="Export PNG">⤓ PNG</button>
+        </div>
+        <div class="info-text" data-info-label="image export">
+          <strong>PNG</strong> is the view exactly as drawn — 3D, shading, gradient, column and frame included — at the chosen multiple of the on-screen size. With trails on it is a copy of the screen. <strong>SVG</strong> is the flat figure as vector paths.
+        </div>
       </div>
     </div>
 
@@ -2570,12 +2612,11 @@
 
   <div class="canvas-area">
     <div class="view-toggles" role="toolbar" aria-label="View toggles">
-      <button class="view-tg" type="button" id="vt-geo" aria-pressed="false" title="Geometry — cycle lateral / con-current / counter-current / rose / torus knot / sphere / waves">LAT</button>
-      <button class="view-tg" type="button" id="vt-3d" aria-pressed="false" title="3D — phase lift on / off">3D</button>
-      <button class="view-tg" type="button" id="vt-frame" aria-pressed="false" title="Coordinate frame on / off">XYZ</button>
-      <button class="view-tg" type="button" id="vt-construct" aria-pressed="false" title="Construction view on / off">CON</button>
-      <button class="view-tg" type="button" id="vt-column" aria-pressed="false" title="Column view on / off — the phase rotation stacked into a column">COL</button>
-      <button class="view-tg" type="button" id="vt-readout" aria-pressed="false" title="Synthesis readout on / off">INFO</button>
+      <button class="view-tg" type="button" id="vt-geo" aria-pressed="false" title="Geometry — cycle lateral / 3D lateral / con-current / counter-current / rose / torus knot / waves"></button>
+      <button class="view-tg" type="button" id="vt-frame" aria-pressed="false" title="Coordinate frame on / off"></button>
+      <button class="view-tg" type="button" id="vt-column" aria-pressed="false" title="Column view on / off — the phase rotation stacked into a column"></button>
+      <button class="view-tg" type="button" id="vt-construct" aria-pressed="false" title="Construction view — cycle off / straight / full lap / rings"></button>
+      <button class="view-tg" type="button" id="vt-readout" aria-pressed="false" title="Synthesis readout on / off"></button>
     </div>
     <pre class="synth-readout" id="synth-readout" aria-live="off" hidden></pre>
     <div class="ro-pop" id="ro-pop" role="dialog" aria-label="Edit stage" hidden></div>
@@ -2665,7 +2706,7 @@ let params = {
   ax: 1, fx: 3,
   ay: 1, fy: 2,
   phase: 0.5,
-  geometry: 0,    // 0 = lateral, 1 = rotary concurrent, 2 = rotary counter-current, 3 = rose, 4 = torus knot, 5 = spherical, 6 = waves
+  geometry: 0,    // 0 = lateral, 1 = rotary concurrent, 2 = rotary counter-current, 3 = rose, 4 = torus knot, 5 = waves
   morphX: 0,      // X wave position along SIN→TRI→SAW→SQR (0..3, whole = exact shape)
   morphY: 0,      // Y wave position along SIN→TRI→SAW→SQR (0..3, whole = exact shape)
   strokeColor: '#c8f060',
@@ -2709,7 +2750,6 @@ let params = {
   filterQ: 0.7,    // waveform filter resonance / Q
   dotsLine: 1,     // 1 = continuous line, <1 = dotted (lower = sparser dots)
   rotateAngle: 0,  // phase-lift orbit yaw in degrees (set by dragging the figure)
-  fillSurface: 0,  // 1 = fill the figure's enclosed area (front + back faces)
   trailAmt: 0,     // frame persistence 0..0.97 (phosphor-style afterglow, visual)
   trailMode: 0,    // 0 = FADE (afterglow), 1 = KEEP (discrete phase-offset copies)
   trailCount: 4,   // KEEP: how many copies of the figure trail behind it
@@ -2731,6 +2771,7 @@ let params = {
   colElev: 25,        // column view: camera elevation, degrees (drag vertically)
   colYaw: 0,          // column view: yaw about the column axis, degrees (drag horizontally)
   colHide: 1,         // column view: fill each slice with the background (hidden lines)
+  colCore: 0,         // column view, slices: a black solid core under the slices (no see-through gaps)
   colSurface: 0,      // column view: 0 = slice lines, 1 = a lit surface spanned over them, 2 = surface + lines
   colShade: 0.7,      // column view: depth shading amount (how far the back recedes into the background)
   colAxis: 0,         // column view: 0 = vertical column, 1 = turned a quarter turn into a horizontal bar
@@ -3076,7 +3117,7 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
   const pad = Math.min(w, h) * 0.034;
   // The rotary geometries fold the amplitudes into the point (they are rotor
   // radii there, not axis scales), so the box is square.
-  const geo = figGeometry(), polar = geo !== 0, solid = geo === 4 || geo === 5;
+  const geo = figGeometry(), polar = geo !== 0, solid = geo === 4;
   const rx = (w / 2 - pad) * (polar ? 1 : ax) * zoom;
   const ry = (h / 2 - pad) * (polar ? 1 : ay) * zoom;
 
@@ -3174,16 +3215,13 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
   // Damping (harmonograph): the curve runs `laps` times round, shrinking as it
   // goes, with X slipping a little each lap so the passes weave rather than stack.
   // The sample arrays are periodic, so the extra laps reuse them for free.
-  const damp = params.damp || 0;
-  const laps = damp > 0.001 ? Math.max(2, Math.min(12, Math.floor(160000 / resolution))) : 1;
-  const total = resolution * laps;
-  const dampRate = 4 * damp / laps;           // e^-4 ≈ 2% left at the end, at full damping
+  const DP = dampPlan(resolution), laps = DP.laps, total = resolution * laps;
   const pt = (i, k, mx, my, zFlip) => {
     let a = 1, j = i;
     if (laps > 1) {
-      a = Math.exp(-dampRate * i / resolution);
+      a = Math.exp(-DP.rate * i / resolution);
       j = i % resolution;
-      k = (k || 0) + Math.floor(i * 0.004);   // 0.4% of a lap per lap
+      k = (k || 0) + Math.floor(i * DP.slip);
     }
     const idx = k ? (j + k) % resolution : j;
     let xs = sxArr[idx];
@@ -3219,26 +3257,6 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
     beginFigureXform(phase, false, rx / ry);
   }
 
-  // Surface fill: even-odd fill of the closed figure path so its enclosed area
-  // reads as a woven surface. With depth present the far face (z mirrored) is
-  // filled first, dimmer — front and back of the 3D object.
-  if (params.fillSurface) {
-    const fillPass = (zFlip, alpha) => {
-      targetCtx.fillStyle = figPaint(targetCtx, w, h, alpha);
-      for (const [mx, my] of mirrors) {
-        targetCtx.beginPath();
-        for (let i = 0; i <= total; i++) {
-          pt(i, 0, mx, my, zFlip);
-          i === 0 ? targetCtx.moveTo(_P.x, _P.y) : targetCtx.lineTo(_P.x, _P.y);
-        }
-        targetCtx.closePath();
-        targetCtx.fill('evenodd');
-      }
-    };
-    if (figureHasDepth()) fillPass(true, 0.10);
-    fillPass(false, 0.17);
-    targetCtx.fillStyle = paint;   // dots mode fills with the stroke colour
-  }
 
 
   const dl = params.dotsLine ?? 1;
@@ -3304,7 +3322,7 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
         const near = 1 - b / (DEPTH_BINS - 1);             // 0 = farthest, 1 = nearest
         // Opaque, pre-mixed with the background: translucent runs stacked their
         // round caps where one bin hands over to the next, beading the line.
-        targetCtx.strokeStyle = mixHex(strokeColor, params.bgColor, 0.28 + 0.72 * near);
+        targetCtx.strokeStyle = depthPaint(targetCtx, w, h, 0.28 + 0.72 * near);
         targetCtx.lineWidth = lineWidth * (0.62 + 0.5 * near);
         targetCtx.stroke(bins[b]);
       }
@@ -3329,6 +3347,31 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
     }
   }
   if (dashOn) { targetCtx.setLineDash([]); targetCtx.lineWidth = lineWidth; }
+}
+// Damping (harmonograph). The slider runs on a square-law curve, so its low end
+// is fine-grained: 10% on the slider is 1% of full damping. `laps` copies of the
+// curve shrink by e^-4·strength in all; X slips `slip` samples per sample, a
+// share of a lap that also grows with the strength so the weave fades in from
+// nothing rather than appearing at full width with the first step.
+function dampStrength() { const d = Math.max(0, Math.min(1, params.damp || 0)); return d * d; }
+function dampPlan(res) {
+  const e = dampStrength();
+  if (e < 1e-6) return { laps: 1, rate: 0, slip: 0 };
+  const laps = Math.max(2, Math.min(12, Math.floor(160000 / res)));
+  return { laps, rate: 4 * e / laps, slip: 0.004 * Math.min(1, 4 * Math.sqrt(e)) };
+}
+// The depth-cued stroke: the paint pre-mixed toward the background by `k`
+// (1 = full colour). With the gradient on, both of its ends are mixed the same
+// way, so a 3D figure carries the gradient as an overlay on top of its shading.
+function depthPaint(g, w, h, k) {
+  const bg = params.bgColor;
+  if (!params.gradOn) return mixHex(params.strokeColor, bg, k);
+  const t = ((params.gradAngle ?? 90) * Math.PI) / 180, r = Math.min(w, h) / 2;
+  const dx = Math.cos(t) * r, dy = Math.sin(t) * r;
+  const gr = g.createLinearGradient(w / 2 - dx, h / 2 - dy, w / 2 + dx, h / 2 + dy);
+  gr.addColorStop(0, mixHex(params.strokeColor, bg, k));
+  gr.addColorStop(1, mixHex(params.gradColor || '#5b8def', bg, k));
+  return gr;
 }
 // Mirror sign sets for mirrorMode 0..3: off / mirror-X / mirror-Y / 4-fold.
 const MIRROR_SETS = [
@@ -3425,26 +3468,68 @@ function liftActive() { return Math.round(params.depthSrc ?? 0) === 1 && !polarG
 // r = cos(n/d·θ) table (δ = 0 is the cosine; other δ turn the rose). The rose is
 // itself two equal counter-rotating rotors at (n ± d)/d. Every synthesis stage
 // still acts on the waves, so a SQR angle wave snaps θ, FM bends the petals, etc.
-// The two SOLID geometries put the rotors on a surface and have real depth:
+// The SOLID geometry puts the rotors on a surface and has real depth:
 //   TORUS   X winds the long way round a torus, Y through its hole; fx:fy = p:q
 //           draws the (p, q) torus knot.  ax = size, ay = tube thickness.
-//   SPHERE  X is longitude, Y drives latitude (spherical Lissajous; 1:2 is the
-//           tennis-ball seam).  ax = size, ay = how far towards the poles.
-// They go through the same view transform as the lift, so dragging orbits them,
+// It goes through the same view transform as the lift, so dragging orbits them,
 // Tilt / Perspective apply and the stroke is depth-cued.
 // The 3D lift itself is defined for the lateral figure only and stands down here.
-const GEO_NAMES = ['LATERAL', 'CON-CURRENT', 'COUNTER', 'ROSE', 'TORUS KNOT', 'SPHERICAL', 'WAVES'];
+const GEO_NAMES = ['LATERAL', 'CON-CURRENT', 'COUNTER', 'ROSE', 'TORUS KNOT', 'WAVES'];
 const GEO_MAX = GEO_NAMES.length - 1;
+const GEO_LABELS = ['Lateral', 'Con-current', 'Counter-current', 'Rose', 'Torus knot', 'Waves'];
+
+// ── Icons ─────────────────────────────────────────────────────────────────────
+// The geometry icons are the figures themselves, sampled from their own formulas
+// into a 24 × 24 box, so each button shows what it draws. The toolbar's other
+// icons are hand-drawn paths in the same box.
+function iconCurve(fn, n, closed) {
+  const P = [];
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  for (let i = 0; i <= n; i++) {
+    const q = fn(i / n);
+    P.push(q);
+    x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); y0 = Math.min(y0, q[1]); y1 = Math.max(y1, q[1]);
+  }
+  const k = 19 / Math.max(x1 - x0, y1 - y0, 1e-6), ox = 12 - k * (x0 + x1) / 2, oy = 12 - k * (y0 + y1) / 2;
+  return P.map((q, i) => (i ? 'L' : 'M') + (ox + k * q[0]).toFixed(2) + ' ' + (oy + k * q[1]).toFixed(2)).join('') + (closed ? 'Z' : '');
+}
+const TAU = Math.PI * 2;
+const ICON_PATHS = {
+  lat:   iconCurve(u => { const t = u * TAU; return [Math.sin(3 * t + Math.PI / 2), -Math.sin(2 * t)]; }, 160, true),
+  lat3d: iconCurve(u => {   // a lifted 2:1: X and its quadrature as depth, yawed and tilted
+    const t = u * TAU, x = Math.sin(2 * t), z = Math.cos(2 * t), y = -Math.sin(t);
+    const X = x * Math.cos(0.7) + z * Math.sin(0.7), D = -x * Math.sin(0.7) + z * Math.cos(0.7);
+    return [X, y * Math.cos(0.5) + D * Math.sin(0.5)];
+  }, 200, true),
+  rotp:  iconCurve(u => { const t = u * TAU; return [Math.cos(t) + 0.42 * Math.cos(5 * t), -(Math.sin(t) + 0.42 * Math.sin(5 * t))]; }, 200, true),
+  rotm:  iconCurve(u => { const t = u * TAU; return [Math.cos(t) + 0.5 * Math.cos(-4 * t), -(Math.sin(t) + 0.5 * Math.sin(-4 * t))]; }, 200, true),
+  rose:  iconCurve(u => { const t = u * Math.PI, r = Math.cos(3 * t); return [r * Math.cos(t), -r * Math.sin(t)]; }, 160, true),
+  knot:  iconCurve(u => { const t = u * TAU; return [Math.sin(t) + 2 * Math.sin(2 * t), Math.cos(t) - 2 * Math.cos(2 * t)]; }, 200, true),   // the trefoil, the (2, 3) torus knot
+  wave:  'M2 8.5' + Array.from({ length: 41 }, (_, i) => 'L' + (2 + i / 2).toFixed(2) + ' ' + (8.5 - 3.5 * Math.sin(i / 40 * TAU * 1.5)).toFixed(2)).join('')
+       + 'M2 17' + Array.from({ length: 41 }, (_, i) => 'L' + (2 + i / 2).toFixed(2) + ' ' + (17 - 3 * Math.sin(i / 40 * TAU)).toFixed(2)).join(''),
+  xyz:   'M9 15V3.5M9 15h11.5M9 15l-6 6M6.8 5.8L9 3.5l2.2 2.3M18.2 12.8l2.3 2.2-2.3 2.2M3 18v3h3',
+  column:'M5 6.5a7 2.5 0 1 0 14 0a7 2.5 0 1 0-14 0M5 12a7 2.5 0 0 0 14 0M5 17.5a7 2.5 0 0 0 14 0M5 6.5v11M19 6.5v11',
+  // Construction: the figure's box with a generator strip on top and one down the side.
+  cstraight: 'M9 9h12v12H9zM9 2.5' + Array.from({ length: 25 }, (_, i) => 'L' + (9 + i / 2).toFixed(2) + ' ' + (4.5 - 2 * Math.sin(i / 24 * TAU)).toFixed(2)).join('')
+       + 'M4.5 9' + Array.from({ length: 25 }, (_, i) => 'L' + (4.5 - 2 * Math.sin(i / 24 * TAU)).toFixed(2) + ' ' + (9 + i / 2).toFixed(2)).join(''),
+  clap:  'M9 9h12v12H9zM9 1.8v5.4M21 1.8v5.4M2 9h5.4M2 21h5.4M9 4.5' + Array.from({ length: 25 }, (_, i) => 'L' + (9 + i / 2).toFixed(2) + ' ' + (4.5 - 1.8 * Math.sin(i / 24 * TAU * 2)).toFixed(2)).join('')
+       + 'M4.7 9' + Array.from({ length: 25 }, (_, i) => 'L' + (4.7 - 1.8 * Math.sin(i / 24 * TAU * 2)).toFixed(2) + ' ' + (9 + i / 2).toFixed(2)).join(''),
+  crings:'M9 9h12v12H9zM11.5 4.5a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0-7 0M1 15a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0-7 0',
+  info:  'M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0M12 11v6M12 7.4v.2',
+};
+function iconSvg(key) {
+  return `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICON_PATHS[key]}"/></svg>`;
+}
+const GEO_ICON = ['lat', 'rotp', 'rotm', 'rose', 'knot', 'wave'];
 function figGeometry() { return Math.max(0, Math.min(GEO_MAX, Math.round(params.geometry || 0))); }
 function polarGeometry() { return figGeometry() !== 0; }
-function solidGeometry() { const g = figGeometry(); return g === 4 || g === 5; }
+function solidGeometry() { return figGeometry() === 4; }
 // WAVES is not a figure at all: the two waves and their sum, plotted flat.
-const GEO_WAVES = 6;
+const GEO_WAVES = 5;
 function waveGeometry() { return figGeometry() === GEO_WAVES; }
 // Anything the view can orbit: the lifted lateral figure or a solid geometry.
 function orbitable() { return liftActive() || solidGeometry() || columnActive(); }
 const TORUS_TUBE = 0.6;     // tube radius over major radius at ay = 1
-const SPHERE_LAT = 1.2;     // latitude swing in radians at ay = 1 (short of the poles)
 // The construction view explains the lateral figure (two generators projected on
 // two axes); in the rotary geometries the plain figure is shown instead.
 // The two are alternatives (the checkboxes turn each other off); should both ever
@@ -3464,11 +3549,6 @@ function geoPoint(geo, xs, xq, ys, yq, out) {
     out.x = w * xq;
     out.y = -w * xs;
     out.z = -r * k * ys;
-  } else if (geo === 5) {                // sphere: longitude from X's rotor, latitude from Y's wave
-    const lat = SPHERE_LAT * ay * ys, c = Math.cos(lat);
-    out.x = ax * c * xs;
-    out.y = -ax * Math.sin(lat);
-    out.z = -ax * c * xq;
   } else if (geo === 3) {                       // rose: radius from X, direction from Y
     out.x = ax * xq * yq;
     out.y = -ay * xq * ys;
@@ -4117,6 +4197,7 @@ function colHorizontal() { return Math.round(params.colAxis || 0) === 1; }
 // asks for more, so it is smooth along the axis whatever the slice count).
 // Row r sits at slice coordinate v = r·(n−1)/(rows−1), so integer v are slices.
 function buildColumn(w, h, phase, zoom, rows, budget) {
+  _colMemoKey = '';   // the _col* buffers are about to change under any memo
   const { ax, ay, fx, fy } = params;
   const geo = figGeometry(), polar = geo !== 0;
   const n = Math.max(2, Math.min(400, Math.round(params.colSlices || 48)));
@@ -4126,7 +4207,10 @@ function buildColumn(w, h, phase, zoom, rows, budget) {
   const minPts = Math.ceil(Math.max(fx, fy) * periodFactor * 40 * Math.min(modComplexity(), 10));
   // Per-row resolution: enough for the figure, but the whole stack stays inside
   // a fixed point budget so 160 slices of a busy figure still hold the frame rate.
-  const res = Math.max(64, Math.min(Math.max(minPts, 360), 6000, Math.floor((budget || 240000) / R)));
+  // The Drawing › Resolution setting scales both (2000 = as designed), so it
+  // trades frame rate for detail here as it does in the flat figure.
+  const q = Math.max(0.25, Math.min(5, (params.resolution || 2000) / 2000)), qb = Math.max(1, Math.min(3, q));
+  const res = Math.max(64, Math.round(Math.min(Math.max(minPts, 360) * q, 6000 * qb, ((budget || 240000) * qb) / R)));
   const N = res + 1;
   if (_colX.length < N) {
     _colX = new Float64Array(N); _colXQ = new Float64Array(N);
@@ -4241,7 +4325,7 @@ const COL_GL_FS = `#version 300 es
 precision highp float;
 in vec3 vN; in float vV; in float vF; in float vZ;
 uniform vec3 uC0, uC1, uBg, uL;
-uniform float uShade, uLines, uLineW;
+uniform float uShade, uLines, uLineW, uCore;
 out vec4 o;
 void main() {
   vec3 n = normalize(vN);
@@ -4250,6 +4334,20 @@ void main() {
   vec3 hv = normalize(uL + vec3(0.0, 0.0, 1.0));
   float spec = pow(max(dot(n, hv), 0.0), 40.0);
   vec3 base = mix(uC0, uC1, vF);
+  float near = clamp(0.5 - 0.5 * vZ / 0.98, 0.0, 1.0);
+  float fade = 1.0 - uShade * 0.85 * (1.0 - near);
+  if (uCore > 0.5) {
+    // Solid black core, the slices drawn on it as lines in their own colours.
+    // Where the slices crowd under a pixel the line pattern would only alias, so
+    // it settles to its average coverage instead.
+    float fw = fwidth(vV);
+    float d = abs(fract(vV + 0.5) - 0.5);
+    float w = fw * uLineW;
+    float l = 1.0 - smoothstep(w, w + fw, d);
+    l = mix(l, min(1.0, 2.0 * w), smoothstep(0.18, 0.45, fw));
+    o = vec4(mix(vec3(0.0), mix(uBg, base, fade), l), 1.0);
+    return;
+  }
   vec3 col = base * (0.26 + 0.74 * lam) + vec3(0.22 * spec);
   if (uLines > 0.5) {
     float fw = fwidth(vV);
@@ -4258,8 +4356,7 @@ void main() {
     float l = (1.0 - smoothstep(w, w + fw, d)) * (1.0 - smoothstep(0.18, 0.45, fw));
     col = mix(col, base * 0.22, l);
   }
-  float near = clamp(0.5 - 0.5 * vZ / 0.98, 0.0, 1.0);
-  col = mix(uBg, col, 1.0 - uShade * 0.85 * (1.0 - near));
+  col = mix(uBg, col, fade);
   o = vec4(col, 1.0);
 }`;
 function colGL() {
@@ -4267,7 +4364,10 @@ function colGL() {
   _cgl.tried = true;
   try {
     const cv = document.createElement('canvas');
-    const gl = cv.getContext('webgl2', { stencil: true, antialias: true, premultipliedAlpha: true, alpha: true });
+    // No MSAA: the surface is supersampled instead (see colSupersample), which
+    // also smooths shading and sub-pixel facets, at a quarter of MSAA's memory
+    // for the same size.
+    const gl = cv.getContext('webgl2', { stencil: true, antialias: false, premultipliedAlpha: true, alpha: true });
     if (!gl) return null;
     const sh = (type, src) => {
       const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
@@ -4283,7 +4383,7 @@ function colGL() {
       aPos: gl.getAttribLocation(prog, 'aPos'), aN: gl.getAttribLocation(prog, 'aN'),
       aV: gl.getAttribLocation(prog, 'aV'), aF: gl.getAttribLocation(prog, 'aF'),
     };
-    ['uC0', 'uC1', 'uBg', 'uL', 'uShade', 'uLines', 'uLineW'].forEach(u => { _cgl.loc[u] = gl.getUniformLocation(prog, u); });
+    ['uC0', 'uC1', 'uBg', 'uL', 'uShade', 'uLines', 'uLineW', 'uCore'].forEach(u => { _cgl.loc[u] = gl.getUniformLocation(prog, u); });
     _cgl.gl = gl; _cgl.cv = cv; _cgl.prog = prog;
     _cgl.vbo = gl.createBuffer(); _cgl.ibo = gl.createBuffer(); _cgl.cbo = gl.createBuffer();
     cv.addEventListener('webglcontextlost', e => { e.preventDefault(); _cgl.gl = null; });
@@ -4384,6 +4484,7 @@ function renderColumnGL(C, w, h, pw, ph) {
   gl.uniform3f(G.loc.uL, lx / ll, ly / ll, lz / ll);
   gl.uniform1f(G.loc.uShade, Math.max(0, Math.min(1, params.colShade ?? 0.7)));
   gl.uniform1f(G.loc.uLines, colSurfaceMode() === COL_SURF_LINES ? 1 : 0);
+  gl.uniform1f(G.loc.uCore, colCoreActive() ? 1 : 0);
   gl.uniform1f(G.loc.uLineW, Math.max(0.5, (params.lineWidth || 1.5) * 0.5 * (pw / w)));
   gl.disable(gl.CULL_FACE);
   gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL); gl.depthMask(true);
@@ -4440,20 +4541,51 @@ function drawColumnSlices(g, C) {
   }
 }
 
+// SLICES with the core on: the GPU surface drawn as a black solid with the slice
+// lines on it, so nothing shows through the gaps between the slices.
+function colCoreActive() { return colSurfaceMode() === COL_SURF_OFF && !!params.colCore; }
+function colUsesGL() { return colSurfaceMode() !== COL_SURF_OFF || !!params.colCore; }
+// buildColumn is the expensive half, and within one frame the screen and a
+// recording ask for the same column (both in logical units): reuse the build.
+// render() clears the key every frame.
+let _colMemoKey = '', _colMemoC = null;
+function buildColumnMemo(w, h, phase, zoom, rows, budget) {
+  const key = [w, h, phase, zoom, rows || 0, budget || 0].join('|');
+  if (key !== _colMemoKey) { _colMemoC = buildColumn(w, h, phase, zoom, rows, budget); _colMemoKey = key; }
+  return _colMemoC;
+}
+// The surface is supersampled: rendered at twice the target's pixel size and
+// filtered down, which smooths the thin facets, silhouettes and specular
+// glints of a busy figure that MSAA leaves stepped. Falls back to 1× past
+// 4096 px (a 4K recording), where the pixels are small enough anyway and the
+// buffer would cost too much GPU memory.
+function colSupersample(pw, ph) {
+  const G = colGL();
+  const lim = G ? Math.min(4096, G.gl.getParameter(G.gl.MAX_RENDERBUFFER_SIZE) || 4096) : 4096;
+  return Math.max(1, Math.min(2, Math.floor(lim / Math.max(pw, ph))));
+}
+// Draws the GL column (surface or core) into g's w × h box; false if no GL.
+function drawColumnGL(g, w, h, phase, zoom) {
+  if (!colGL()) return false;
+  const C = buildColumnMemo(w, h, phase, zoom, colSurfaceRows(), COL_SURF_BUDGET);
+  const sc = Math.abs(g.getTransform ? g.getTransform().a : 1) || 1;
+  const pw = Math.max(1, Math.round(w * sc)), ph = Math.max(1, Math.round(h * sc));
+  const ss = colSupersample(pw, ph);
+  const cv = renderColumnGL(C, w, h, pw * ss, ph * ss);
+  if (!cv) return false;
+  const q = g.imageSmoothingQuality;
+  g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+  g.drawImage(cv, 0, cv.height - ph * ss, pw * ss, ph * ss, 0, 0, w, h);
+  g.imageSmoothingQuality = q;
+  return true;
+}
 function drawColumn(g, w, h, phase, zoom) {
   const { strokeColor, lineWidth } = params;
   g.setLineDash([]);
   g.lineJoin = 'round';
   g.lineCap = 'round';
-  let done = false;
-  if (colSurfaceMode() !== COL_SURF_OFF && colGL()) {
-    const C = buildColumn(w, h, phase, zoom, colSurfaceRows(), COL_SURF_BUDGET);
-    const sc = Math.abs(g.getTransform ? g.getTransform().a : 1) || 1;
-    const pw = Math.max(1, Math.round(w * sc)), ph = Math.max(1, Math.round(h * sc));
-    const cv = renderColumnGL(C, w, h, pw, ph);
-    if (cv) { g.drawImage(cv, 0, cv.height - ph, pw, ph, 0, 0, w, h); done = true; }
-  }
-  if (!done) drawColumnSlices(g, buildColumn(w, h, phase, zoom));
+  const done = colUsesGL() && drawColumnGL(g, w, h, phase, zoom);
+  if (!done) drawColumnSlices(g, buildColumnMemo(w, h, phase, zoom));
   g.lineWidth = lineWidth;
   g.strokeStyle = strokeColor;
   g.fillStyle = strokeColor;
@@ -4466,15 +4598,11 @@ function drawColumn(g, w, h, phase, zoom) {
 function columnSvg(w, h, phase) {
   const { bgColor, lineWidth } = params;
   const f = v => v.toFixed(2);
-  if (colSurfaceMode() !== COL_SURF_OFF && colGL()) {
-    const C = buildColumn(w, h, phase, 1, colSurfaceRows(), COL_SURF_BUDGET);
-    const cv = renderColumnGL(C, w, h, w, h);
-    if (cv) {
-      const tmp = document.createElement('canvas');
-      tmp.width = w; tmp.height = h;
-      tmp.getContext('2d').drawImage(cv, 0, cv.height - h, w, h, 0, 0, w, h);
+  if (colUsesGL() && colGL()) {
+    const tmp = document.createElement('canvas');
+    tmp.width = w; tmp.height = h;
+    if (drawColumnGL(tmp.getContext('2d'), w, h, phase, 1))
       return `<image width="${w}" height="${h}" href="${tmp.toDataURL('image/png')}"/>`;
-    }
   }
   const C = buildColumn(w, h, phase, 1);
   const hide = !!params.colHide, out = [];
@@ -4906,14 +5034,6 @@ function drawMode4(ctx, w, h, phase, noBg, zoom, part, resCap) {  // w,h are log
     if (close) ctx.closePath();
   };
 
-  // Surface fill (front + back), as in the main view.
-  if (wantFigure && params.fillSurface) {
-    for (const [mx, my] of m4Mirrors) {
-      if (figureHasDepth()) { m4Path(0, mx, my, true, true); ctx.fillStyle = hexToRgba(strokeColor, 0.08); ctx.fill('evenodd'); }
-      m4Path(0, mx, my, true, false); ctx.fillStyle = hexToRgba(strokeColor, 0.13); ctx.fill('evenodd');
-    }
-  }
-
   // Dots ↔ Line applies here too, at the same pixel pitch as the main view.
   const dl4 = params.dotsLine ?? 1;
   const m4Dash = applyDotDash(ctx, dl4, lineWidth);
@@ -5178,7 +5298,7 @@ function render(now) {
   if (m4Active() && animating) animPhase = (animPhase + 0.004 * animSpeed) % 2;
   const drawPhase = m4Active() ? (animating ? animPhase : params.phase) : phase;
   const zoom = Math.max(ZOOM_MIN, recZoom);
-  _m4MemoPhase = NaN; _figMemoPhase = NaN; _figMemoYRes = -1;   // the sample memos are per-frame
+  _m4MemoPhase = NaN; _figMemoPhase = NaN; _figMemoYRes = -1; _colMemoKey = '';   // the sample memos are per-frame
 
   paintBackdrop();
   const column = columnActive();
@@ -5231,7 +5351,7 @@ function render(now) {
   }
   if (params.frameFront && !column) drawFrameLayer(drawPhase, zoom);
 
-  if (recording) captureRecFrame(phase);
+  if (recording) captureRecFrame(drawPhase);
 
   tickWaveOut(lfodt);
 
@@ -5417,17 +5537,34 @@ document.getElementById('btn-export').addEventListener('click', () => {
   } else if (!column) {
   const steps = resolution * 2;
   const T = Math.PI * 2 * lcm(fx, fy) / Math.min(fx, fy) * subDiv();
+  // One lap of samples (sample `steps` is sample 0 again), then the damped laps
+  // read from it exactly as drawLissajous does: same lap count for the canvas's
+  // own resolution, same decay and slip per lap.
+  const SX = new Float64Array(steps + 1), SXQ = new Float64Array(steps + 1);
+  const SY = new Float64Array(steps + 1), SYQ = new Float64Array(steps + 1);
   for (let i = 0; i <= steps; i++) {
     const t = (i / steps) * T;
-    let sx = processWave(fx * t + phase * Math.PI, fx * t, waveTypeX, 'x');
-    let sy = processWave(fy * t, fy * t, waveTypeY, 'y');
+    SX[i] = processWave(fx * t + phase * Math.PI, fx * t, waveTypeX, 'x');
+    SY[i] = processWave(fy * t, fy * t, waveTypeY, 'y');
     if (geo) {
-      geoPoint(geo, sx, processWave(fx * t + phase * Math.PI + Math.PI / 2, fx * t, waveTypeX, 'x'),
-               sy, processWave(fy * t + Math.PI / 2, fy * t, waveTypeY, 'y'), _G);
-      sx = _G.x; sy = _G.y;
+      SXQ[i] = processWave(fx * t + phase * Math.PI + Math.PI / 2, fx * t, waveTypeX, 'x');
+      SYQ[i] = processWave(fy * t + Math.PI / 2, fy * t, waveTypeY, 'y');
     }
-    const x = cx + rx * (visualSwap ? sy : sx);
-    const y = cy + ry * (visualSwap ? sx : sy);
+  }
+  const periodFactor = lcm(fx, fy) / Math.min(fx, fy) * subDiv();
+  const canvasRes = Math.min(Math.max(resolution, Math.ceil(Math.max(fx, fy) * periodFactor * 80 * Math.min(modComplexity(), 10))), 160000);
+  const DP = dampPlan(canvasRes), total = steps * DP.laps;
+  for (let i = 0; i <= total; i++) {
+    let a = 1, j = i, idx = i;
+    if (DP.laps > 1) {
+      a = Math.exp(-DP.rate * i / steps);
+      j = i % steps;
+      idx = (j + Math.floor(i * DP.slip)) % steps;
+    }
+    let sx = SX[idx], sy = SY[j];
+    if (geo) { geoPoint(geo, sx, SXQ[idx], sy, SYQ[j], _G); sx = _G.x; sy = _G.y; }
+    const x = cx + rx * a * (visualSwap ? sy : sx);
+    const y = cy + ry * a * (visualSwap ? sx : sy);
     points.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(3)},${y.toFixed(3)}`);
   }
   }
@@ -5457,6 +5594,40 @@ document.getElementById('btn-export').addEventListener('click', () => {
   a.download = `lissajous_${fx}x${fy}_${waveTypeX}-${waveTypeY}${column ? '_column' : ''}.svg`;
   a.click();
   URL.revokeObjectURL(url);
+});
+
+// PNG export: the view as drawn, re-rendered at pngScale × the on-screen pixels.
+document.getElementById('btn-export-png').addEventListener('click', () => {
+  const wave = waveGeometry(), column = columnActive();
+  const Lw = wave ? waveBox.w : figBox.size, Lh = wave ? waveBox.h : figBox.size;
+  if (!(Lw > 0 && Lh > 0)) return;
+  const phase = animating ? animPhase : params.phase;
+  const zoom = Math.max(ZOOM_MIN, recZoom);
+  const cv = document.createElement('canvas'), g = cv.getContext('2d');
+  // Trails exist only as the live canvas's accumulated pixels: copy them.
+  if (!wave && !column && trailActive()) {
+    const d = viewDpr, sw = Math.max(1, Math.round(Lw * d));
+    cv.width = cv.height = sw;
+    g.drawImage(canvas, Math.round(figBox.x * d), Math.round(figBox.y * d), sw, sw, 0, 0, sw, sw);
+  } else {
+    // Browsers refuse canvases much past 16k px or ~268M px; stay well inside.
+    const k = Math.min(viewDpr * pngScale, 8192 / Math.max(Lw, Lh));
+    cv.width = Math.round(Lw * k); cv.height = Math.round(Lh * k);
+    g.setTransform(cv.width / Lw, 0, 0, cv.height / Lh, 0, 0);
+    _figMemoPhase = NaN; _figMemoYRes = -1; _colMemoKey = '';
+    drawViewTo(g, Lw, Lh, phase, zoom, false);
+    _figMemoPhase = NaN; _figMemoYRes = -1; _colMemoKey = '';
+  }
+  const { fx, fy } = params;
+  cv.toBlob(blob => {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `lissajous_${fx}x${fy}_${waveTypeX}-${waveTypeY}${column ? '_column' : ''}_${cv.width}px.png`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }, 'image/png');
 });
 
 // Reset every synthesis / figure / render parameter to its starting value.
@@ -5838,7 +6009,7 @@ const PARAM_UI = {
   unisonDetune: { slider: 'unison-detune', disp: 'unison-detune-val', fmt: v => v.toFixed(1) + '¢' },
   unisonMix: { slider: 'unison-mix', disp: 'unison-mix-val', fmt: v => Math.round(v*100) + '%' },
   subMix:    { slider: 'sub-mix',    disp: 'sub-mix-val',    fmt: v => (v < 0.005 ? 'off' : Math.round(v*100) + '%') },
-  damp:      { slider: 'damp',       disp: 'damp-val',       fmt: v => (v < 0.005 ? 'off' : Math.round(v*100) + '%') },
+  damp:      { slider: 'damp',       disp: 'damp-val',       fmt: fmtDamp },
   trailAmt:  { slider: 'trail-amt',  disp: 'trail-amt-val',  fmt: v => (v < 0.01 ? 'off' : Math.round(v*100) + '%') },
   az:        { slider: 'az',         disp: 'az-val',         fmt: v => Math.round(v*100) + '%' },
   ax:        { slider: 'ax',         disp: 'ax-val',         fmt: v => v.toFixed(2) },
@@ -6670,7 +6841,7 @@ const fmtTrail = v => v < 0.01 ? 'off' : Math.round(v * 100) + '%';
 const fmtPct   = v => Math.round(v * 100) + '%';
 function fmtSubMix(v) { return v < 0.005 ? 'off' : Math.round(v * 100) + '%'; }
 function fmtSubOct(v) { return '−' + Math.round(v); }
-function fmtDamp(v) { return v < 0.005 ? 'off' : Math.round(v * 100) + '%'; }
+function fmtDamp(v) { return v < 0.0005 ? 'off' : v < 0.1 ? (v * 100).toFixed(1) + '%' : Math.round(v * 100) + '%'; }
 const VISUAL_SLIDERS = [
   ['damp',         'damp',        fmtDamp],
   ['trail-amt',    'trailAmt',    fmtTrail],
@@ -6857,7 +7028,6 @@ const GEO_HINTS = [
   'X and Y as circles turning opposite ways',
   'r(θ) = cos(n/d · θ) — n = X freq, d = Y freq',
   '(p, q) torus knot — p = X freq, q = Y freq · drag to orbit',
-  'X = longitude, Y = latitude · drag to orbit',
   'X wave, Y wave and their normalised sum, over one period',
 ];
 function setGeometry(g) {
@@ -6870,28 +7040,23 @@ function setGeometry(g) {
     b.setAttribute('aria-pressed', active ? 'true' : 'false');
   });
   const hint = document.getElementById('geo-hint');
-  if (hint) hint.textContent = GEO_HINTS[g];
+  if (hint) hint.innerHTML = `<strong>${GEO_LABELS[g]}</strong> — ${GEO_HINTS[g]}`;
   // The lift and the construction view have no rotary counterpart: grey them out
   // rather than silently ignoring them.
   // The construction view only explains the lateral figure: hide its section
   // (and the canvas shortcut) in the other geometries rather than greying it.
   const cs = document.getElementById('section-construct');
   if (cs) cs.hidden = !!g;
-  const vc = document.getElementById('vt-construct');
-  if (vc) vc.hidden = !!g;
-  const vf = document.getElementById('vt-frame');
-  if (vf) vf.hidden = g === GEO_WAVES;
   const colOk = !solidGeometry() && g !== GEO_WAVES;
   const csc = document.getElementById('section-column');
   if (csc) csc.hidden = !colOk;
-  const vcol = document.getElementById('vt-column');
-  if (vcol) vcol.hidden = !colOk;
   document.querySelectorAll('.wave-btn[data-depthsrc]').forEach(b => { b.disabled = !!g; });
   document.body.classList.toggle('orbit', orbitable());
   refreshDepthChecks();
   if (changed) clearTrail();
 }
 document.querySelectorAll('.wave-btn[data-geo]').forEach(btn => {
+  btn.innerHTML = iconSvg(GEO_ICON[parseInt(btn.dataset.geo)]);
   btn.addEventListener('click', () => setGeometry(parseInt(btn.dataset.geo)));
 });
 
@@ -6996,7 +7161,6 @@ function setM4Rotate(on) {
 document.querySelectorAll('.wave-btn[data-m4rot]').forEach(btn => {
   btn.addEventListener('click', () => { const v = parseInt(btn.dataset.m4rot); setM4Rotate(v === 2 ? 2 : v === 1); });
 });
-document.getElementById('fill-surface').addEventListener('change', e => { params.fillSurface = e.target.checked ? 1 : 0; });
 
 // Unison: params + push straight onto the live oscillator pair.
 const UNISON_SLIDERS = [
@@ -7191,6 +7355,7 @@ document.getElementById('column-view').addEventListener('change', e => {
   clearTrail();
 });
 document.getElementById('col-hide').addEventListener('change', e => { params.colHide = e.target.checked ? 1 : 0; });
+document.getElementById('col-core').addEventListener('change', e => { params.colCore = e.target.checked ? 1 : 0; refreshVisibility(); });
 COLUMN_SLIDERS.forEach(([id, key, fmt]) => {
   document.getElementById(id).addEventListener('input', e => {
     params[key] = parseFloat(e.target.value);
@@ -7716,10 +7881,9 @@ const MAP_TARGETS = {
   crushRate: { label:'Decimate',      min:0,    max:1,              apply:_synthApply('crushRate','crush-rate','crush-rate-val',fmtDecimate) },
   unisonDetune: { label:'Unison Detune', min:0, max:50,             apply:v => { setSliderParam('unisonDetune','unison-detune','unison-detune-val',x=>x.toFixed(1)+'¢',v); applyUnisonAudio(); } },
   unisonMix: { label:'Unison Mix',    min:0,    max:1,              apply:v => { setSliderParam('unisonMix','unison-mix','unison-mix-val',x=>Math.round(x*100)+'%',v); applyUnisonAudio(); } },
-  fillSurface:{ label:'Fill Surface', toggle:true, apply:b => { params.fillSurface = b ? 1 : 0; const cb=document.getElementById('fill-surface'); if (cb) cb.checked = b; } },
 
   trailAmt:  { label:'Trail',         min:0,    max:0.97,           apply:v => setSliderParam('trailAmt','trail-amt','trail-amt-val',x=>(x<0.01?'off':Math.round(x*100)+'%'),v) },
-  geometry:  { label:'Geometry',       min:0,    max:6,   step:1,    apply:v => setGeometry(v) },
+  geometry:  { label:'Geometry',       min:0,    max:5,   step:1,    apply:v => setGeometry(v) },
   mirrorMode:{ label:'Mirror Mode',   min:0,    max:3,   step:1,    apply:v => setMirrorMode(v) },
   m4Rotate:{ label:'Straight Generators', toggle:true, apply:b => setM4Rotate(b) },
   trailMode:{ label:'Trail Mode',     min:0,    max:1,   step:1,    apply:v => setTrailMode(v) },
@@ -7762,6 +7926,7 @@ const MAP_TARGETS = {
   gradOn:     { label:'Gradient',          toggle:true, apply:b => { params.gradOn = b ? 1 : 0; updateGradControls(); } },
   gradAngle:  { label:'Gradient Angle',   min:0,    max:359,            apply:v => { params.gradAngle = v; updateGradControls(); } },
   colHide:    { label:'Column Solid Slices', toggle:true, apply:b => { params.colHide = b ? 1 : 0; const cb=document.getElementById('col-hide'); if (cb) cb.checked = b; } },
+  colCore:    { label:'Column Black Core', toggle:true, apply:b => { params.colCore = b ? 1 : 0; const cb=document.getElementById('col-core'); if (cb) cb.checked = b; refreshVisibility(); } },
   constructionView: { label:'Construction View', toggle:true, apply:b => clickCheckbox('construction-view', b) },
   animatePhase:     { label:'Animate Phase',     toggle:true, apply:b => { animating = b; document.getElementById('animate').checked=b; document.getElementById('anim-speed-row').classList.toggle('vis-off', !b); } },
   visualSwap:       { label:'Visual X/Y Swap',   toggle:true, apply:b => { visualSwap = b; updateSwapBtn(); } },
@@ -7787,11 +7952,11 @@ const TARGET_CATEGORIES = [
                  'syncAmt', 'syncAxis', 'subMix', 'subOct', 'subAxis', 'unisonDetune', 'unisonMix']],
   ['Frequency', ['geometry', 'ax', 'fx', 'ay', 'fy', 'visualSwap', 'damp', 'preset']],
   ['Audio',     ['volume']],
-  ['Figure',    ['hue', 'sat', 'light', 'gradOn', 'gradAngle', 'lineWidth', 'dotsLine', 'mirrorMode', 'fillSurface',
+  ['Figure',    ['hue', 'sat', 'light', 'gradOn', 'gradAngle', 'lineWidth', 'dotsLine', 'mirrorMode',
                  'trailMode', 'trailAmt', 'trailCount', 'trailSpacing',
                  'phase', 'animatePhase', 'animSpeed', 'constructionView', 'm4Rotate']],
   ['Column',    ['columnView', 'colSlices', 'colTurns', 'colHeight', 'colElev', 'colYaw',
-                 'colShade', 'colSurface', 'colHide', 'colAxis']],
+                 'colShade', 'colSurface', 'colHide', 'colCore', 'colAxis']],
   ['3D',        ['depthSrc', 'az', 'tiltAngle', 'depthShade', 'showShadow',
                  'frameShow', 'frameAxisLen', 'framePlanes', 'frameOrbits', 'frameAngles',
                  'frameOpacity', 'frameRadius', 'frameFollow']],
@@ -7854,12 +8019,12 @@ const MAP_DEFAULTS = {
   syncAmt:1, foldDrive:1, amAmt:0, amRatio:2, noiseAmt:0, waveX:0, waveY:0,
   crossFm:0, ringAmt:0, fbAmt:0, foldBias:0, crushBits:16, crushRate:0,
   unisonDetune:0, unisonMix:0, subMix:0, subOct:1, damp:0,
-  geometry:0, fillSurface:0, trailAmt:0, trailMode:0, trailCount:4, trailSpacing:0.08, mirrorMode:0, m4Rotate:1, az:0,
+  geometry:0, trailAmt:0, trailMode:0, trailCount:4, trailSpacing:0.08, mirrorMode:0, m4Rotate:1, az:0,
   lfo0Rate:0.5, lfo0Depth:0.5, lfo1Rate:1.0, lfo1Depth:0.5,
   hue:79, sat:84, light:66, lineWidth:1.5, phase:0.5, animSpeed:1, volume:0.5,
   filterCutoff:1, filterQ:0.7, dotsLine:1,
   preset:0, constructionView:0, columnView:0, animatePhase:1, visualSwap:0,
-  colSlices:48, colTurns:1, colHeight:2, colElev:25, colYaw:0, colShade:0.7, colSurface:0, colHide:1,
+  colSlices:48, colTurns:1, colHeight:2, colElev:25, colYaw:0, colShade:0.7, colSurface:0, colHide:1, colCore:0,
   colAxis:0, gradOn:0, gradAngle:90,
   frameShow:0, frameFollow:1, frameOpacity:0.55, frameRadius:1, frameAxisLen:1.15,
   frameOrbits:1, frameAngles:0, framePlanes:0,
@@ -8344,7 +8509,7 @@ function pwTick(now) {
 // ─── PRESET EXPORT / IMPORT ───────────────────────────────────────────────────
 function serializePreset() {
   return {
-    app: 'lissajous', version: 4,
+    app: 'lissajous', version: 5,
     params: { ...params },
     waveTypeX, waveTypeY, visualSwap, audioStereo, syncHard,
     filterType, phaseModulators,
@@ -8394,6 +8559,7 @@ function refreshAllControls() {
   updateConstructionControls();
   document.getElementById('column-view').checked = !!params.columnView;
   document.getElementById('col-hide').checked = !!params.colHide;
+  document.getElementById('col-core').checked = !!params.colCore;
   COLUMN_SLIDERS.forEach(([id, key, fmt]) => setS(id, params[key] ?? PARAM_DEFAULTS[key], id + '-val', fmt));
   setColSurface(params.colSurface ?? 0);
   setColAxis(params.colAxis ?? 0);
@@ -8425,7 +8591,6 @@ function refreshAllControls() {
   document.getElementById('depth-shade').checked = !!params.depthShade;
   document.getElementById('show-shadow').checked = !!params.showShadow;
   setM4Rotate(params.m4Rings ? 2 : !!params.m4Rotate);
-  document.getElementById('fill-surface').checked = !!params.fillSurface;
   setS('map-slew', mapSlewTau, 'map-slew-val', fmtSlew);
   applyUnisonAudio();
   document.getElementById('phase-modulators').checked = phaseModulators;
@@ -8439,8 +8604,22 @@ function refreshAllControls() {
   schedulePeriodicWaveUpdate();
 }
 
+// Format 5 dropped the spherical geometry (5), so WAVES moved from 6 to 5. Older
+// patches are renumbered in place; a sphere patch lands on the torus knot, the
+// other solid. The object is marked so running it twice is harmless.
+function migratePreset(d) {
+  if (!d || typeof d !== 'object' || d.version >= 5 || d._geoMigrated) return d;
+  const p = d.params;
+  if (p && typeof p.geometry === 'number') {
+    const g = Math.round(p.geometry);
+    if (g === 5) p.geometry = 4; else if (g >= 6) p.geometry = 5;
+  }
+  d._geoMigrated = true;
+  return d;
+}
 function applyPresetData(d) {
   if (!d || typeof d !== 'object') return;
+  migratePreset(d);
   _morph = null;   // a direct apply cancels any in-flight preset morph
   // PHASE IS NOT RECALLED. Loading a patch mid-performance used to snap the figure
   // back to the stored δ (and reset animPhase), which reads as a jump/stutter. The
@@ -8566,11 +8745,33 @@ let fullCanvas = null, fullCtx = null, recCanvas = null, recCtx = null;
 
 function recStatus(t) { const el = document.getElementById('rec-status'); if (el) el.textContent = t; }
 
+// Video settings: frame short side, bitrate tier, frame rate.
+let recSize = 1080, recQuality = 2, recFps = 60;
+const REC_BPP = [0.06, 0.12, 0.24, 0.5];   // bits per pixel per frame, per quality tier
+function recBitrate(w, h) { return Math.round(Math.min(200e6, Math.max(2e6, w * h * recFps * REC_BPP[recQuality]))); }
+let recLogical = 0;    // the figure box size (CSS px) the recording is composed in
 function recOutDims() {
-  const [aw, ah] = recAspect, base = 1080;
+  const [aw, ah] = recAspect, base = recSize;
   return (aw >= ah)
     ? { w: Math.round(base * aw / ah), h: base }
     : { w: base, h: Math.round(base * ah / aw) };
+}
+
+// Draw the figure to the full square canvas, then crop to the chosen aspect.
+// Zoom now scales the figure itself (not the crop), so the frame stays fixed.
+// The current view, composed in logical units in a w × h box on g (whose
+// transform the caller sets): the same drawing calls as the screen, so a scaled
+// transform gives the same picture at any pixel size, line widths included.
+// `fade` (video only) lets the flat figure paint its own translucent background
+// so FADE trails build up across frames.
+function drawViewTo(g, w, h, phase, zoom, fade) {
+  if (!fade) { g.fillStyle = params.bgColor; g.fillRect(0, 0, w, h); }
+  if (waveGeometry()) { drawWaveStack(g, w, h, phase, params.resolution, zoom, WS_ALL); return; }
+  if (columnActive()) { drawColumn(g, w, h, phase, zoom); return; }
+  if (params.frameShow && !params.frameFront) drawCoordFrame(g, w, h, phase, zoom);
+  if (m4Active()) drawMode4(g, w, h, phase, !fade, zoom);
+  else drawLissajous(g, w, h, phase, params.resolution, zoom, !fade);
+  if (params.frameShow && params.frameFront) drawCoordFrame(g, w, h, phase, zoom);
 }
 
 // Draw the figure to the full square canvas, then crop to the chosen aspect.
@@ -8584,33 +8785,22 @@ function captureRecFrame(phase) {
   // coordinate frame over a FADE trail is the same story: the frame is redrawn
   // clean every frame while the curve behind it smears, and only the live canvas
   // holds both at once.
-  if (waveGeometry()) {
-    fullCtx.fillStyle = params.bgColor;
-    fullCtx.fillRect(0, 0, F, F);
-    drawWaveStack(fullCtx, F, F, phase, params.resolution, Math.max(ZOOM_MIN, recZoom), WS_ALL);
-  } else if (columnActive()) {
-    fullCtx.fillStyle = params.bgColor;
-    fullCtx.fillRect(0, 0, F, F);
-    drawColumn(fullCtx, F, F, phase, Math.max(ZOOM_MIN, recZoom));
-  } else if (trailKeeps() || (params.frameShow && trailFades())) {
+  // Everything else is re-rendered in the figure box's own logical units, scaled
+  // up to the output, so line widths and dot spacing keep their on-screen
+  // proportions at any video size.
+  const z = Math.max(ZOOM_MIN, recZoom);
+  const plain = !waveGeometry() && !columnActive();
+  if (plain && (trailKeeps() || (params.frameShow && trailFades()))) {
     const d = viewDpr, s = Math.max(1, Math.round(figBox.size * d));
+    fullCtx.setTransform(1, 0, 0, 1, 0, 0);
     fullCtx.fillStyle = params.bgColor;
     fullCtx.fillRect(0, 0, F, F);
     fullCtx.drawImage(canvas, Math.round(figBox.x * d), Math.round(figBox.y * d), s, s, 0, 0, F, F);
-  } else if (params.frameShow) {
-    // Re-rendered at the export's own resolution, in the order the screen uses:
-    // the frame is part of the picture, not an overlay the recording drops.
-    const z = Math.max(ZOOM_MIN, recZoom);
-    fullCtx.fillStyle = params.bgColor;
-    fullCtx.fillRect(0, 0, F, F);
-    if (!params.frameFront) drawCoordFrame(fullCtx, F, F, phase, z);
-    if (m4Active()) drawMode4(fullCtx, F, F, phase, true, z);
-    else drawLissajous(fullCtx, F, F, phase, params.resolution, z, true);
-    if (params.frameFront) drawCoordFrame(fullCtx, F, F, phase, z);
-  } else if (m4Active()) {
-    drawMode4(fullCtx, F, F, phase, false, Math.max(ZOOM_MIN, recZoom));
   } else {
-    drawLissajous(fullCtx, F, F, phase, params.resolution, Math.max(ZOOM_MIN, recZoom));
+    const L = recLogical || figBox.size || F, k = F / L;
+    fullCtx.setTransform(k, 0, 0, k, 0, 0);
+    drawViewTo(fullCtx, L, L, phase, z, plain && trailFades() && !params.frameShow);
+    fullCtx.setTransform(1, 0, 0, 1, 0, 0);
   }
   const outW = recCanvas.width, outH = recCanvas.height;
   const a = outW / outH;
@@ -8651,7 +8841,9 @@ function startRecording() {
   recCanvas = document.createElement('canvas'); recCanvas.width = outW; recCanvas.height = outH; recCtx = recCanvas.getContext('2d');
   const F = Math.max(outW, outH);
   fullCanvas = document.createElement('canvas'); fullCanvas.width = F; fullCanvas.height = F; fullCtx = fullCanvas.getContext('2d');
-  const stream = recCanvas.captureStream(60);
+  fullCtx.fillStyle = params.bgColor; fullCtx.fillRect(0, 0, F, F);
+  recLogical = Math.max(1, figBox.size);
+  const stream = recCanvas.captureStream(recFps);
   // Add an audio track. Always record from the Web Audio tap (recDest) — it carries
   // whatever is playing, internal synth OR external input (both feed recordBus →
   // recDest at fixed unity). Recording the raw getUserMedia track directly proved
@@ -8669,7 +8861,9 @@ function startRecording() {
   const mime = pickVideoMime();
   recChunks = [];
   try {
-    mediaRecorder = new MediaRecorder(stream, mime ? { mimeType: mime, videoBitsPerSecond: 12000000, audioBitsPerSecond: 192000 } : undefined);
+    mediaRecorder = new MediaRecorder(stream, mime
+      ? { mimeType: mime, videoBitsPerSecond: recBitrate(outW, outH), audioBitsPerSecond: 192000 }
+      : { videoBitsPerSecond: recBitrate(outW, outH) });
   } catch (e) { recStatus('recording not supported here'); return; }
   mediaRecorder.ondataavailable = ev => { if (ev.data && ev.data.size) recChunks.push(ev.data); };
   mediaRecorder.onstop = () => {
@@ -8698,7 +8892,7 @@ function startRecording() {
   }
   const btn = document.getElementById('rec-toggle');
   btn.textContent = '■ stop'; btn.style.borderColor = '#f06060'; btn.style.color = '#f06060';
-  recStatus(`● recording ${outW}×${outH} (${recAspectName})${hasAudio ? ' + audio' : ' (no audio — enable output)'}…`);
+  recStatus(`● recording ${outW}×${outH} (${recAspectName}) ${recFps} fps · ${(recBitrate(outW, outH) / 1e6).toFixed(0)} Mbps${hasAudio ? ' + audio' : ' (no audio — enable output)'}…`);
 }
 
 // `immediate` skips the out-fade — used when the audio engine is torn down under
@@ -8762,6 +8956,19 @@ document.querySelectorAll('.wave-btn[data-aspect]').forEach(btn => {
     updateRecOverlay();
   });
 });
+function wireChoice(attr, set) {
+  const btns = document.querySelectorAll(`.wave-btn[data-${attr}]`);
+  btns.forEach(btn => btn.addEventListener('click', () => {
+    if (recording && attr.startsWith('rec')) return;   // a running recording keeps its settings
+    btns.forEach(b => { b.classList.toggle('active', b === btn); b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); });
+    set(btn.dataset[attr]);
+  }));
+}
+wireChoice('recsize', v => { recSize = parseInt(v); });
+wireChoice('recq', v => { recQuality = Math.max(0, Math.min(3, parseInt(v))); });
+wireChoice('recfps', v => { recFps = parseInt(v) === 30 ? 30 : 60; });
+let pngScale = 2;
+wireChoice('pngscale', v => { pngScale = parseInt(v) || 1; });
 document.getElementById('rec-zoom').addEventListener('input', e => setZoom(parseFloat(e.target.value), true));
 
 // ── Zoom by gesture ─────────────────────────────────────────────────────────
@@ -8924,7 +9131,7 @@ document.addEventListener('dblclick', e => {
 // value within its range by the Deviation amount (1 = fully random).
 const EVOLVE_KEYS = orderedTargetKeys(Object.keys(MAP_TARGETS).filter(k => k !== 'preset'));
 // Default-excluded: view toggles + master volume (disruptive / non-musical).
-const EVOLVE_DEFAULT_OFF = new Set(['constructionView', 'columnView', 'colSurface', 'colHide', 'colAxis', 'gradOn', 'animatePhase', 'visualSwap', 'volume', 'geometry',
+const EVOLVE_DEFAULT_OFF = new Set(['constructionView', 'columnView', 'colSurface', 'colHide', 'colCore', 'colAxis', 'gradOn', 'animatePhase', 'visualSwap', 'volume', 'geometry',
   'depthSrc', 'depthShade', 'showShadow',
   'frameShow', 'frameFollow', 'frameOpacity', 'frameRadius', 'frameAxisLen',
   'frameOrbits', 'frameAngles', 'framePlanes',
@@ -9165,9 +9372,9 @@ function setMorphStepMode(m) {
 // wave types are derived from them — so they belong with the stepped set, or a
 // recall would slide the timbre through two other shapes on its way and IGNORE
 // would stop protecting the waveform it promises to leave alone.
-const MORPH_DISCRETE = new Set(['subOct', 'fx', 'fy', 'geometry', 'mirrorMode', 'fillSurface', 'trailMode', 'trailCount', 'm4Rotate', 'phase',
+const MORPH_DISCRETE = new Set(['subOct', 'fx', 'fy', 'geometry', 'mirrorMode', 'trailMode', 'trailCount', 'm4Rotate', 'phase',
                                 'depthSrc', 'depthShade', 'showShadow', 'morphX', 'morphY',
-                                'columnView', 'colSlices', 'colHide', 'colSurface', 'colAxis', 'gradOn']);
+                                'columnView', 'colSlices', 'colHide', 'colCore', 'colSurface', 'colAxis', 'gradOn']);
 // The rest of a patch's stepped state lives outside `params` — the waveforms, the
 // filter type, the view toggles. Same treatment, same list.
 const MORPH_DISCRETE_TOP = ['waveTypeX', 'waveTypeY', 'visualSwap', 'audioStereo', 'syncHard',
@@ -9190,6 +9397,7 @@ function lerpHex(a, b, u) {
 }
 function startPresetMorph(data) {
   if (!data) return;
+  migratePreset(data);
   const cur = serializePreset();
   // IGNORE keeps the stepped parameters you are holding, whether the recall is a
   // glide or instant — it is a property of the recall, not of the glide.
@@ -9359,7 +9567,7 @@ applyPageBg();
 }
 
 // ── Canvas-corner view toggles + synthesis readout ───────────────────────────
-// The four buttons mirror the sidebar controls rather than owning any state, so
+// The toolbar buttons mirror the sidebar controls rather than owning any state, so
 // they go through the same paths (checkbox change events, setDepthSrc) and a
 // preset load, MIDI write or LFO flip shows up on them on the next tick.
 function clickCheckbox(id, on) {
@@ -9370,10 +9578,40 @@ function clickCheckbox(id, on) {
 }
 let readoutOn = false;
 try { readoutOn = localStorage.getItem('lissa.readout') === '1'; } catch (e) {}
-document.getElementById('vt-geo').addEventListener('click', () => setGeometry((figGeometry() + 1) % (GEO_MAX + 1)));
-document.getElementById('vt-3d').addEventListener('click', () => { if (!polarGeometry()) setDepthSrc(liftActive() ? 0 : 1); });
+// The geometry button folds the 3D lift in as a step of its own: lateral, lateral
+// lifted, then the other geometries (which have no lift).
+const VT_GEO = [
+  { g: 0, lift: 0, icon: 'lat',   name: 'lateral' },
+  { g: 0, lift: 1, icon: 'lat3d', name: '3D lateral' },
+  { g: 1, lift: 0, icon: 'rotp',  name: 'con-current' },
+  { g: 2, lift: 0, icon: 'rotm',  name: 'counter-current' },
+  { g: 3, lift: 0, icon: 'rose',  name: 'rose' },
+  { g: 4, lift: 0, icon: 'knot',  name: 'torus knot' },
+  { g: 5, lift: 0, icon: 'wave',  name: 'waves' },
+];
+function vtGeoIndex() { const g = figGeometry(); return g === 0 ? (liftActive() ? 1 : 0) : g + 1; }
+// Construction: off, then the three generator styles.
+const VT_CON = [
+  { icon: 'cstraight', name: 'off' },
+  { icon: 'cstraight', name: 'straight', rot: true },
+  { icon: 'clap',      name: 'full lap', rot: false },
+  { icon: 'crings',    name: 'rings',    rot: 2 },
+];
+function vtConIndex() { return !m4Active() ? 0 : params.m4Rings ? 3 : params.m4Rotate ? 1 : 2; }
+document.getElementById('vt-geo').addEventListener('click', () => {
+  const st = VT_GEO[(vtGeoIndex() + 1) % VT_GEO.length];
+  setDepthSrc(st.lift);
+  setGeometry(st.g);
+  syncViewToggles();
+});
 document.getElementById('vt-frame').addEventListener('click', () => clickCheckbox('frame-show', !params.frameShow));
-document.getElementById('vt-construct').addEventListener('click', () => clickCheckbox('construction-view', !constructionView));
+document.getElementById('vt-construct').addEventListener('click', () => {
+  if (polarGeometry()) return;
+  const next = (vtConIndex() + 1) % VT_CON.length;
+  if (next === 0) clickCheckbox('construction-view', false);
+  else { setM4Rotate(VT_CON[next].rot); clickCheckbox('construction-view', true); }
+  syncViewToggles();
+});
 document.getElementById('vt-column').addEventListener('click', () => clickCheckbox('column-view', !params.columnView));
 document.getElementById('vt-readout').addEventListener('click', () => {
   readoutOn = !readoutOn;
@@ -9411,7 +9649,7 @@ function buildSynthReadout() {
     ['sync',  `${P.syncAmt.toFixed(2)} ${syncHard ? 'hard' : 'soft'} ${ax('syncAxis')}`, Math.abs(P.syncAmt - 1) > 1e-3],
     ['sub',   `${Math.round((P.subMix || 0) * 100)}% −${P.subOct | 0}oct ${ax('subAxis')}`, (P.subMix || 0) > 0.001],
     ['uni',   `${P.unisonDetune.toFixed(1)}¢ mix ${Math.round(P.unisonMix * 100)}%`, P.unisonMix > 0],
-    ['damp',  `${Math.round((P.damp || 0) * 100)}% (visual)`, (P.damp || 0) > 0.001],
+    ['damp',  `${fmtDamp(P.damp || 0)} (visual)`, (P.damp || 0) > 0.0005],
   ];
   lfos.forEach(l => {
     const tg = l.assignments.map(k => (MAP_TARGETS[k] ? MAP_TARGETS[k].label : k)).join(', ');
@@ -9428,7 +9666,17 @@ function setViewTg(id, on) {
   b.setAttribute('aria-pressed', on ? 'true' : 'false');
 }
 let _roLast = '';
-const GEO_TAGS = ['LAT', 'ROT+', 'ROT−', 'ROSE', 'KNOT', 'SPHR', 'WAVE'];
+function setVtEnabled(id, on) {
+  const b = document.getElementById(id);
+  if (b && b.disabled === on) b.disabled = !on;
+}
+// Swaps a toolbar button's icon and tooltip only when they change.
+function setVtIcon(id, icon, title) {
+  const b = document.getElementById(id);
+  if (!b) return;
+  if (b.dataset.icon !== icon) { b.innerHTML = iconSvg(icon); b.dataset.icon = icon; }
+  if (b.title !== title) { b.title = title; b.setAttribute('aria-label', title); }
+}
 // Controls that cannot take effect in the current state are hidden, not greyed.
 // Runs on every state change that matters and on the 150 ms UI tick, so modes
 // switched by a CC, an LFO or a preset are reflected too.
@@ -9450,7 +9698,8 @@ function refreshVisibility() {
   const deep = lift || solidGeometry();
   setVis('construction-controls', con);
   setVis('column-controls', col);
-  setVis('col-hide-row', col && colSurfaceMode() === COL_SURF_OFF);
+  setVis('col-hide-row', col && colSurfaceMode() === COL_SURF_OFF && !params.colCore);
+  setVis('col-core-row', col && colSurfaceMode() === COL_SURF_OFF);
   // The column is its own picture: mirrors, the dash morph, the surface fill and
   // the trails don't reach it, and it has its own camera, shading and no frame.
   setVis('dots-line-row', !col);
@@ -9465,17 +9714,23 @@ function refreshVisibility() {
   setVis('anim-speed-row', !!animating);
   setVis('grad-controls', !!params.gradOn);
   setVis('grad-angle-row', !!params.gradOn && !col);
-  const vf = document.getElementById('vt-frame'); if (vf) vf.hidden = waveGeometry() || col;
-  const v3 = document.getElementById('vt-3d'); if (v3) v3.hidden = polar || col;
+  // The toolbar greys out what cannot apply rather than hiding it, so the
+  // buttons never move.
+  setVtEnabled('vt-frame', !waveGeometry() && !col);
+  setVtEnabled('vt-construct', !polar);
+  setVtEnabled('vt-column', !solidGeometry() && !waveGeometry());
   const azLbl = document.getElementById('az-label');
   if (azLbl) { const t = (lift || col) ? 'Perspective' : 'Depth'; if (azLbl.textContent !== t) azLbl.textContent = t; }
 }
 function syncViewToggles() {
   refreshVisibility();
-  const geoBtn = document.getElementById('vt-geo');
-  if (geoBtn && geoBtn.textContent !== GEO_TAGS[figGeometry()]) geoBtn.textContent = GEO_TAGS[figGeometry()];
-  setViewTg('vt-geo', polarGeometry());
-  setViewTg('vt-3d', liftActive());
+  const gs = VT_GEO[vtGeoIndex()], cs = VT_CON[vtConIndex()];
+  setVtIcon('vt-geo', gs.icon, `Geometry: ${gs.name} — click to cycle lateral / 3D lateral / con-current / counter-current / rose / torus knot / waves`);
+  setVtIcon('vt-frame', 'xyz', `Coordinate frame: ${params.frameShow ? 'on' : 'off'}`);
+  setVtIcon('vt-column', 'column', `Column view: ${columnActive() ? 'on' : 'off'}`);
+  setVtIcon('vt-construct', cs.icon, `Construction view: ${cs.name} — click to cycle off / straight / full lap / rings`);
+  setVtIcon('vt-readout', 'info', `Synthesis readout: ${readoutOn ? 'on' : 'off'}`);
+  setViewTg('vt-geo', vtGeoIndex() > 0);
   setViewTg('vt-frame', !!params.frameShow);
   setViewTg('vt-construct', m4Active());
   setViewTg('vt-column', columnActive());
@@ -9504,11 +9759,11 @@ const TARGET_CONTROL = {
   syncAmt: 'sync-amt', unisonDetune: 'unison-detune', unisonMix: 'unison-mix', volume: 'audio-vol',
   subMix: 'sub-mix', subOct: 'sub-oct', damp: 'damp',
   hue: 'hsl-h', sat: 'hsl-s', light: 'hsl-l', lineWidth: 'line-width', dotsLine: 'dots-line',
-  mirrorMode: '[data-mirror]', fillSurface: 'fill-surface', trailMode: '[data-trailmode]', trailAmt: 'trail-amt',
+  mirrorMode: '[data-mirror]', trailMode: '[data-trailmode]', trailAmt: 'trail-amt',
   trailCount: 'trail-count', trailSpacing: 'trail-spacing', phase: 'phase', animatePhase: 'animate', animSpeed: 'anim-speed',
   constructionView: 'construction-view', m4Rotate: '[data-m4rot]', columnView: 'column-view',
   colSlices: 'col-slices', colTurns: 'col-turns', colHeight: 'col-height', colElev: 'col-elev', colYaw: 'col-yaw',
-  colShade: 'col-shade', colSurface: '[data-colsurf]', colHide: 'col-hide', colAxis: '[data-colaxis]',
+  colShade: 'col-shade', colSurface: '[data-colsurf]', colHide: 'col-hide', colCore: 'col-core', colAxis: '[data-colaxis]',
   gradOn: 'grad-on', gradAngle: 'grad-angle',
   depthSrc: '[data-depthsrc]', az: 'az', tiltAngle: 'tilt-angle', depthShade: 'depth-shade', showShadow: 'show-shadow',
   frameShow: 'frame-show', frameFollow: 'frame-follow', frameOpacity: 'frame-opacity', frameRadius: 'frame-radius',
