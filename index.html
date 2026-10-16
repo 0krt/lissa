@@ -1660,7 +1660,7 @@
         </div>
         <div id="geo-hint" style="font-size:10.5px;color:var(--label);margin-bottom:10px;line-height:1.45"></div>
         <div class="info-text" data-info-label="figure geometry">
-          <strong>Lateral</strong>: X moves the point left–right, Y up–down. <strong>Con-current</strong> and <strong>counter-current</strong> turn each oscillator into a rotating circle and add the two, drawing rings or stars. <strong>Rose</strong>: r = cos(fx/fy · θ). <strong>Torus knot</strong> wraps the path on a torus; drag to orbit. <strong>Waves</strong> plots the raw waves. Construction view and the 3D lift work in Lateral only; Column view in every flat geometry.
+          <strong>Lateral</strong>: X moves the point left–right, Y up–down. <strong>Con-current</strong> and <strong>counter-current</strong> turn each oscillator into a rotating circle and add the two, drawing rings or stars. <strong>Rose</strong>: r = cos(fx/fy · θ). <strong>Torus knot</strong> wraps the path on a torus; drag to orbit. <strong>Waves</strong> plots the raw waves. The 3D lift works in Lateral only; Construction view in every geometry but Waves; Column view in every flat one.
         </div>
         <div class="mod-group">
           <div class="vel-row"><span class="vel-label">X Axis</span></div>
@@ -2240,6 +2240,7 @@
           <label for="construction-view">Construction view</label>
         </div>
         <div id="construction-controls" class="mod-group" style="margin-top:6px">
+          <div id="m4-gen-block">
           <div class="param-header" style="margin-bottom:4px"><label>Generators</label></div>
           <div class="wave-toggle" style="margin-bottom:6px">
             <button class="wave-btn active" data-m4rot="1">STRAIGHT</button>
@@ -2248,6 +2249,10 @@
           </div>
           <div class="info-text" data-info-label="the generator strips">
             <strong>STRAIGHT</strong>: each wave turned to face the axis it drives, scrolling past the tracer. <strong>FULL LAP</strong>: the whole lap laid flat. <strong>RINGS</strong>: each wave plotted against itself a quarter cycle later, so a sine becomes a circle.
+          </div>
+          </div>
+          <div class="info-text" data-info-label="the rotary constructions" id="rot-con-info">
+            <strong>Con-current / counter</strong>: arm X turns from the centre, arm Y rides its tip; the pen is the end of the chain. <strong>Rose</strong>: Y turns the ray, the X wave (strip below) sets the bead's distance. <strong>Torus knot</strong>: X's arm goes round the hole to the tube, Y's ring goes round the tube.
           </div>
           <div class="param-row">
             <div class="param-header"><label>Trace tempo</label><span class="val" id="trace-speed-val">1.0×</span></div>
@@ -3530,11 +3535,14 @@ function waveGeometry() { return figGeometry() === GEO_WAVES; }
 // Anything the view can orbit: the lifted lateral figure or a solid geometry.
 function orbitable() { return liftActive() || solidGeometry() || columnActive(); }
 const TORUS_TUBE = 0.6;     // tube radius over major radius at ay = 1
-// The construction view explains the lateral figure (two generators projected on
-// two axes); in the rotary geometries the plain figure is shown instead.
+// The construction view explains the figure: in LATERAL two generators projected
+// on two axes, in the rotary geometries the rotors themselves (see
+// drawConstructionRot). WAVES is already its own explanation.
 // The two are alternatives (the checkboxes turn each other off); should both ever
 // be set at once, the construction view wins and the column stands down.
-function m4Active() { return constructionView && !polarGeometry(); }
+function m4Active() { return constructionView && !waveGeometry(); }
+// The lateral construction's own layout (strips, RINGS) applies only there.
+function m4Lateral() { return m4Active() && !polarGeometry(); }
 // The column view stacks the flat figure; the solids and WAVES have no flat slice.
 function columnActive() { const g = figGeometry(); return !!params.columnView && !solidGeometry() && g !== GEO_WAVES && !m4Active(); }
 // Combine the samples into the figure point (normalised, before the view
@@ -3765,7 +3773,10 @@ function frameText(g, str, x, y, color, alpha, fs) {
 function drawCoordFrame(target, w, h, phase, zoom) {
   if (!params.frameShow) return;
   let cx, cy, rx, ry, boxZoom = 1;
-  if (m4Active()) {
+  if (m4Active() && polarGeometry()) {
+    const L = rotConLayout(w, h);
+    cx = L.cx; cy = L.cy; rx = L.R; ry = L.R; boxZoom = Math.max(0.05, zoom || 1);
+  } else if (m4Active()) {
     // Mirrors drawMode4's layout so the frame lands on the same square the
     // construction view draws its curve in (and takes the same box zoom, which
     // that view applies as a transform rather than folding into rx/ry).
@@ -4796,7 +4807,201 @@ let _m4BufZ = new Float64Array(0);         // lift mode only: the quadrature (de
 // draws the diagram itself (separators, generator strips, projection lines, the
 // three moving dots), which must never trail — a smeared ruler is not a ruler.
 const M4_ALL = 0, M4_FIGURE = 1, M4_CHROME = 2;
+// ── Construction view for the rotary geometries ──────────────────────────────
+// Each oscillator in CON-CURRENT, COUNTER, ROSE and TORUS KNOT is a rotor (the
+// wave and its quarter-period copy), so the construction shows the rotors:
+//   CON / COUNTER  epicycles: arm X from the centre, arm Y riding its tip; the
+//                  pen is the end of the chain.
+//   ROSE           a ray turned by Y, with a bead at r = the X wave, which a
+//                  strip along the bottom plots against time.
+//   TORUS KNOT     a wire torus: X's arm round the hole to the tube centre,
+//                  Y's ring round the tube there, a spoke to the pen.
+// Same contract as drawMode4 (part = M4_ALL / M4_FIGURE / M4_CHROME, the shared
+// tracer mode4T). The arms are built from the SAMPLED rotor values at the
+// tracer, so the pen sits on the figure even when FM, folding or the filter
+// bend the waves away from circles.
+const RC_X = '#ff9f6b', RC_Y = '#7fa8ff';   // X furniture warm, Y furniture cool
+let _rcXs = new Float64Array(0), _rcXq = new Float64Array(0), _rcYs = new Float64Array(0), _rcYq = new Float64Array(0);
+let _rcMemoKey = '';
+// Where the figure sits in a w × h box: ROSE gives up a strip along the top for
+// its radius wave (the bottom edge carries the interval label); the others use
+// the whole square. drawCoordFrame reads it
+// too, so the frame lands on the same figure.
+function rotConLayout(w, h) {
+  const strip = figGeometry() === 3 ? Math.round(Math.min(w, h) * 0.18) : 0;
+  const size = Math.min(w, h - strip);
+  const pad = size * 0.034;
+  return { cx: w / 2, cy: strip + (h - strip) / 2, R: size / 2 - pad, strip };
+}
+function rotConSamples(phase, res) {
+  const key = phase + '|' + res;
+  if (_rcMemoKey === key) return;
+  _rcMemoKey = key;
+  const { fx, fy } = params, N = res + 1;
+  if (_rcXs.length < N) { _rcXs = new Float64Array(N); _rcXq = new Float64Array(N); _rcYs = new Float64Array(N); _rcYq = new Float64Array(N); }
+  const T = TWO_PI / gcd(fx, fy) * subDiv();
+  for (let i = 0; i <= res; i++) {
+    const t = (i / res) * T;
+    _rcXs[i] = processWave(fx * t + phase * Math.PI, fx * t, waveTypeX, 'x');
+    _rcXq[i] = processWave(fx * t + phase * Math.PI + Math.PI / 2, fx * t, waveTypeX, 'x');
+    _rcYs[i] = processWave(fy * t, fy * t, waveTypeY, 'y');
+    _rcYq[i] = processWave(fy * t + Math.PI / 2, fy * t, waveTypeY, 'y');
+  }
+  if (filterIsOn()) {
+    const cyc = T / TWO_PI;
+    if (onAxis('filterAxis', 'x')) {
+      const c = biquadCoeffs(filterType, TWO_PI * Math.min(0.49, filterHarmonics() * fx * cyc / res), params.filterQ);
+      filterPeriodic(_rcXs, N, c); filterPeriodic(_rcXq, N, c);
+    }
+    if (onAxis('filterAxis', 'y')) {
+      const c = biquadCoeffs(filterType, TWO_PI * Math.min(0.49, filterHarmonics() * fy * cyc / res), params.filterQ);
+      filterPeriodic(_rcYs, N, c); filterPeriodic(_rcYq, N, c);
+    }
+  }
+}
+function drawConstructionRot(ctx, w, h, phase, noBg, zoom, part, resCap) {
+  part = part || M4_ALL;
+  const wantFigure = part !== M4_CHROME, wantChrome = part !== M4_FIGURE;
+  const { ax, ay, fx, fy, bgColor, lineWidth } = params;
+  const geo = figGeometry();
+  if (!noBg) {
+    const tA = trailAlpha();
+    ctx.fillStyle = tA < 1 ? hexToRgba(bgColor, tA) : bgColor;
+    ctx.fillRect(0, 0, w, h);
+  }
+  const z = Math.max(0.05, zoom || 1);
+  ctx.save();
+  if (z !== 1) { ctx.translate(w / 2, h / 2); ctx.scale(z, z); ctx.translate(-w / 2, -h / 2); }
+  const L = rotConLayout(w, h), { cx, cy, R } = L;
+  const T = TWO_PI / gcd(fx, fy) * subDiv();
+  const res = Math.min(Math.max(params.resolution, Math.ceil(Math.max(fx, fy) / gcd(fx, fy) * subDiv() * 160)), resCap || 40000);
+  rotConSamples(phase, res);
+  beginFigureXform(phase, false, 1);
+  // Face-on, the torus hides its tube rings edge-on, so the construction looks
+  // at it from 50° above whatever tilt the orbit has set.
+  if (geo === 4) {
+    const tl = Math.max(-89, Math.min(89, (params.tiltAngle || 0) + 50)) * Math.PI / 180;
+    _xf.tilt = true; _xf.tc = Math.cos(tl); _xf.ts = Math.sin(tl); _xf.tiltDeg = tl * 180 / Math.PI;
+  }
+  // Normalised figure space → screen, through the figure's own view transform
+  // (orbit tilt, perspective, the torus yaw) and the visual X/Y swap.
+  const S = (x, y, zz, mx, my) => {
+    figureXform(visualSwap ? y : x, visualSwap ? x : y, zz || 0, false);
+    return [cx + R * _Q.x * (mx || 1), cy + R * _Q.y * (my || 1)];
+  };
+  const P = (i, mx, my) => { geoPoint(geo, _rcXs[i], _rcXq[i], _rcYs[i], _rcYq[i], _G); return S(_G.x, _G.y, _G.z, mx, my); };
+  // The rotor values at the tracer, interpolated between samples.
+  const fi = (mode4T / T) * res, i0 = Math.min(res, Math.floor(fi)), i1 = Math.min(res, i0 + 1), fr = fi - i0;
+  const lerp = a => a[i0] + (a[i1] - a[i0]) * fr;
+  const xs = lerp(_rcXs), xq = lerp(_rcXq), ys = lerp(_rcYs), yq = lerp(_rcYq);
+
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  if (wantFigure) {
+    const mirrors = figureMirrors();
+    const dash = applyDotDash(ctx, params.dotsLine ?? 1, lineWidth);
+    if (!dash) ctx.lineWidth = lineWidth;
+    ctx.strokeStyle = figPaint(ctx, w, h, Math.max(0, Math.min(1, params.untracedAlpha)));
+    for (const [mx, my] of mirrors) {
+      ctx.beginPath();
+      for (let i = 0; i <= res; i++) { const p = P(i, mx, my); i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); }
+      ctx.stroke();
+    }
+    if (fi > 0.5) {
+      ctx.strokeStyle = figPaint(ctx, w, h, 0.85);
+      for (const [mx, my] of mirrors) {
+        ctx.beginPath();
+        for (let i = 0; i <= i0; i++) { const p = P(i, mx, my); i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); }
+        geoPoint(geo, xs, xq, ys, yq, _G); const pe = S(_G.x, _G.y, _G.z, mx, my); ctx.lineTo(pe[0], pe[1]);
+        ctx.stroke();
+      }
+    }
+    ctx.setLineDash([]);
+  }
+
+  if (wantChrome && !_eraseMode) {
+    const seg = (a, b, col, wd, dsh) => {
+      ctx.setLineDash(dsh || []); ctx.strokeStyle = col; ctx.lineWidth = wd;
+      ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); ctx.setLineDash([]);
+    };
+    const poly = (fn, n, col, wd, dsh) => {
+      ctx.setLineDash(dsh || []); ctx.strokeStyle = col; ctx.lineWidth = wd; ctx.beginPath();
+      for (let k = 0; k <= n; k++) { const p = fn(k / n); k ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); }
+      ctx.stroke(); ctx.setLineDash([]);
+      return fn;
+    };
+    const dot = (p, r, col) => { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(p[0], p[1], r, 0, TWO_PI); ctx.fill(); };
+    // An arc ahead of a rotor showing which way it turns, with a head on the end.
+    const arrow = (fn, u0, dir, col) => {
+      const pts = []; for (let k = 0; k <= 14; k++) pts.push(fn(u0 + dir * (0.3 + 0.8 * k / 14)));
+      ctx.strokeStyle = col; ctx.lineWidth = 1.2; ctx.beginPath();
+      pts.forEach((p, k) => k ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.stroke();
+      const a = pts[pts.length - 2], b = pts[pts.length - 1], dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1;
+      const ux = dx / l, uy = dy / l;
+      ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(b[0] + ux * 3, b[1] + uy * 3);
+      ctx.lineTo(b[0] - ux * 5 - uy * 3.5, b[1] - uy * 5 + ux * 3.5); ctx.lineTo(b[0] - ux * 5 + uy * 3.5, b[1] - uy * 5 - ux * 3.5);
+      ctx.closePath(); ctx.fill();
+    };
+    const xCol = hexToRgba(RC_X, 0.9), yCol = hexToRgba(RC_Y, 0.9);
+    const xDim = hexToRgba(RC_X, 0.4), yDim = hexToRgba(RC_Y, 0.4);
+    geoPoint(geo, xs, xq, ys, yq, _G);
+    const pen = S(_G.x, _G.y, _G.z);
+
+    if (geo === 1 || geo === 2) {
+      // Epicycles: geoPoint's sum of rotors, n·ax·(xq, −xs) + n·ay·(yq, −s·ys).
+      const n = 1 / Math.max(1e-6, ax + ay), s = geo === 1 ? 1 : -1;
+      const r1 = n * ax, r2 = n * ay;
+      const Ax = r1 * xq, Ay = -r1 * xs;
+      const O = S(0, 0), A = S(Ax, Ay);
+      const orb1 = u => S(r1 * Math.cos(u), -r1 * Math.sin(u));
+      const orb2 = u => S(Ax + r2 * Math.cos(u), Ay - s * r2 * Math.sin(u));
+      poly(k => orb1(k * TWO_PI), 96, xDim, 1, [3, 4]);
+      poly(k => orb2(k * TWO_PI), 96, yDim, 1, [3, 4]);
+      arrow(orb1, Math.atan2(xs, xq), Math.sign(fx) || 1, xDim);
+      arrow(orb2, Math.atan2(ys, yq), Math.sign(fy) || 1, yDim);
+      seg(O, A, xCol, 2); seg(A, pen, yCol, 2);
+      dot(O, 2.5, hexToRgba(RC_X, 0.6)); dot(A, 3.5, RC_X);
+    } else if (geo === 3) {
+      // Rose: Y turns the ray, the X wave sets where the bead sits on it.
+      const ray = u => S(ax * u * yq, -ay * u * ys);
+      seg(ray(-1), ray(1), yDim, 1);
+      seg(S(0, 0), ray(1), yCol, 1.4);
+      poly(k => S(ax * Math.cos(k * TWO_PI), -ay * Math.sin(k * TWO_PI)), 128, 'rgba(255,255,255,0.10)', 1, [2, 4]);
+      const rr = Math.abs(xq);
+      poly(k => S(ax * rr * Math.cos(k * TWO_PI), -ay * rr * Math.sin(k * TWO_PI)), 96, xDim, 1, [3, 4]);
+      seg(S(0, 0), pen, xCol, 2.2);
+      // The radius wave along the bottom, with the tracer's cursor.
+      const sy0 = 6, sh = L.strip - 12, sx0 = 12, sw = w - 24, mid = sy0 + sh / 2, amp = sh / 2 - 3;
+      ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth = 1; ctx.strokeRect(sx0, sy0, sw, sh);
+      seg([sx0, mid], [sx0 + sw, mid], 'rgba(255,255,255,0.10)', 1, [2, 3]);
+      poly(k => [sx0 + sw * k, mid - amp * Math.max(-1.2, Math.min(1.2, _rcXq[Math.min(res, Math.round(k * res))]))], Math.min(res, 1200), xCol, 1.3);
+      const cxs = sx0 + sw * mode4T / T, cys = mid - amp * Math.max(-1.2, Math.min(1.2, xq));
+      seg([cxs, sy0], [cxs, sy0 + sh], xDim, 1);
+      dot([cxs, cys], 3.5, RC_X);
+      ctx.font = "10px 'IBM Plex Mono', monospace"; ctx.fillStyle = xDim; ctx.textBaseline = 'top';
+      ctx.fillText('r = X', sx0 + 4, sy0 + 3);
+      ctx.fillStyle = yDim; ctx.fillText('θ = Y', sx0 + 4, L.strip + 4);
+    } else if (geo === 4) {
+      // Torus knot: X round the hole, Y round the tube (geoPoint's torus).
+      const r = TORUS_TUBE * ay, k = ax / (1 + r);
+      const tor = (u, v) => { const ww = (1 + r * Math.cos(v)) * k; return S(ww * Math.cos(u), -ww * Math.sin(u), -r * k * Math.sin(v)); };
+      const wire = 'rgba(255,255,255,0.07)';
+      for (let m = 0; m < 16; m++) { const u = TWO_PI * m / 16; poly(q => tor(u, q * TWO_PI), 32, wire, 1); }
+      for (let m = 0; m < 6; m++) { const v = TWO_PI * m / 6; poly(q => tor(q * TWO_PI, v), 72, wire, 1); }
+      poly(q => S(k * Math.cos(q * TWO_PI), -k * Math.sin(q * TWO_PI), 0), 96, xDim, 1, [3, 4]);
+      const C = S(k * xq, -k * xs, 0), O = S(0, 0, 0);
+      seg(O, C, xCol, 2);
+      poly(q => { const v = q * TWO_PI, ww = (1 + r * Math.cos(v)) * k; return S(ww * xq, -ww * xs, -r * k * Math.sin(v)); }, 64, yCol, 1.5);
+      seg(C, pen, yCol, 1.8);
+      dot(O, 2.5, hexToRgba(RC_X, 0.6)); dot(C, 3.5, RC_X);
+    }
+    dot(pen, 4.5, params.strokeColor);
+  }
+  ctx.restore();
+}
+
 function drawMode4(ctx, w, h, phase, noBg, zoom, part, resCap) {  // w,h are logical (pre-dpr) pixels
+  // The rotary geometries have their own construction (rotors, not strips).
+  if (polarGeometry()) return drawConstructionRot(ctx, w, h, phase, noBg, zoom, part, resCap);
   part = part || M4_ALL;
   const wantFigure = part !== M4_CHROME, wantChrome = part !== M4_FIGURE;
   const { ax, fx, ay, fy, strokeColor, bgColor, lineWidth } = params;
@@ -5298,7 +5503,7 @@ function render(now) {
   if (m4Active() && animating) animPhase = (animPhase + 0.004 * animSpeed) % 2;
   const drawPhase = m4Active() ? (animating ? animPhase : params.phase) : phase;
   const zoom = Math.max(ZOOM_MIN, recZoom);
-  _m4MemoPhase = NaN; _figMemoPhase = NaN; _figMemoYRes = -1; _colMemoKey = '';   // the sample memos are per-frame
+  _m4MemoPhase = NaN; _figMemoPhase = NaN; _figMemoYRes = -1; _colMemoKey = ''; _rcMemoKey = '';   // the sample memos are per-frame
 
   paintBackdrop();
   const column = columnActive();
@@ -7043,10 +7248,9 @@ function setGeometry(g) {
   if (hint) hint.innerHTML = `<strong>${GEO_LABELS[g]}</strong> — ${GEO_HINTS[g]}`;
   // The lift and the construction view have no rotary counterpart: grey them out
   // rather than silently ignoring them.
-  // The construction view only explains the lateral figure: hide its section
-  // (and the canvas shortcut) in the other geometries rather than greying it.
+  // WAVES has no construction view: hide its section there.
   const cs = document.getElementById('section-construct');
-  if (cs) cs.hidden = !!g;
+  if (cs) cs.hidden = g === GEO_WAVES;
   const colOk = !solidGeometry() && g !== GEO_WAVES;
   const csc = document.getElementById('section-column');
   if (csc) csc.hidden = !colOk;
@@ -9597,7 +9801,7 @@ const VT_CON = [
   { icon: 'clap',      name: 'full lap', rot: false },
   { icon: 'crings',    name: 'rings',    rot: 2 },
 ];
-function vtConIndex() { return !m4Active() ? 0 : params.m4Rings ? 3 : params.m4Rotate ? 1 : 2; }
+function vtConIndex() { return !m4Active() ? 0 : polarGeometry() ? 1 : params.m4Rings ? 3 : params.m4Rotate ? 1 : 2; }
 document.getElementById('vt-geo').addEventListener('click', () => {
   const st = VT_GEO[(vtGeoIndex() + 1) % VT_GEO.length];
   setDepthSrc(st.lift);
@@ -9606,7 +9810,9 @@ document.getElementById('vt-geo').addEventListener('click', () => {
 });
 document.getElementById('vt-frame').addEventListener('click', () => clickCheckbox('frame-show', !params.frameShow));
 document.getElementById('vt-construct').addEventListener('click', () => {
-  if (polarGeometry()) return;
+  if (waveGeometry()) return;
+  // The rotary constructions have no generator styles: the button is on / off.
+  if (polarGeometry()) { clickCheckbox('construction-view', !constructionView); syncViewToggles(); return; }
   const next = (vtConIndex() + 1) % VT_CON.length;
   if (next === 0) clickCheckbox('construction-view', false);
   else { setM4Rotate(VT_CON[next].rot); clickCheckbox('construction-view', true); }
@@ -9717,7 +9923,9 @@ function refreshVisibility() {
   // The toolbar greys out what cannot apply rather than hiding it, so the
   // buttons never move.
   setVtEnabled('vt-frame', !waveGeometry() && !col);
-  setVtEnabled('vt-construct', !polar);
+  setVtEnabled('vt-construct', !waveGeometry());
+  setVis('m4-gen-block', con && !polar);
+  setVis('rot-con-info', con && polar);
   setVtEnabled('vt-column', !solidGeometry() && !waveGeometry());
   const azLbl = document.getElementById('az-label');
   if (azLbl) { const t = (lift || col) ? 'Perspective' : 'Depth'; if (azLbl.textContent !== t) azLbl.textContent = t; }
@@ -10306,7 +10514,7 @@ function layoutRingOverlays() {
   const ro = document.getElementById('synth-readout'), il = document.getElementById('interval-label');
   if (!ro || !il) return;
   const P = ['left', 'top', 'bottom', 'transform', 'max-width', 'max-height'];
-  if (!(m4Active() && params.m4Rings)) {
+  if (!(m4Lateral() && params.m4Rings)) {
     if (_ringOvKey !== '') { P.forEach(k => { ro.style.removeProperty(k); il.style.removeProperty(k); }); _ringOvKey = ''; }
     return;
   }
