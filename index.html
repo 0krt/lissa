@@ -1731,6 +1731,12 @@
             <div class="param-header"><label>Ratio</label><span class="val" id="am-ratio-val">2/1</span></div>
             <input type="range" id="am-ratio" min="0" max="30" step="1" value="6">
           </div>
+          <div class="param-header" style="margin-bottom:4px"><label>Ratio of</label></div>
+          <div class="lfo-wave-toggle" style="margin-bottom:6px">
+            <button class="mod-ref-btn mod-axis-btn active" type="button" data-modref="am" data-ref="0" aria-pressed="true" title="Each axis: the ratio is taken of X's frequency on X and of Y's on Y">EACH</button>
+            <button class="mod-ref-btn mod-axis-btn" type="button" data-modref="am" data-ref="1" aria-pressed="false" title="X: the modulator runs at ratio × X's frequency on both axes">X</button>
+            <button class="mod-ref-btn mod-axis-btn" type="button" data-modref="am" data-ref="2" aria-pressed="false" title="Y: the modulator runs at ratio × Y's frequency on both axes">Y</button>
+          </div>
           <div class="param-header" style="margin-bottom:4px"><label>Mod shape</label></div>
           <div class="lfo-wave-toggle">
             <button class="mod-wave-btn active" data-mod="am" data-mwave="sine">SIN</button>
@@ -1749,6 +1755,12 @@
           <div class="param-row">
             <div class="param-header"><label>Ratio</label><span class="val" id="fm-ratio-val">2/1</span></div>
             <input type="range" id="fm-ratio" min="0" max="30" step="1" value="6">
+          </div>
+          <div class="param-header" style="margin-bottom:4px"><label>Ratio of</label></div>
+          <div class="lfo-wave-toggle" style="margin-bottom:6px">
+            <button class="mod-ref-btn mod-axis-btn active" type="button" data-modref="fm" data-ref="0" aria-pressed="true" title="Each axis: the ratio is taken of X's frequency on X and of Y's on Y">EACH</button>
+            <button class="mod-ref-btn mod-axis-btn" type="button" data-modref="fm" data-ref="1" aria-pressed="false" title="X: the modulator runs at ratio × X's frequency on both axes">X</button>
+            <button class="mod-ref-btn mod-axis-btn" type="button" data-modref="fm" data-ref="2" aria-pressed="false" title="Y: the modulator runs at ratio × Y's frequency on both axes">Y</button>
           </div>
           <div class="param-header" style="margin-bottom:4px"><label>Mod shape</label></div>
           <div class="lfo-wave-toggle">
@@ -1855,15 +1867,26 @@
           </div>
         </div>
 
-        <div class="mod-group" data-axis="subAxis">
-          <div class="vel-row"><span class="vel-label">Sub</span></div>
+        <div class="mod-group" data-axis="partAxis">
+          <div class="vel-row"><span class="vel-label">Partials</span></div>
           <div class="param-row">
-            <div class="param-header"><label>Mix</label><span class="val" id="sub-mix-val">off</span></div>
-            <input type="range" id="sub-mix" min="0" max="1" step="0.01" value="0">
+            <div class="param-header"><label>X partial</label><span class="val" id="part-x-val">×2</span></div>
+            <input type="range" id="part-x" min="1" max="16" step="1" value="2">
           </div>
           <div class="param-row">
-            <div class="param-header"><label>Octave</label><span class="val" id="sub-oct-val">−1</span></div>
-            <input type="range" id="sub-oct" min="1" max="2" step="1" value="1">
+            <div class="param-header"><label>X mix</label><span class="val" id="part-x-mix-val">off</span></div>
+            <input type="range" id="part-x-mix" min="0" max="1" step="0.01" value="0">
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Y partial</label><span class="val" id="part-y-val">×2</span></div>
+            <input type="range" id="part-y" min="1" max="16" step="1" value="2">
+          </div>
+          <div class="param-row">
+            <div class="param-header"><label>Y mix</label><span class="val" id="part-y-mix-val">off</span></div>
+            <input type="range" id="part-y-mix" min="0" max="1" step="0.01" value="0">
+          </div>
+          <div class="info-text" data-info-label="partials">
+            Adds a whole multiple of each axis's own frequency to it: with Y at 3, a ×3 partial makes Y the sum of 3 and 9. Added before waveshape, fold and AM, so those act on the sum.
           </div>
         </div>
 
@@ -2593,7 +2616,7 @@
         </div>
         <button class="map-add-btn" id="btn-export-wav" style="margin-top:8px">⤓ Export Single Cycle WAV</button>
         <div class="info-text" data-info-label="the single-cycle export">
-          Writes one cycle of each axis as a 2048-sample WAV. The <strong>Root note</strong> sets the sample rate, and so the pitch it plays at; C0 is the usual choice. With Sub on, the cycle spans the sub's period.
+          Writes one cycle of each axis as a 2048-sample WAV. The <strong>Root note</strong> sets the sample rate, and so the pitch it plays at; C0 is the usual choice. When an FM or AM ratio doesn't complete whole cycles in one, the file spans as many cycles as it takes.
         </div>
 
         <div class="subsection-label">Image</div>
@@ -2721,7 +2744,7 @@ let params = {
   fmAmount: 0,    // frequency modulation depth
   fmRatio: 2,     // frequency modulation ratio
   fmWave: 'sine', // FM modulator waveform
-  fmAxis: 0,      // which axis FM is applied to: 0 = both, 1 = X only, 2 = Y only
+  fmAxis: 0,      // where FM applies: −1 = X only, 0 = both (full), +1 = Y only, crossfaded between
   crossAxis: 0,   // …and the same for every other synthesis stage (see AXIS_GROUPS)
   shapeAxis: 0,
   fbAxis: 0,
@@ -2730,7 +2753,7 @@ let params = {
   noiseAxis: 0,
   filterAxis: 0,
   syncAxis: 0,
-  subAxis: 0,
+  partAxis: 0,
   warp: 0,        // phase bend (Ableton Wavetable "Warp"): -1 = late, +1 = early
   shapeAmt: 0,    // waveshaping (tanh) drive
   syncAmt: 1,     // sync ratio (1 = off), range 0.1..2.0
@@ -2748,8 +2771,12 @@ let params = {
   foldBias: 0,    // asymmetric fold: DC offset into the folder (-1..1)
   unisonDetune: 0, // unison pair detune in cents (audio) / ghost drift rate (visual)
   unisonMix: 0,    // unison pair level 0..1 (0 = off)
-  subMix: 0,       // sub oscillator level 0..1 (0 = off): base wave 1 or 2 octaves down
-  subOct: 1,       // sub oscillator depth in octaves (1 or 2)
+  partX: 2,        // partial added to X: a whole multiple of X's own frequency
+  partXMix: 0,     // its level 0..1 (0 = off)
+  partY: 2,        // the same for Y
+  partYMix: 0,
+  fmRef: 0,        // FM modulator frequency: 0 = ratio × each axis's own, 1 = × X's, 2 = × Y's
+  amRef: 0,        // the same for AM
   damp: 0,         // harmonograph damping 0..1 (visual only): figure spirals inward
   filterCutoff: 1, // waveform filter cutoff 0..1 (1 = fully open / off)
   filterQ: 0.7,    // waveform filter resonance / Q
@@ -2957,17 +2984,19 @@ const TWO_PI = Math.PI * 2;
 //   base wave (morph + feedback) → waveshape → fold (+bias) → AM → ring mod →
 //   bitcrush → noise
 // `axis` ('x' | 'y') lets per-axis effects (sync "X only") know which side they're on.
-// Axis targeting for FM / AM: 0 = both axes, 1 = X only, 2 = Y only. Lets one
-// modulator smear a single axis, which breaks the figure's symmetry instead of
-// deforming both sides in lockstep.
-function modOnAxis(mode, axis) {
-  return mode === 0 || (mode === 1 ? axis === 'x' : axis === 'y');
+// Axis targeting: every synthesis stage has a crossfader from X only (−1)
+// through both at full strength (0) to Y only (+1). Aiming a stage at one side is
+// what breaks the figure's symmetry: the same modulation on both axes deforms
+// them in lockstep and the figure keeps its shape. axisW is the stage's strength
+// on one axis, 0..1; every stage scales its own amount by it.
+function axisW(key, axis) {
+  const v = Math.max(-1, Math.min(1, +params[key] || 0));
+  return axis === 'y' ? Math.min(1, 1 + v) : Math.min(1, 1 - v);
 }
-// Every synthesis stage can be aimed at one axis instead of both. Aiming a stage
-// at a single side is what breaks the figure's symmetry: the same modulation on
-// both axes deforms them in lockstep and the figure keeps its shape.
-function onAxis(key, axis) { return modOnAxis(params[key] | 0, axis); }
-// key → the group label the toggle is built under. Order follows the sidebar.
+function onAxis(key, axis) { return axisW(key, axis) > 0.0005; }
+// The filter's wet/dry mix on one axis: its own taper times the crossfader.
+function filterAxisMix(axis) { return filterMix() * axisW('filterAxis', axis); }
+// key → the group label the crossfader is built under. Order follows the sidebar.
 const AXIS_GROUPS = [
   ['amAxis',     'AM'],
   ['fmAxis',     'FM'],
@@ -2979,12 +3008,37 @@ const AXIS_GROUPS = [
   ['noiseAxis',  'Noise'],
   ['filterAxis', 'Filter'],
   ['syncAxis',   'Sync'],
-  ['subAxis',    'Sub'],
+  ['partAxis',   'Partials'],
 ];
 
-// Sub oscillator period multiplier. With the sub on, a figure lap (and one audio
-// wavetable cycle) only closes after 2 or 4 main cycles.
-function subDiv() { return (params.subMix || 0) > 0.001 ? ((params.subOct | 0) >= 2 ? 4 : 2) : 1; }
+// A modulator's speed in cycles per cycle of the axis it modulates: its ratio,
+// times the frequency it is referenced to (each axis's own, X's or Y's) over
+// that axis's own frequency. ref: 0 = each axis, 1 = X, 2 = Y.
+function modCyclesPerCycle(ratio, ref, axis) {
+  const fOwn = axis === 'y' ? params.fy : params.fx;
+  const fRef = ref === 1 ? params.fx : ref === 2 ? params.fy : fOwn;
+  return ratio * fRef / Math.max(1e-6, fOwn);
+}
+// Smallest denominator q ≤ maxQ with v·q (nearly) whole; 1 when nothing fits.
+function ratDen(v, maxQ) {
+  for (let q = 1; q <= maxQ; q++) if (Math.abs(v * q - Math.round(v * q)) < 1e-3 * q) return q;
+  return 1;
+}
+// Laps per period. A modulator that does not complete whole cycles in one cycle
+// of its axis would leave a step where the figure (and the audio wavetable)
+// wraps, so the period stretches to however many cycles it takes for every
+// active modulator to come round: a 3/2 ratio needs two. Capped at 8.
+function lapDiv() {
+  let d = 1;
+  const lcmI = (a, b) => { let x = a, y = b; while (y) [x, y] = [y, x % y]; return a / x * b; };
+  const add = (amt, ratio, ref, key) => {
+    if (!(amt > 0.0001)) return;
+    ['x', 'y'].forEach(ax => { if (onAxis(key, ax)) d = lcmI(d, ratDen(modCyclesPerCycle(ratio, ref, ax), 12)); });
+  };
+  add(params.fmAmount, params.fmRatio, params.fmRef | 0, 'fmAxis');
+  add(params.amAmt, params.amRatio, params.amRef | 0, 'amAxis');
+  return Math.min(8, d);
+}
 
 function processWave(carrierArg, freqT, type, axis) {
   type = type || waveTypeX;
@@ -2993,8 +3047,9 @@ function processWave(carrierArg, freqT, type, axis) {
   // is a deterministic function of the phase, so this steps the WHOLE output —
   // stepped audio, constellation-style figures. Stateless, so figure / preview /
   // wavetable stay identical.
-  if (params.crushRate > 0.005 && onAxis('crushAxis', axis)) {
-    const steps = Math.max(3, Math.round(Math.pow(2, 8 - 6.5 * params.crushRate)));
+  const wCrush = axisW('crushAxis', axis);
+  if (params.crushRate * wCrush > 0.005) {
+    const steps = Math.max(3, Math.round(Math.pow(2, 8 - 6.5 * params.crushRate * wCrush)));
     const q = TWO_PI / steps;
     carrierArg = Math.floor(carrierArg / q) * q;
     freqT = Math.floor(freqT / q) * q;
@@ -3004,21 +3059,29 @@ function processWave(carrierArg, freqT, type, axis) {
   // modulators rotate with the phase animation/parameter just like the carrier.
   const modPhase = phaseModulators ? (carrierArg - freqT) : 0;
   let ph = carrierArg;
-  // Frequency Modulation: true-FM style, index scales with 1/ratio
-  if (params.fmAmount > 0.0001 && onAxis('fmAxis', axis)) ph += (params.fmAmount / params.fmRatio) * waveFn(params.fmRatio * freqT + modPhase, params.fmWave);
+  // Frequency Modulation: true-FM style, index scales with 1/ratio. The
+  // modulator runs at ratio × the reference frequency (this axis's own, or X's
+  // or Y's for both — see modCyclesPerCycle).
+  const wFm = axisW('fmAxis', axis);
+  if (params.fmAmount * wFm > 0.0001) {
+    const mr = modCyclesPerCycle(params.fmRatio, params.fmRef | 0, axis);
+    ph += (params.fmAmount * wFm / params.fmRatio) * waveFn(mr * freqT + modPhase, params.fmWave);
+  }
   // Cross-axis FM: this axis's phase is modulated by the OTHER axis's carrier (its
   // base wave at its frequency ratio). Couples the two axes — small amounts smear /
   // precess the figure. The other axis's phase relative to this one is freqT scaled
   // by the frequency ratio between them, which holds in every sampling context.
   const rOther = axis === 'x' ? (params.fy / params.fx) : (params.fx / params.fy);
-  if (params.crossFm > 0.0001 && onAxis('crossAxis', axis)) {
+  const wCross = axisW('crossAxis', axis);
+  if (params.crossFm * wCross > 0.0001) {
     const otherType = axis === 'x' ? waveTypeY : waveTypeX;
-    ph += (params.crossFm / Math.max(0.25, rOther)) * morphWaveFn(rOther * freqT + modPhase, axisMorph(axis === 'x' ? 'y' : 'x', otherType));
+    ph += (params.crossFm * wCross / Math.max(0.25, rOther)) * morphWaveFn(rOther * freqT + modPhase, axisMorph(axis === 'x' ? 'y' : 'x', otherType));
   }
   // Sync: hard (phase reset) or soft (triangle reflect) at the synced ratio.
   // Optionally affects the X axis only.
-  if (Math.abs(params.syncAmt - 1) > 0.001 && onAxis('syncAxis', axis)) {
-    const q = (ph / TWO_PI) * params.syncAmt;
+  const syncR = 1 + (params.syncAmt - 1) * axisW('syncAxis', axis);
+  if (Math.abs(syncR - 1) > 0.001) {
+    const q = (ph / TWO_PI) * syncR;
     let phf;
     if (syncHard) {
       phf = q - Math.floor(q);                       // hard reset (discontinuous)
@@ -3029,46 +3092,58 @@ function processWave(carrierArg, freqT, type, axis) {
     ph = phf * TWO_PI;
   }
   // Warp — bend the cycle's own clock before the shape is read from it.
-  if (params.warp && onAxis('warpAxis', axis)) ph = warpPhase(ph, params.warp);
+  const wWarp = axisW('warpAxis', axis);
+  if (params.warp && wWarp > 0.0005) ph = warpPhase(ph, params.warp * wWarp);
   // Base wave — morphed towards the next shape in the cycle, with optional phase
   // feedback (the output nudges its own phase, classic FM-operator feedback
   // growl). Two refinement passes approximate the recursion statelessly, so every
   // sampling context computes the same value.
   const mrp = axisMorph(axis, type);
   let s = morphWaveFn(ph, mrp);
-  if (params.fbAmt > 0.001 && onAxis('fbAxis', axis)) {
-    const fb = params.fbAmt * 2.5;
+  const wFb = axisW('fbAxis', axis);
+  if (params.fbAmt * wFb > 0.001) {
+    const fb = params.fbAmt * wFb * 2.5;
     s = morphWaveFn(ph + fb * s, mrp);
     s = morphWaveFn(ph + fb * s, mrp);
+  }
+  // Partial: a whole multiple n of this axis's own frequency added to the base
+  // wave (Y at 3 with n = 3 sounds 3 and 9). It joins before the shaping stages,
+  // so waveshape, fold and AM act on the sum. Whole multiples keep every period.
+  const pm = (axis === 'y' ? params.partYMix : params.partXMix) * axisW('partAxis', axis);
+  if (pm > 0.001) {
+    const pn = Math.max(1, Math.round(axis === 'y' ? params.partY : params.partX));
+    s = (s + pm * morphWaveFn(pn * ph, mrp)) / (1 + pm);
   }
   // Waveshaping (tanh saturation), normalised. k rises from 0, where the transfer
   // curve IS the identity, so leaving zero is a fade-in rather than a step.
-  if (params.shapeAmt > 0.0002 && onAxis('shapeAxis', axis)) { const k = params.shapeAmt * 7; s = Math.tanh(s * k) / Math.tanh(k); }
+  const shp = params.shapeAmt * axisW('shapeAxis', axis);
+  if (shp > 0.0002) { const k = shp * 7; s = Math.tanh(s * k) / Math.tanh(k); }
   // Fold — the bias offsets the input into the folder, breaking its symmetry
-  if ((params.foldDrive > 1.001 || Math.abs(params.foldBias) > 0.001) && onAxis('warpAxis', axis)) s = foldValue(s * params.foldDrive + params.foldBias);
+  const fDrive = 1 + (params.foldDrive - 1) * wWarp, fBias = params.foldBias * wWarp;
+  if (fDrive > 1.001 || Math.abs(fBias) > 0.001) s = foldValue(s * fDrive + fBias);
   // AM (normalized)
-  if (params.amAmt > 0.001 && onAxis('amAxis', axis)) s = s * (1 + params.amAmt * waveFn(params.amRatio * freqT + modPhase, params.amWave)) / (1 + params.amAmt);
+  const amA = params.amAmt * axisW('amAxis', axis);
+  if (amA > 0.001) {
+    const mr = modCyclesPerCycle(params.amRatio, params.amRef | 0, axis);
+    s = s * (1 + amA * waveFn(mr * freqT + modPhase, params.amWave)) / (1 + amA);
+  }
   // Ring mod between axes: multiply in the other axis's carrier. At full amount
   // this is a pure X×Y product (petal / star symmetries).
-  if (params.ringAmt > 0.001 && onAxis('crossAxis', axis)) {
+  const ring = params.ringAmt * wCross;
+  if (ring > 0.001) {
     const otherType = axis === 'x' ? waveTypeY : waveTypeX;
-    s = s * ((1 - params.ringAmt) + params.ringAmt * morphWaveFn(rOther * freqT + modPhase, axisMorph(axis === 'x' ? 'y' : 'x', otherType)));
+    s = s * ((1 - ring) + ring * morphWaveFn(rOther * freqT + modPhase, axisMorph(axis === 'x' ? 'y' : 'x', otherType)));
   }
   // Bitcrush: quantise the amplitude to 2^(bits−1) levels per polarity.
-  if (params.crushBits < 15.5 && onAxis('crushAxis', axis)) {
-    const L = Math.pow(2, Math.max(0, params.crushBits - 1));
+  const bits = 16 - (16 - params.crushBits) * wCrush;
+  if (bits < 15.5) {
+    const L = Math.pow(2, Math.max(0, bits - 1));
     s = Math.round(s * L) / L;
-  }
-  // Sub oscillator: the axis's base wave one or two octaves down, mixed in last so
-  // nothing upstream reshapes it. Every sampler spans subDiv() main cycles, so the
-  // sum stays periodic for the figure and the wavetable alike.
-  if ((params.subMix || 0) > 0.001 && onAxis('subAxis', axis)) {
-    const m = params.subMix;
-    s = (s + m * morphWaveFn(carrierArg / subDiv(), mrp)) / (1 + m);
   }
   // Noise — visual only; live audio gets a dedicated white-noise source so the
   // periodic wavetable stays clean/periodic.
-  if (!_audioSampling && params.noiseAmt > 0.001 && onAxis('noiseAxis', axis)) s += params.noiseAmt * (Math.random() * 2 - 1);
+  const nz = params.noiseAmt * axisW('noiseAxis', axis);
+  if (!_audioSampling && nz > 0.001) s += nz * (Math.random() * 2 - 1);
   return s;
 }
 
@@ -3085,7 +3160,8 @@ function modComplexity() {
     + params.fbAmt * 1.5
     + Math.abs(params.warp || 0) * 2.5
     + params.crushRate * 0.5
-    + (params.subMix || 0) * 0.5;
+    + (params.partXMix || 0) * (params.partX || 1) * 0.1
+    + (params.partYMix || 0) * (params.partY || 1) * 0.1;
 }
 
 // The figure's paint: the stroke colour, or with the gradient on, a linear
@@ -3106,7 +3182,7 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
   zoom = zoom || 1;
   // Base resolution from user setting (or override from caller)
   const baseRes = resolution ?? params.resolution;
-  const periodFactor = lcm(fx, fy) / Math.min(fx, fy) * subDiv();
+  const periodFactor = lcm(fx, fy) / Math.min(fx, fy) * lapDiv();
   const modCx = modComplexity();
   const minPts = Math.ceil(Math.max(fx, fy) * periodFactor * 80 * Math.min(modCx, 10));
   resolution = Math.min(Math.max(baseRes, minPts), resCap || 160000);
@@ -3162,8 +3238,8 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
     }
     if (filterIsOn() && onAxis('filterAxis', 'y')) {
       const wY = Math.PI * 2 * Math.min(0.49, (filterHarmonics() * fy * periodFactor) / resolution);
-      filterPeriodic(syArr, N, biquadCoeffs(filterType, wY, params.filterQ));
-      if (polar) filterPeriodic(syqArr, N, biquadCoeffs(filterType, wY, params.filterQ));
+      filterPeriodic(syArr, N, biquadCoeffs(filterType, wY, params.filterQ), filterAxisMix('y'));
+      if (polar) filterPeriodic(syqArr, N, biquadCoeffs(filterType, wY, params.filterQ), filterAxisMix('y'));
     }
   }
   if (xStale) {
@@ -3192,10 +3268,10 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
     // ── Multimode filter (final waveform stage) — X and the depth it carries ──
     if (filterIsOn() && onAxis('filterAxis', 'x')) {
       const wX = Math.PI * 2 * Math.min(0.49, (filterHarmonics() * fx * periodFactor) / resolution);
-      filterPeriodic(sxArr, N, biquadCoeffs(filterType, wX, params.filterQ));
+      filterPeriodic(sxArr, N, biquadCoeffs(filterType, wX, params.filterQ), filterAxisMix('x'));
       // Depth gets the X axis's own coefficients: filtering it differently would
       // pull it out of quadrature and buckle the cylinder.
-      if (lift || polar) filterPeriodic(szArr, N, biquadCoeffs(filterType, wX, params.filterQ));
+      if (lift || polar) filterPeriodic(szArr, N, biquadCoeffs(filterType, wX, params.filterQ), filterAxisMix('x'));
     }
   }
   const cyclesX = fx * periodFactor, cyclesY = fy * periodFactor;
@@ -4213,7 +4289,7 @@ function buildColumn(w, h, phase, zoom, rows, budget) {
   const geo = figGeometry(), polar = geo !== 0;
   const n = Math.max(2, Math.min(400, Math.round(params.colSlices || 48)));
   const R = Math.max(2, rows || n);
-  const span = Math.PI * 2 * lcm(fx, fy) / Math.min(fx, fy) * subDiv();
+  const span = Math.PI * 2 * lcm(fx, fy) / Math.min(fx, fy) * lapDiv();
   const periodFactor = span / (Math.PI * 2);
   const minPts = Math.ceil(Math.max(fx, fy) * periodFactor * 40 * Math.min(modComplexity(), 10));
   // Per-row resolution: enough for the figure, but the whole stack stays inside
@@ -4239,8 +4315,8 @@ function buildColumn(w, h, phase, zoom, rows, budget) {
   }
   if (filt && onAxis('filterAxis', 'y')) {
     const wY = Math.PI * 2 * Math.min(0.49, (filterHarmonics() * fy * periodFactor) / res);
-    filterPeriodic(_colY, N, biquadCoeffs(filterType, wY, params.filterQ));
-    if (polar) filterPeriodic(_colYQ, N, biquadCoeffs(filterType, wY, params.filterQ));
+    filterPeriodic(_colY, N, biquadCoeffs(filterType, wY, params.filterQ), filterAxisMix('y'));
+    if (polar) filterPeriodic(_colYQ, N, biquadCoeffs(filterType, wY, params.filterQ), filterAxisMix('y'));
   }
   const filtX = filt && onAxis('filterAxis', 'x');
   const wX = Math.PI * 2 * Math.min(0.49, (filterHarmonics() * fx * periodFactor) / res);
@@ -4272,8 +4348,8 @@ function buildColumn(w, h, phase, zoom, rows, budget) {
       if (polar) _colXQ[i] = processWave(fx * t + ph * Math.PI + Math.PI / 2, fx * t, waveTypeX, 'x');
     }
     if (filtX) {
-      filterPeriodic(_colX, N, biquadCoeffs(filterType, wX, params.filterQ));
-      if (polar) filterPeriodic(_colXQ, N, biquadCoeffs(filterType, wX, params.filterQ));
+      filterPeriodic(_colX, N, biquadCoeffs(filterType, wX, params.filterQ), filterAxisMix('x'));
+      if (polar) filterPeriodic(_colXQ, N, biquadCoeffs(filterType, wX, params.filterQ), filterAxisMix('x'));
     }
     const o = r * N;
     for (let i = 0; i <= res; i++) {
@@ -4637,7 +4713,7 @@ const WS_LABELS = ['X', 'Y', 'X+Y'];
 let _wsX = new Float64Array(0), _wsY = new Float64Array(0), _wsS = new Float64Array(0);
 function waveStackSamples(phase, n) {
   const { fx, fy, ax, ay } = params;
-  const g = gcd(fx, fy) / subDiv(), T = TWO_PI / g;   // the sub stretches the lap
+  const g = gcd(fx, fy) / lapDiv(), T = TWO_PI / g;   // lapDiv stretches the lap
   const N = n + 1;
   if (_wsX.length < N) { _wsX = new Float64Array(N); _wsY = new Float64Array(N); _wsS = new Float64Array(N); }
   for (let i = 0; i <= n; i++) {
@@ -4647,8 +4723,8 @@ function waveStackSamples(phase, n) {
   }
   if (filterIsOn()) {
     const fc = cyc => biquadCoeffs(filterType, TWO_PI * Math.min(0.49, (filterHarmonics() * cyc) / n), params.filterQ);
-    if (onAxis('filterAxis', 'x')) filterPeriodic(_wsX, N, fc(fx / g));
-    if (onAxis('filterAxis', 'y')) filterPeriodic(_wsY, N, fc(fy / g));
+    if (onAxis('filterAxis', 'x')) filterPeriodic(_wsX, N, fc(fx / g), filterAxisMix('x'));
+    if (onAxis('filterAxis', 'y')) filterPeriodic(_wsY, N, fc(fy / g), filterAxisMix('y'));
   }
   let peak = 0;
   for (let i = 0; i <= n; i++) {
@@ -4753,7 +4829,7 @@ function drawWavePreview() {
   const w = waveCanvas.width, h = waveCanvas.height;
   waveCtx.fillStyle = '#0c0c0e';
   waveCtx.fillRect(0, 0, w, h);
-  const CYC = Math.max(2, subDiv());     // preview shows 2 cycles (a whole sub cycle)
+  const CYC = Math.max(2, lapDiv());     // preview shows 2 cycles (a whole sub cycle)
   // Build, filter (same waveform stage as the figure), then plot each axis.
   const drawAxis = (type, axis, color, lw) => {
     const n = w + 1;
@@ -4761,7 +4837,7 @@ function drawWavePreview() {
     for (let i = 0; i <= w; i++) { const t = (i / w) * Math.PI * 2 * CYC; buf[i] = processWave(t, t, type, axis); }
     if (filterIsOn() && onAxis('filterAxis', axis)) {
       const wc = Math.PI * 2 * Math.min(0.49, (filterHarmonics() * CYC) / w);
-      filterPeriodic(buf, n, biquadCoeffs(filterType, wc, params.filterQ));
+      filterPeriodic(buf, n, biquadCoeffs(filterType, wc, params.filterQ), filterAxisMix(axis));
     }
     waveCtx.beginPath();
     for (let i = 0; i <= w; i++) {
@@ -4796,7 +4872,7 @@ let _m4MemoLift = null;                    // ...and which depth mode built it
 // The tracer advances once per FRAME. drawMode4 runs several times per frame now
 // (figure, chrome, one pass per KEEP ghost), so it cannot own the clock.
 function advanceMode4() {
-  const T = TWO_PI / gcd(params.fx, params.fy) * subDiv();
+  const T = TWO_PI / gcd(params.fx, params.fy) * lapDiv();
   mode4T = (mode4T + T * (params.traceSpeed ?? 1) * 0.003) % T;
 }
 let _m4BufX = new Float64Array(0), _m4BufY = new Float64Array(0);
@@ -4839,7 +4915,7 @@ function rotConSamples(phase, res) {
   _rcMemoKey = key;
   const { fx, fy } = params, N = res + 1;
   if (_rcXs.length < N) { _rcXs = new Float64Array(N); _rcXq = new Float64Array(N); _rcYs = new Float64Array(N); _rcYq = new Float64Array(N); }
-  const T = TWO_PI / gcd(fx, fy) * subDiv();
+  const T = TWO_PI / gcd(fx, fy) * lapDiv();
   for (let i = 0; i <= res; i++) {
     const t = (i / res) * T;
     _rcXs[i] = processWave(fx * t + phase * Math.PI, fx * t, waveTypeX, 'x');
@@ -4851,11 +4927,11 @@ function rotConSamples(phase, res) {
     const cyc = T / TWO_PI;
     if (onAxis('filterAxis', 'x')) {
       const c = biquadCoeffs(filterType, TWO_PI * Math.min(0.49, filterHarmonics() * fx * cyc / res), params.filterQ);
-      filterPeriodic(_rcXs, N, c); filterPeriodic(_rcXq, N, c);
+      filterPeriodic(_rcXs, N, c, filterAxisMix('x')); filterPeriodic(_rcXq, N, c, filterAxisMix('x'));
     }
     if (onAxis('filterAxis', 'y')) {
       const c = biquadCoeffs(filterType, TWO_PI * Math.min(0.49, filterHarmonics() * fy * cyc / res), params.filterQ);
-      filterPeriodic(_rcYs, N, c); filterPeriodic(_rcYq, N, c);
+      filterPeriodic(_rcYs, N, c, filterAxisMix('y')); filterPeriodic(_rcYq, N, c, filterAxisMix('y'));
     }
   }
 }
@@ -4873,8 +4949,8 @@ function drawConstructionRot(ctx, w, h, phase, noBg, zoom, part, resCap) {
   ctx.save();
   if (z !== 1) { ctx.translate(w / 2, h / 2); ctx.scale(z, z); ctx.translate(-w / 2, -h / 2); }
   const L = rotConLayout(w, h), { cx, cy, R } = L;
-  const T = TWO_PI / gcd(fx, fy) * subDiv();
-  const res = Math.min(Math.max(params.resolution, Math.ceil(Math.max(fx, fy) / gcd(fx, fy) * subDiv() * 160)), resCap || 40000);
+  const T = TWO_PI / gcd(fx, fy) * lapDiv();
+  const res = Math.min(Math.max(params.resolution, Math.ceil(Math.max(fx, fy) / gcd(fx, fy) * lapDiv() * 160)), resCap || 40000);
   rotConSamples(phase, res);
   beginFigureXform(phase, false, 1);
   // Face-on, the torus hides its tube rings edge-on, so the construction looks
@@ -4941,6 +5017,10 @@ function drawConstructionRot(ctx, w, h, phase, noBg, zoom, part, resCap) {
       ctx.lineTo(b[0] - ux * 5 - uy * 3.5, b[1] - uy * 5 + ux * 3.5); ctx.lineTo(b[0] - ux * 5 + uy * 3.5, b[1] - uy * 5 - ux * 3.5);
       ctx.closePath(); ctx.fill();
     };
+    // The rings are the rotors' own sampled paths over the lap, so whatever AM,
+    // FM, fold or the filter do to a wave shows in its ring too; for plain sines
+    // they are circles. q ∈ [0, 1] walks the lap.
+    const si = q => Math.min(res, Math.round(q * res));
     const xCol = hexToRgba(RC_X, 0.9), yCol = hexToRgba(RC_Y, 0.9);
     const xDim = hexToRgba(RC_X, 0.4), yDim = hexToRgba(RC_Y, 0.4);
     geoPoint(geo, xs, xq, ys, yq, _G);
@@ -4954,8 +5034,9 @@ function drawConstructionRot(ctx, w, h, phase, noBg, zoom, part, resCap) {
       const O = S(0, 0), A = S(Ax, Ay);
       const orb1 = u => S(r1 * Math.cos(u), -r1 * Math.sin(u));
       const orb2 = u => S(Ax + r2 * Math.cos(u), Ay - s * r2 * Math.sin(u));
-      poly(k => orb1(k * TWO_PI), 96, xDim, 1, [3, 4]);
-      poly(k => orb2(k * TWO_PI), 96, yDim, 1, [3, 4]);
+      const ringN = Math.min(res, 1600);
+      poly(q => { const i = si(q); return S(r1 * _rcXq[i], -r1 * _rcXs[i]); }, ringN, xDim, 1, [3, 4]);
+      poly(q => { const i = si(q); return S(Ax + r2 * _rcYq[i], Ay - s * r2 * _rcYs[i]); }, ringN, yDim, 1, [3, 4]);
       arrow(orb1, Math.atan2(xs, xq), Math.sign(fx) || 1, xDim);
       arrow(orb2, Math.atan2(ys, yq), Math.sign(fy) || 1, yDim);
       seg(O, A, xCol, 2); seg(A, pen, yCol, 2);
@@ -4965,9 +5046,12 @@ function drawConstructionRot(ctx, w, h, phase, noBg, zoom, part, resCap) {
       const ray = u => S(ax * u * yq, -ay * u * ys);
       seg(ray(-1), ray(1), yDim, 1);
       seg(S(0, 0), ray(1), yCol, 1.4);
-      poly(k => S(ax * Math.cos(k * TWO_PI), -ay * Math.sin(k * TWO_PI)), 128, 'rgba(255,255,255,0.10)', 1, [2, 4]);
+      const ringN = Math.min(res, 1600);
+      // Where the ray's tip goes over the lap (Y's rotor), and that path scaled
+      // to the bead's current distance.
+      poly(q => { const i = si(q); return S(ax * _rcYq[i], -ay * _rcYs[i]); }, ringN, 'rgba(255,255,255,0.12)', 1, [2, 4]);
       const rr = Math.abs(xq);
-      poly(k => S(ax * rr * Math.cos(k * TWO_PI), -ay * rr * Math.sin(k * TWO_PI)), 96, xDim, 1, [3, 4]);
+      poly(q => { const i = si(q); return S(ax * rr * _rcYq[i], -ay * rr * _rcYs[i]); }, ringN, xDim, 1, [3, 4]);
       seg(S(0, 0), pen, xCol, 2.2);
       // The radius wave along the bottom, with the tracer's cursor.
       const sy0 = 6, sh = L.strip - 12, sx0 = 12, sw = w - 24, mid = sy0 + sh / 2, amp = sh / 2 - 3;
@@ -4987,10 +5071,13 @@ function drawConstructionRot(ctx, w, h, phase, noBg, zoom, part, resCap) {
       const wire = 'rgba(255,255,255,0.07)';
       for (let m = 0; m < 16; m++) { const u = TWO_PI * m / 16; poly(q => tor(u, q * TWO_PI), 32, wire, 1); }
       for (let m = 0; m < 6; m++) { const v = TWO_PI * m / 6; poly(q => tor(q * TWO_PI, v), 72, wire, 1); }
-      poly(q => S(k * Math.cos(q * TWO_PI), -k * Math.sin(q * TWO_PI), 0), 96, xDim, 1, [3, 4]);
+      const ringN = Math.min(res, 1600);
+      // The tube centres X's rotor carries round the hole, and the tube ring Y's
+      // rotor draws at the current angle — both from the sampled waves.
+      poly(q => { const i = si(q); return S(k * _rcXq[i], -k * _rcXs[i], 0); }, ringN, xDim, 1, [3, 4]);
       const C = S(k * xq, -k * xs, 0), O = S(0, 0, 0);
       seg(O, C, xCol, 2);
-      poly(q => { const v = q * TWO_PI, ww = (1 + r * Math.cos(v)) * k; return S(ww * xq, -ww * xs, -r * k * Math.sin(v)); }, 64, yCol, 1.5);
+      poly(q => { const i = si(q), ww = (1 + r * _rcYq[i]) * k; return S(ww * xq, -ww * xs, -r * k * _rcYs[i]); }, ringN, yCol, 1.5);
       seg(C, pen, yCol, 1.8);
       dot(O, 2.5, hexToRgba(RC_X, 0.6)); dot(C, 3.5, RC_X);
     }
@@ -5020,12 +5107,12 @@ function drawMode4(ctx, w, h, phase, noBg, zoom, part, resCap) {  // w,h are log
   const ry = (figH / 2 - pad) * ay;
 
   // True fundamental period so cycle counts read correctly (e.g. 2:1 → 2 & 1).
-  const T = TWO_PI / gcd(fx, fy) * subDiv();
+  const T = TWO_PI / gcd(fx, fy) * lapDiv();
   const t = mode4T;
 
   // RINGS draw each generator as large as the figure, so give every generator
   // cycle at least ~1000 samples or the ring reads as a polygon.
-  const ringFloor = params.m4Rings ? Math.ceil(Math.max(fx, fy) / gcd(fx, fy) * subDiv() * 1024) : 0;
+  const ringFloor = params.m4Rings ? Math.ceil(Math.max(fx, fy) / gcd(fx, fy) * lapDiv() * 1024) : 0;
   const res = Math.min(Math.max(params.resolution, Math.ceil(Math.max(fx, fy) * 96), ringFloor), resCap || 40000);
 
   // Background (trail-aware, same afterglow behaviour as the main view). Skipped
@@ -5093,8 +5180,8 @@ function drawMode4(ctx, w, h, phase, noBg, zoom, part, resCap) {  // w,h are log
 
   // Cycles each generator fits into one lap, after the X/Y display swap.
   const gR = gcd(fx, fy);
-  const cycH = Math.max(1, Math.round((visualSwap ? fy : fx) / gR * subDiv()));
-  const cycV = Math.max(1, Math.round((visualSwap ? fx : fy) / gR * subDiv()));
+  const cycH = Math.max(1, Math.round((visualSwap ? fy : fx) / gR * lapDiv()));
+  const cycV = Math.max(1, Math.round((visualSwap ? fx : fy) / gR * lapDiv()));
   const Th = T / cycH, Tv = T / cycV;                    // one cycle of each
   const hStart = m4Rot ? mode4T - Th : 0;      // window ends AT the tracer
   const vStart = m4Rot ? mode4T - Tv : 0;
@@ -5149,16 +5236,16 @@ function drawMode4(ctx, w, h, phase, noBg, zoom, part, resCap) {  // w,h are log
         ampZArr[i] = processWave(fx * τ + Math.PI / 2, fx * τ, waveTypeX, 'x');
       }
     }
-    const g = gcd(fx, fy) / subDiv();
+    const g = gcd(fx, fy) / lapDiv();
     const cyclesX = fx / g, cyclesY = fy / g;   // waveform cycles within one period T
     if (filterIsOn()) {
       const HC = filterHarmonics();
       const wX = Math.PI * 2 * Math.min(0.49, (HC * cyclesX) / res);
       const wY = Math.PI * 2 * Math.min(0.49, (HC * cyclesY) / res);
       const f4X = onAxis('filterAxis', 'x'), f4Y = onAxis('filterAxis', 'y');
-      if (f4X) filterPeriodic(ampXArr, N, biquadCoeffs(filterType, wX, params.filterQ));
-      if (f4Y) filterPeriodic(ampYArr, N, biquadCoeffs(filterType, wY, params.filterQ));
-      if (m4Lift && f4X) filterPeriodic(ampZArr, N, biquadCoeffs(filterType, wX, params.filterQ));
+      if (f4X) filterPeriodic(ampXArr, N, biquadCoeffs(filterType, wX, params.filterQ), filterAxisMix('x'));
+      if (f4Y) filterPeriodic(ampYArr, N, biquadCoeffs(filterType, wY, params.filterQ), filterAxisMix('y'));
+      if (m4Lift && f4X) filterPeriodic(ampZArr, N, biquadCoeffs(filterType, wX, params.filterQ), filterAxisMix('x'));
     }
   }
   // X/Y swap mirrors the main view; sample the filtered arrays by time.
@@ -5253,7 +5340,7 @@ function drawMode4(ctx, w, h, phase, noBg, zoom, part, resCap) {  // w,h are log
   // Unison ghosts (± detune copies), dimmer than the untraced figure.
   if (wantFigure && (params.unisonMix || 0) > 0.01) {
     const gxy = gcd(fx, fy);
-    const τOff = ((unisonOffsetCycles() % 1) * T) / (fx / gxy * subDiv());   // in X-cycles
+    const τOff = ((unisonOffsetCycles() % 1) * T) / (fx / gxy * lapDiv());   // in X-cycles
     if (τOff > 0.0001) {
       ctx.strokeStyle = figPaint(ctx, w, h, Math.min(1, params.unisonMix * 0.4));
       for (const [mx, my] of m4Mirrors) {
@@ -5343,18 +5430,18 @@ let _woBufX = new Float64Array(WO_N + 1), _woBufY = new Float64Array(WO_N + 1);
 
 function woBuild() {
   const { fx, fy } = params;
-  const T = TWO_PI / gcd(fx, fy) * subDiv();
+  const T = TWO_PI / gcd(fx, fy) * lapDiv();
   for (let i = 0; i <= WO_N; i++) {
     const τ = (i / WO_N) * T;
     _woBufX[i] = processWave(fx * τ + params.phase * Math.PI, fx * τ, waveTypeX, 'x');
     _woBufY[i] = processWave(fy * τ, fy * τ, waveTypeY, 'y');
   }
   if (filterIsOn()) {
-    const g = gcd(fx, fy) / subDiv(), HC = filterHarmonics();
+    const g = gcd(fx, fy) / lapDiv(), HC = filterHarmonics();
     const wX = Math.PI * 2 * Math.min(0.49, (HC * (fx / g)) / WO_N);
     const wY = Math.PI * 2 * Math.min(0.49, (HC * (fy / g)) / WO_N);
-    if (onAxis('filterAxis', 'x')) filterPeriodic(_woBufX, WO_N + 1, biquadCoeffs(filterType, wX, params.filterQ));
-    if (onAxis('filterAxis', 'y')) filterPeriodic(_woBufY, WO_N + 1, biquadCoeffs(filterType, wY, params.filterQ));
+    if (onAxis('filterAxis', 'x')) filterPeriodic(_woBufX, WO_N + 1, biquadCoeffs(filterType, wX, params.filterQ), filterAxisMix('x'));
+    if (onAxis('filterAxis', 'y')) filterPeriodic(_woBufY, WO_N + 1, biquadCoeffs(filterType, wY, params.filterQ), filterAxisMix('y'));
   }
 }
 
@@ -5365,7 +5452,7 @@ function tickWaveOut(dt) {
   // Position in the lap. Following the tracer keeps the stream and the moving dot
   // on the construction view in lockstep — what is sent is exactly what is shown.
   if (woFollow && m4Active()) {
-    woLap = (mode4T / (TWO_PI / gcd(params.fx, params.fy) * subDiv())) % 1;
+    woLap = (mode4T / (TWO_PI / gcd(params.fx, params.fy) * lapDiv())) % 1;
   } else {
     woLap = (woLap + woRate * dt) % 1;
     if (woLap < 0) woLap += 1;
@@ -5482,7 +5569,7 @@ function render(now) {
   // Adaptive resolution and the phase step read fx/fy/animSpeed, so they are
   // computed from the modulated values rather than the base ones.
   const { fx, fy } = params;
-  const pf = lcm(fx, fy) / Math.min(fx, fy) * subDiv();
+  const pf = lcm(fx, fy) / Math.min(fx, fy) * lapDiv();
   const minResAdaptive = Math.ceil(Math.max(fx, fy) * pf * (midiActive ? 36 : 80) * Math.min(modComplexity(), 10));
   const res = Math.min(Math.max(params.resolution, minResAdaptive), 160000);
 
@@ -5657,55 +5744,64 @@ document.querySelectorAll('.mod-wave-btn').forEach(btn => {
   btn.addEventListener('click', () => setModWave(btn.dataset.mod, btn.dataset.mwave));
 });
 
-// Modulator (FM / AM) axis targeting — 0 = both, 1 = X only, 2 = Y only.
-// Set a stage's axis target. `key` is the params key (fmAxis, foldAxis, …); the
-// rows themselves were built by buildAxisToggles() from AXIS_GROUPS, so a new
-// stage needs one line there and nothing here.
+// Stage axis targeting: a crossfader from X only (−1) through both (0) to Y only
+// (+1). The rows themselves are built by buildAxisToggles() from AXIS_GROUPS, so a
+// new stage needs one line there and nothing here.
+function fmtAxisFade(v) {
+  if (Math.abs(v) < 0.005) return 'both';
+  const wx = Math.round(Math.min(1, 1 - v) * 100), wy = Math.round(Math.min(1, 1 + v) * 100);
+  if (wy === 0) return 'X only';
+  if (wx === 0) return 'Y only';
+  return `X ${wx}% · Y ${wy}%`;
+}
 function setAxisTarget(key, a) {
   if (params[key] === undefined) return;
-  a = Math.max(0, Math.min(2, Math.round(a)));
+  a = Math.max(-1, Math.min(1, +a || 0));
   params[key] = a;
-  document.querySelectorAll(`.mod-axis-btn[data-axiskey="${key}"]`).forEach(b => {
-    const on = parseInt(b.dataset.maxis) === a;
-    b.classList.toggle('active', on);
-    b.setAttribute('aria-pressed', on ? 'true' : 'false');
-  });
+  const sl = document.getElementById('axf-' + key); if (sl) sl.value = a;
+  const d = document.getElementById('axf-' + key + '-val'); if (d) d.textContent = fmtAxisFade(a);
   drawWavePreview();
   schedulePeriodicWaveUpdate();
 }
 // Back-compat shim for the two that used to be addressed by modulator name.
 function setModAxis(mod, a) { setAxisTarget(mod === 'fm' ? 'fmAxis' : 'amAxis', a); }
 
-const AXIS_LABELS = ['BOTH', 'X', 'Y'];
 function buildAxisToggles() {
   document.querySelectorAll('.mod-group[data-axis]').forEach(group => {
     const key = group.dataset.axis;
-    if (params[key] === undefined || group.querySelector('.mod-axis-toggle')) return;
-    const hdr = document.createElement('div');
-    hdr.className = 'param-header';
-    hdr.style.marginBottom = '4px';
-    hdr.innerHTML = '<label>Apply to</label>';
+    if (params[key] === undefined || group.querySelector('.mod-axis-fade')) return;
     const row = document.createElement('div');
-    row.className = 'lfo-wave-toggle mod-axis-toggle';
-    AXIS_LABELS.forEach((label, i) => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'mod-axis-btn' + (i === (params[key] | 0) ? ' active' : '');
-      b.dataset.axiskey = key;
-      b.dataset.maxis = i;
-      b.textContent = label;
-      b.setAttribute('aria-pressed', i === (params[key] | 0) ? 'true' : 'false');
-      b.addEventListener('click', () => setAxisTarget(key, i));
-      row.appendChild(b);
+    row.className = 'param-row mod-axis-fade';
+    row.innerHTML = `<div class="param-header"><label for="axf-${key}">Apply to &nbsp;X ◂ ▸ Y</label><span class="val" id="axf-${key}-val">${fmtAxisFade(+params[key] || 0)}</span></div>`
+      + `<input type="range" id="axf-${key}" min="-1" max="1" step="0.01" value="${+params[key] || 0}" title="X only at the left end, both at full strength in the middle, Y only at the right end. Double-click for both.">`;
+    const sl = row.querySelector('input');
+    sl.addEventListener('input', () => {
+      let v = parseFloat(sl.value);
+      if (Math.abs(v) < 0.04) { v = 0; sl.value = 0; }   // the middle is sticky
+      setAxisTarget(key, v);
     });
+    sl.addEventListener('dblclick', () => setAxisTarget(key, 0));
     // Sit above any explanatory prose in the group rather than below it, so the
     // controls stay together and the note stays last.
     const prose = group.querySelector('.info-text');
-    if (prose) { group.insertBefore(hdr, prose); group.insertBefore(row, prose); }
-    else { group.appendChild(hdr); group.appendChild(row); }
+    if (prose) group.insertBefore(row, prose); else group.appendChild(row);
   });
 }
-function refreshAxisToggles() { AXIS_GROUPS.forEach(([k]) => setAxisTarget(k, params[k] | 0)); }
+function refreshAxisToggles() { AXIS_GROUPS.forEach(([k]) => setAxisTarget(k, +params[k] || 0)); }
+
+// FM / AM ratio reference: 0 = each axis's own frequency, 1 = X's, 2 = Y's.
+function setModRef(mod, v) {
+  const key = mod === 'fm' ? 'fmRef' : 'amRef';
+  params[key] = Math.max(0, Math.min(2, Math.round(+v || 0)));
+  document.querySelectorAll(`.mod-ref-btn[data-modref="${mod}"]`).forEach(b => {
+    const on = parseInt(b.dataset.ref) === params[key];
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  drawWavePreview();
+  schedulePeriodicWaveUpdate();
+}
+document.querySelectorAll('.mod-ref-btn').forEach(b => b.addEventListener('click', () => setModRef(b.dataset.modref, parseInt(b.dataset.ref))));
 
 function updateStatus() {
   const fx = params.fx, fy = params.fy, ph = animating ? animPhase : params.phase;
@@ -5741,7 +5837,7 @@ document.getElementById('btn-export').addEventListener('click', () => {
     });
   } else if (!column) {
   const steps = resolution * 2;
-  const T = Math.PI * 2 * lcm(fx, fy) / Math.min(fx, fy) * subDiv();
+  const T = Math.PI * 2 * lcm(fx, fy) / Math.min(fx, fy) * lapDiv();
   // One lap of samples (sample `steps` is sample 0 again), then the damped laps
   // read from it exactly as drawLissajous does: same lap count for the canvas's
   // own resolution, same decay and slip per lap.
@@ -5756,7 +5852,7 @@ document.getElementById('btn-export').addEventListener('click', () => {
       SYQ[i] = processWave(fy * t + Math.PI / 2, fy * t, waveTypeY, 'y');
     }
   }
-  const periodFactor = lcm(fx, fy) / Math.min(fx, fy) * subDiv();
+  const periodFactor = lcm(fx, fy) / Math.min(fx, fy) * lapDiv();
   const canvasRes = Math.min(Math.max(resolution, Math.ceil(Math.max(fx, fy) * periodFactor * 80 * Math.min(modComplexity(), 10))), 160000);
   const DP = dampPlan(canvasRes), total = steps * DP.laps;
   for (let i = 0; i <= total; i++) {
@@ -6213,7 +6309,8 @@ const PARAM_UI = {
   crushRate: { slider: 'crush-rate', disp: 'crush-rate-val', fmt: v => (v < 0.005 ? 'off' : Math.round(v*100) + '%') },
   unisonDetune: { slider: 'unison-detune', disp: 'unison-detune-val', fmt: v => v.toFixed(1) + '¢' },
   unisonMix: { slider: 'unison-mix', disp: 'unison-mix-val', fmt: v => Math.round(v*100) + '%' },
-  subMix:    { slider: 'sub-mix',    disp: 'sub-mix-val',    fmt: v => (v < 0.005 ? 'off' : Math.round(v*100) + '%') },
+  partXMix:  { slider: 'part-x-mix', disp: 'part-x-mix-val', fmt: v => (v < 0.005 ? 'off' : Math.round(v*100) + '%') },
+  partYMix:  { slider: 'part-y-mix', disp: 'part-y-mix-val', fmt: v => (v < 0.005 ? 'off' : Math.round(v*100) + '%') },
   damp:      { slider: 'damp',       disp: 'damp-val',       fmt: fmtDamp },
   trailAmt:  { slider: 'trail-amt',  disp: 'trail-amt-val',  fmt: v => (v < 0.01 ? 'off' : Math.round(v*100) + '%') },
   az:        { slider: 'az',         disp: 'az-val',         fmt: v => Math.round(v*100) + '%' },
@@ -6274,7 +6371,7 @@ function lfoSet(key, v) {
 let LFO_TARGET_OPTIONS = [];   // filled by completeVelRanges(), below MAP_TARGETS
 // Keys whose modulation requires rebuilding the periodic wavetable (noise and the
 // unison pair are live audio nodes tracked in pwTick, so they're excluded here).
-const LFO_SYNTH_KEYS = ['fmAmount','fmRatio','crossFm','ringAmt','fbAmt','shapeAmt','syncAmt','foldDrive','foldBias','crushBits','crushRate','amAmt','amRatio','filterCutoff','filterQ','waveX','waveY','noiseAmt','warp','subMix','subOct']
+const LFO_SYNTH_KEYS = ['fmAmount','fmRatio','crossFm','ringAmt','fbAmt','shapeAmt','syncAmt','foldDrive','foldBias','crushBits','crushRate','amAmt','amRatio','filterCutoff','filterQ','waveX','waveY','noiseAmt','warp','partX','partXMix','partY','partYMix','fmRef','amRef']
   .concat(AXIS_GROUPS.map(([k]) => k));
 
 function lfoWaveFn(phase, type) {
@@ -6450,7 +6547,7 @@ let audioCtx = null;
 let oscX = null, oscY = null;
 let panX = null, panY = null;
 let oscX2 = null, oscY2 = null;                 // unison pair (detuned ± cents)
-let audioDiv = 1;                               // main cycles per wavetable cycle (sub oscillator)
+let audioDiv = 1;                               // main cycles per wavetable cycle (see lapDiv)
 let unisonGainX = null, unisonGainY = null;     // unison level (params.unisonMix)
 let masterGain = null;
 let noiseGain = null, noiseSrc = null;
@@ -6605,7 +6702,7 @@ function startAudio() {
   eqGainX.gain.value = elcGain(params.fx * baseFreq);
   eqGainX.connect(panX);
 
-  audioDiv = subDiv();
+  audioDiv = lapDiv();
   oscX = audioCtx.createOscillator();
   oscX.frequency.value = params.fx * baseFreq / audioDiv;
   oscX.connect(eqGainX);
@@ -6702,7 +6799,7 @@ function syncAudioParams() {
   updateIntervalLabel();
   if (!audioEnabled || !oscX) return;
   const t = audioCtx.currentTime;
-  // The wavetable spans audioDiv main cycles (the sub's period), so the
+  // The wavetable spans audioDiv main cycles (see lapDiv), so the
   // oscillators run that much slower to keep the main pitch where it was.
   const d = audioDiv;
   oscX.frequency.setTargetAtTime(fxHz / d, t, 0.02);
@@ -7044,8 +7141,8 @@ document.getElementById('dots-line').addEventListener('input', e => {
 const fmtDeg   = v => Math.round(v) + '°';
 const fmtTrail = v => v < 0.01 ? 'off' : Math.round(v * 100) + '%';
 const fmtPct   = v => Math.round(v * 100) + '%';
-function fmtSubMix(v) { return v < 0.005 ? 'off' : Math.round(v * 100) + '%'; }
-function fmtSubOct(v) { return '−' + Math.round(v); }
+function fmtPartMix(v) { return v < 0.005 ? 'off' : Math.round(v * 100) + '%'; }
+function fmtPartN(v) { return '×' + Math.round(v); }
 function fmtDamp(v) { return v < 0.0005 ? 'off' : v < 0.1 ? (v * 100).toFixed(1) + '%' : Math.round(v * 100) + '%'; }
 const VISUAL_SLIDERS = [
   ['damp',         'damp',        fmtDamp],
@@ -7453,8 +7550,10 @@ const SYNTH_SLIDERS = [
   ['crush-rate',  'crushRate', fmtDecimate],
   ['am-amt',      'amAmt',     v => v.toFixed(2)],
   ['noise-amt',   'noiseAmt',  v => v.toFixed(3)],
-  ['sub-mix',     'subMix',    fmtSubMix],
-  ['sub-oct',     'subOct',    fmtSubOct],
+  ['part-x',      'partX',     fmtPartN],
+  ['part-x-mix',  'partXMix',  fmtPartMix],
+  ['part-y',      'partY',     fmtPartN],
+  ['part-y-mix',  'partYMix',  fmtPartMix],
 ];
 SYNTH_SLIDERS.forEach(([id, key, fmt]) => {
   document.getElementById(id).addEventListener('input', e => {
@@ -8069,7 +8168,7 @@ const MAP_TARGETS = {
   fmAmount:  { label:'FM Amount',     min:0,    max:8,              apply:_synthApply('fmAmount','fm-amount','fm-amount-val',x=>x.toFixed(1)) },
   fmRatio:   { label:'FM Ratio',      min:0.5,  max:8,              apply:v => setRatioParam('fmRatio','fm-ratio','fm-ratio-val',v) },
   ...Object.fromEntries(AXIS_GROUPS.map(([k, label]) => [k,
-    { label: label + ' → Axis', min: 0, max: 2, step: 1, apply: v => setAxisTarget(k, v) }])),
+    { label: label + ' X ↔ Y', min: -1, max: 1, apply: v => setAxisTarget(k, v) }])),
   warp:      { label:'Warp',          min:-1,   max:1,              apply:_synthApply('warp','warp','warp-val',fmtWarp) },
   shapeAmt:  { label:'Waveshape',     min:0,    max:1,              apply:_synthApply('shapeAmt','shape-amt','shape-amt-val',x=>x.toFixed(2)) },
   syncAmt:   { label:'Sync Ratio',    min:0.1,  max:2,   step:0.05, apply:_synthApply('syncAmt','sync-amt','sync-amt-val',x=>x.toFixed(2)) },
@@ -8098,8 +8197,12 @@ const MAP_TARGETS = {
   depthShade:{ label:'Depth Shading', toggle:true, apply:b => { params.depthShade = b ? 1 : 0; const cb=document.getElementById('depth-shade'); if (cb) cb.checked = b; } },
   showShadow:{ label:'Flat Shadow',   toggle:true, apply:b => { params.showShadow = b ? 1 : 0; const cb=document.getElementById('show-shadow'); if (cb) cb.checked = b; } },
   az:        { label:'Depth',         min:0,    max:1,              apply:v => setSliderParam('az','az','az-val',x=>Math.round(x*100)+'%',v) },
-  subMix:    { label:'Sub Mix',       min:0,    max:1,              apply:_synthApply('subMix','sub-mix','sub-mix-val',fmtSubMix) },
-  subOct:    { label:'Sub Octave',    min:1,    max:2,   step:1,    apply:_synthApply('subOct','sub-oct','sub-oct-val',fmtSubOct) },
+  partX:     { label:'X Partial',     min:1,    max:16,  step:1,    apply:_synthApply('partX','part-x','part-x-val',fmtPartN) },
+  partXMix:  { label:'X Partial Mix', min:0,    max:1,              apply:_synthApply('partXMix','part-x-mix','part-x-mix-val',fmtPartMix) },
+  partY:     { label:'Y Partial',     min:1,    max:16,  step:1,    apply:_synthApply('partY','part-y','part-y-val',fmtPartN) },
+  partYMix:  { label:'Y Partial Mix', min:0,    max:1,              apply:_synthApply('partYMix','part-y-mix','part-y-mix-val',fmtPartMix) },
+  fmRef:     { label:'FM Ratio Of',   min:0,    max:2,   step:1,    apply:v => setModRef('fm', v) },
+  amRef:     { label:'AM Ratio Of',   min:0,    max:2,   step:1,    apply:v => setModRef('am', v) },
   damp:      { label:'Damping',       min:0,    max:1,              apply:v => setSliderParam('damp','damp','damp-val',fmtDamp,v) },
   waveX:     { label:'X Wave Cycle',  min:0,    max:3,   step:1,    apply:v => setBaseWave('x', WAVES[Math.max(0,Math.min(3,Math.round(v)))]) },
   waveY:     { label:'Y Wave Cycle',  min:0,    max:3,   step:1,    apply:v => setBaseWave('y', WAVES[Math.max(0,Math.min(3,Math.round(v)))]) },
@@ -8149,11 +8252,11 @@ const MAP_TARGETS = {
 // Anything in MAP_TARGETS not listed here still shows up, under "Other".
 const TARGET_CATEGORIES = [
   ['Synthesis', ['waveX', 'waveY',
-                 'amAmt', 'amRatio', 'amAxis', 'fmAmount', 'fmRatio', 'fmAxis',
+                 'amAmt', 'amRatio', 'amRef', 'amAxis', 'fmAmount', 'fmRatio', 'fmRef', 'fmAxis',
                  'crossFm', 'ringAmt', 'crossAxis', 'shapeAmt', 'shapeAxis', 'fbAmt', 'fbAxis',
                  'warp', 'foldDrive', 'foldBias', 'warpAxis', 'crushBits', 'crushRate', 'crushAxis',
                  'noiseAmt', 'noiseAxis', 'filterCutoff', 'filterQ', 'filterAxis',
-                 'syncAmt', 'syncAxis', 'subMix', 'subOct', 'subAxis', 'unisonDetune', 'unisonMix']],
+                 'syncAmt', 'syncAxis', 'partX', 'partXMix', 'partY', 'partYMix', 'partAxis', 'unisonDetune', 'unisonMix']],
   ['Frequency', ['geometry', 'ax', 'fx', 'ay', 'fy', 'visualSwap', 'damp', 'preset']],
   ['Audio',     ['volume']],
   ['Figure',    ['hue', 'sat', 'light', 'gradOn', 'gradAngle', 'lineWidth', 'dotsLine', 'mirrorMode',
@@ -8222,7 +8325,7 @@ const MAP_DEFAULTS = {
   ...Object.fromEntries(AXIS_GROUPS.map(([k]) => [k, 0])),
   syncAmt:1, foldDrive:1, amAmt:0, amRatio:2, noiseAmt:0, waveX:0, waveY:0,
   crossFm:0, ringAmt:0, fbAmt:0, foldBias:0, crushBits:16, crushRate:0,
-  unisonDetune:0, unisonMix:0, subMix:0, subOct:1, damp:0,
+  unisonDetune:0, unisonMix:0, partX:2, partXMix:0, partY:2, partYMix:0, fmRef:0, amRef:0, damp:0,
   geometry:0, trailAmt:0, trailMode:0, trailCount:4, trailSpacing:0.08, mirrorMode:0, m4Rotate:1, az:0,
   lfo0Rate:0.5, lfo0Depth:0.5, lfo1Rate:1.0, lfo1Depth:0.5,
   hue:79, sat:84, light:66, lineWidth:1.5, phase:0.5, animSpeed:1, volume:0.5,
@@ -8549,7 +8652,7 @@ document.getElementById('btn-export-wav').addEventListener('click', () => {
   // One carrier cycle of each axis' processed wave.
   const xs = new Float32Array(N), ys = new Float32Array(N);
   _audioSampling = true;
-  const div = subDiv();   // with the sub on, one cycle spans the sub's period
+  const div = lapDiv();   // a fractional modulator ratio stretches the period
   for (let i = 0; i < N; i++) {
     const t = (i / N) * Math.PI * 2 * div;
     xs[i] = processWave(t, t, waveTypeX, 'x');
@@ -8599,10 +8702,10 @@ const PW_H = 256;  // number of harmonics to keep (≤ PW_N/2)
 
 function buildPeriodicWave(type, axis) {
   if (!audioCtx) return null;
-  // Sample one period of the processed wave for the given base waveform. With the
-  // sub on, that period is the SUB's: the table holds subDiv() main cycles and the
-  // oscillator runs subDiv() times slower (see audioDiv / syncAudioParams).
-  const div = subDiv();
+  // Sample one period of the processed wave for the given base waveform. With a
+  // fractional modulator ratio, that period is lapDiv() main cycles: the table holds them and the
+  // oscillator runs lapDiv() times slower (see audioDiv / syncAudioParams).
+  const div = lapDiv();
   const NS = PW_N * div, H = PW_H * Math.min(div, 2);
   const x = new Float32Array(NS);
   _audioSampling = true;
@@ -8614,7 +8717,7 @@ function buildPeriodicWave(type, axis) {
   // Apply the same waveform filter (div main cycles in the wavetable).
   if (filterIsOn() && onAxis('filterAxis', axis || 'x')) {
     const wc = Math.PI * 2 * Math.min(0.49, filterHarmonics() * div / NS);
-    filterPeriodic(x, NS, biquadCoeffs(filterType, wc, params.filterQ));
+    filterPeriodic(x, NS, biquadCoeffs(filterType, wc, params.filterQ), filterAxisMix(axis || 'x'));
   }
   // Normalize to avoid clipping at oscillator output.
   let peak = 0;
@@ -8647,15 +8750,18 @@ function applyPeriodicWave() {
     // Reuse X's wave only when both axes are truly identical (same base type and
     // nothing targeting one axis — sync "X only", or FM/AM set to a single axis)
     // — otherwise build Y separately.
-    const syncDiffers = (params.syncAxis | 0) !== 0 && Math.abs(params.syncAmt - 1) > 0.001;
-    const fmDiffers = (params.fmAxis | 0) !== 0 && params.fmAmount > 0.0001;
-    const amDiffers = (params.amAxis | 0) !== 0 && params.amAmt > 0.001;
+    const syncDiffers = Math.abs(+params.syncAxis || 0) > 0.0005 && Math.abs(params.syncAmt - 1) > 0.001;
+    const fmDiffers = (Math.abs(+params.fmAxis || 0) > 0.0005 || (params.fmRef | 0) !== 0) && params.fmAmount > 0.0001;
+    const amDiffers = (Math.abs(+params.amAxis || 0) > 0.0005 || (params.amRef | 0) !== 0) && params.amAmt > 0.001;
     // A per-axis waveform morph makes the two axes different waves even when both
     // buttons name the same shape, so the wavetable can no longer be shared.
     const morphDiffers = Math.abs((params.morphX || 0) - (params.morphY || 0)) > 0.0005;
     // Any stage aimed at one axis makes the two genuinely different waves.
-    const aimed = AXIS_GROUPS.some(([k]) => (params[k] | 0) !== 0);
-    const axisDiffers = syncDiffers || fmDiffers || amDiffers || morphDiffers || aimed;
+    const aimed = AXIS_GROUPS.some(([k]) => Math.abs(+params[k] || 0) > 0.0005);
+    // Partials are set per axis, so differing ones make different waves too.
+    const partsDiffer = Math.abs((params.partXMix || 0) - (params.partYMix || 0)) > 0.0005
+      || ((params.partXMix > 0.001 || params.partYMix > 0.001) && Math.round(params.partX) !== Math.round(params.partY));
+    const axisDiffers = syncDiffers || fmDiffers || amDiffers || morphDiffers || aimed || partsDiffer;
     const pwY = (waveTypeY === waveTypeX && !axisDiffers) ? pwX : buildPeriodicWave(waveTypeY, 'y');
     if (pwY) oscY.setPeriodicWave(pwY);
     if (pwX && oscX2) oscX2.setPeriodicWave(pwX);
@@ -8691,8 +8797,8 @@ function pwTick(now) {
   applyUnisonAudio();
   // Sub on/off or octave change: the wavetable's period changes, so the
   // oscillator frequencies and the wave must switch in the same frame.
-  if (subDiv() !== audioDiv) {
-    audioDiv = subDiv();
+  if (lapDiv() !== audioDiv) {
+    audioDiv = lapDiv();
     const t = audioCtx.currentTime, d = audioDiv;
     oscX.frequency.setValueAtTime(params.fx * baseFreq / d, t);
     oscY.frequency.setValueAtTime(params.fy * baseFreq / d, t);
@@ -8713,7 +8819,7 @@ function pwTick(now) {
 // ─── PRESET EXPORT / IMPORT ───────────────────────────────────────────────────
 function serializePreset() {
   return {
-    app: 'lissajous', version: 5,
+    app: 'lissajous', version: 6,
     params: { ...params },
     waveTypeX, waveTypeY, visualSwap, audioStereo, syncHard,
     filterType, phaseModulators,
@@ -8754,6 +8860,7 @@ function refreshAllControls() {
   setModWave('fm', params.fmWave || 'sine');
   setModWave('am', params.amWave || 'sine');
   refreshAxisToggles();
+  setModRef('fm', params.fmRef | 0); setModRef('am', params.amRef | 0);
   document.getElementById('animate').checked = animating;
   setS('anim-speed', animSpeed, 'speed-val', v => v.toFixed(1) + '×');
   document.getElementById('anim-speed-row').classList.toggle('vis-off', !animating);
@@ -8811,14 +8918,23 @@ function refreshAllControls() {
 // Format 5 dropped the spherical geometry (5), so WAVES moved from 6 to 5. Older
 // patches are renumbered in place; a sphere patch lands on the torus knot, the
 // other solid. The object is marked so running it twice is harmless.
+// Format 6 turned the BOTH / X / Y buttons (0 / 1 / 2) into crossfaders
+// (−1 = X only, 0 = both, +1 = Y only).
 function migratePreset(d) {
-  if (!d || typeof d !== 'object' || d.version >= 5 || d._geoMigrated) return d;
+  if (!d || typeof d !== 'object') return d;
   const p = d.params;
-  if (p && typeof p.geometry === 'number') {
-    const g = Math.round(p.geometry);
-    if (g === 5) p.geometry = 4; else if (g >= 6) p.geometry = 5;
+  if (!(d.version >= 5) && !d._geoMigrated) {
+    if (p && typeof p.geometry === 'number') {
+      const g = Math.round(p.geometry);
+      if (g === 5) p.geometry = 4; else if (g >= 6) p.geometry = 5;
+    }
+    d._geoMigrated = true;
   }
-  d._geoMigrated = true;
+  if (!(d.version >= 6) && !d._axisMigrated) {
+    if (p) AXIS_GROUPS.forEach(([k]) => { const v = p[k] | 0; if (p[k] !== undefined) p[k] = v === 1 ? -1 : v === 2 ? 1 : 0; });
+    if (p && p.subAxis !== undefined) delete p.subAxis;
+    d._axisMigrated = true;
+  }
   return d;
 }
 function applyPresetData(d) {
@@ -8850,7 +8966,7 @@ function applyPresetData(d) {
   if (typeof d.syncHard === 'boolean') syncHard = d.syncHard;
   // Sync's "X only" checkbox became an Apply-to row like every other stage.
   if (typeof d.syncSingle === 'boolean' && d.params && d.params.syncAxis === undefined) {
-    params.syncAxis = d.syncSingle ? 1 : 0;
+    params.syncAxis = d.syncSingle ? -1 : 0;
   }
   if (d.filterType) filterType = d.filterType;
   if (typeof d.phaseModulators === 'boolean') phaseModulators = d.phaseModulators;
@@ -9576,7 +9692,7 @@ function setMorphStepMode(m) {
 // wave types are derived from them — so they belong with the stepped set, or a
 // recall would slide the timbre through two other shapes on its way and IGNORE
 // would stop protecting the waveform it promises to leave alone.
-const MORPH_DISCRETE = new Set(['subOct', 'fx', 'fy', 'geometry', 'mirrorMode', 'trailMode', 'trailCount', 'm4Rotate', 'phase',
+const MORPH_DISCRETE = new Set(['partX', 'partY', 'fmRef', 'amRef', 'fx', 'fy', 'geometry', 'mirrorMode', 'trailMode', 'trailCount', 'm4Rotate', 'phase',
                                 'depthSrc', 'depthShade', 'showShadow', 'morphX', 'morphY',
                                 'columnView', 'colSlices', 'colHide', 'colCore', 'colSurface', 'colAxis', 'gradOn']);
 // The rest of a patch's stepped state lives outside `params` — the waveforms, the
@@ -9825,7 +9941,16 @@ document.getElementById('vt-readout').addEventListener('click', () => {
   syncViewToggles();
 });
 
-const AXIS_TAG = ['XY', 'X', 'Y'];
+// Crossfader → tag: the ends and the middle by name, anything between as the
+// weaker side's share.
+function axisTag(v) {
+  v = Math.max(-1, Math.min(1, +v || 0));
+  if (Math.abs(v) < 0.005) return 'XY';
+  if (v <= -0.995) return 'X';
+  if (v >= 0.995) return 'Y';
+  return v < 0 ? `X·Y${Math.round((1 + v) * 100)}%` : `Y·X${Math.round((1 - v) * 100)}%`;
+}
+const REF_TAG = ['', ' of X', ' of Y'];
 const FILTER_TAG = { lowpass: 'LP', highpass: 'HP', bandpass: 'BP', notch: 'NOTCH' };
 const MODW_TAG = { sine: 'sin', triangle: 'tri', sawtooth: 'saw', square: 'sqr' };
 function roEsc(t) { return String(t).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
@@ -9837,13 +9962,13 @@ function buildSynthReadout() {
   // Old patches can lack newer keys; read through the defaults so nothing is undefined.
   const P = {};
   Object.keys(PARAM_DEFAULTS).forEach(k => { P[k] = params[k] ?? PARAM_DEFAULTS[k]; });
-  const ax = k => AXIS_TAG[P[k] | 0] || 'XY';
+  const ax = k => axisTag(P[k]);
   const rows = [
     ['geo',   GEO_NAMES[figGeometry()].toLowerCase(), true],
     ['wave',  `X ${fmtMorph(P.morphX)}  Y ${fmtMorph(P.morphY)}`, true],
     ['freq',  `${roNum(P.fx)}:${roNum(P.fy)}  ${Math.round(baseFreq * 100) / 100}Hz  amp ${P.ax.toFixed(2)}/${P.ay.toFixed(2)}`, true],
-    ['am',    `${P.amAmt.toFixed(2)} ×${roRatio(P.amRatio)} ${MODW_TAG[P.amWave] || P.amWave} ${ax('amAxis')}`, P.amAmt > 0],
-    ['fm',    `${P.fmAmount.toFixed(1)} ×${roRatio(P.fmRatio)} ${MODW_TAG[P.fmWave] || P.fmWave} ${ax('fmAxis')}`, P.fmAmount > 0],
+    ['am',    `${P.amAmt.toFixed(2)} ×${roRatio(P.amRatio)}${REF_TAG[P.amRef | 0] || ''} ${MODW_TAG[P.amWave] || P.amWave} ${ax('amAxis')}`, P.amAmt > 0],
+    ['fm',    `${P.fmAmount.toFixed(1)} ×${roRatio(P.fmRatio)}${REF_TAG[P.fmRef | 0] || ''} ${MODW_TAG[P.fmWave] || P.fmWave} ${ax('fmAxis')}`, P.fmAmount > 0],
     ['cross', `fm ${P.crossFm.toFixed(2)} ring ${P.ringAmt.toFixed(2)} ${ax('crossAxis')}`, P.crossFm > 0 || P.ringAmt > 0],
     ['shape', `${P.shapeAmt.toFixed(2)} ${ax('shapeAxis')}`, P.shapeAmt > 0],
     ['fb',    `${P.fbAmt.toFixed(2)} ${ax('fbAxis')}`, P.fbAmt > 0],
@@ -9853,7 +9978,7 @@ function buildSynthReadout() {
     ['noise', `${P.noiseAmt.toFixed(3)} ${ax('noiseAxis')}`, P.noiseAmt > 0],
     ['filt',  `${FILTER_TAG[filterType] || filterType} ${fmtCutoff(P.filterCutoff)} Q${P.filterQ.toFixed(1)} ${ax('filterAxis')}`, filterIsOn()],
     ['sync',  `${P.syncAmt.toFixed(2)} ${syncHard ? 'hard' : 'soft'} ${ax('syncAxis')}`, Math.abs(P.syncAmt - 1) > 1e-3],
-    ['sub',   `${Math.round((P.subMix || 0) * 100)}% −${P.subOct | 0}oct ${ax('subAxis')}`, (P.subMix || 0) > 0.001],
+    ['part',  `X×${P.partX | 0} ${Math.round((P.partXMix || 0) * 100)}% Y×${P.partY | 0} ${Math.round((P.partYMix || 0) * 100)}% ${ax('partAxis')}`, (P.partXMix || 0) > 0.001 || (P.partYMix || 0) > 0.001],
     ['uni',   `${P.unisonDetune.toFixed(1)}¢ mix ${Math.round(P.unisonMix * 100)}%`, P.unisonMix > 0],
     ['damp',  `${fmtDamp(P.damp || 0)} (visual)`, (P.damp || 0) > 0.0005],
   ];
@@ -9965,7 +10090,8 @@ const TARGET_CONTROL = {
   shapeAmt: 'shape-amt', fbAmt: 'fb-amt', warp: 'warp', foldDrive: 'fold-drive', foldBias: 'fold-bias',
   crushBits: 'crush-bits', crushRate: 'crush-rate', noiseAmt: 'noise-amt', filterCutoff: 'filter-freq', filterQ: 'filter-res',
   syncAmt: 'sync-amt', unisonDetune: 'unison-detune', unisonMix: 'unison-mix', volume: 'audio-vol',
-  subMix: 'sub-mix', subOct: 'sub-oct', damp: 'damp',
+  partX: 'part-x', partXMix: 'part-x-mix', partY: 'part-y', partYMix: 'part-y-mix',
+  fmRef: '[data-modref="fm"]', amRef: '[data-modref="am"]', damp: 'damp',
   hue: 'hsl-h', sat: 'hsl-s', light: 'hsl-l', lineWidth: 'line-width', dotsLine: 'dots-line',
   mirrorMode: '[data-mirror]', trailMode: '[data-trailmode]', trailAmt: 'trail-amt',
   trailCount: 'trail-count', trailSpacing: 'trail-spacing', phase: 'phase', animatePhase: 'animate', animSpeed: 'anim-speed',
@@ -9977,7 +10103,7 @@ const TARGET_CONTROL = {
   frameShow: 'frame-show', frameFollow: 'frame-follow', frameOpacity: 'frame-opacity', frameRadius: 'frame-radius',
   frameAxisLen: 'frame-axis-len', frameOrbits: '[data-frameorbits]', frameAngles: '[data-frameangles]', framePlanes: 'frame-plane-xy',
   lfo0Rate: 'lfo0-freq', lfo0Depth: 'lfo0-depth', lfo1Rate: 'lfo1-freq', lfo1Depth: 'lfo1-depth',
-  ...Object.fromEntries(AXIS_GROUPS.map(([k]) => [k, `.mod-group[data-axis="${k}"] .mod-axis-toggle`])),
+  ...Object.fromEntries(AXIS_GROUPS.map(([k]) => [k, 'axf-' + k])),
 };
 function targetControl(key) {
   const ref = TARGET_CONTROL[key];
@@ -9998,7 +10124,8 @@ function fmtTargetValue(key, v) {
   if (!t) return '';
   if (t.toggle) return v ? 'on' : 'off';
   if (RATIO_KEYS.has(key)) return RATIO_LABELS[ratioNearestIndex(v)];
-  if (/Axis$/.test(key)) return AXIS_TAG[Math.round(v)] || 'XY';
+  if (/Axis$/.test(key) && AXIS_GROUPS.some(([k]) => k === key)) return fmtAxisFade(v);
+  if (key === 'fmRef' || key === 'amRef') return ['each', 'X', 'Y'][Math.round(v)] || 'each';
   if (key === 'geometry') return GEO_NAMES[Math.round(v)] ? GEO_NAMES[Math.round(v)].toLowerCase() : String(v);
   if (t.step && t.step >= 1) return String(Math.round(v));
   const a = Math.abs(v);
@@ -10262,10 +10389,10 @@ function addPinButtons() {
 // ── The readout as a set of editors ───────────────────────────────────────────
 const READOUT_KEYS = {
   geo: ['geometry'], wave: ['waveX', 'waveY'], freq: ['fx', 'fy', 'ax', 'ay'],
-  am: ['amAmt', 'amRatio', 'amAxis'], fm: ['fmAmount', 'fmRatio', 'fmAxis'], cross: ['crossFm', 'ringAmt', 'crossAxis'],
+  am: ['amAmt', 'amRatio', 'amRef', 'amAxis'], fm: ['fmAmount', 'fmRatio', 'fmRef', 'fmAxis'], cross: ['crossFm', 'ringAmt', 'crossAxis'],
   shape: ['shapeAmt', 'shapeAxis'], fb: ['fbAmt', 'fbAxis'], warp: ['warp', 'foldDrive', 'foldBias', 'warpAxis'],
   crush: ['crushBits', 'crushRate', 'crushAxis'], noise: ['noiseAmt', 'noiseAxis'], filt: ['filterCutoff', 'filterQ', 'filterAxis'],
-  sync: ['syncAmt', 'syncAxis'], sub: ['subMix', 'subOct', 'subAxis'], damp: ['damp'], uni: ['unisonDetune', 'unisonMix'], lfo1: ['lfo0Rate', 'lfo0Depth'], lfo2: ['lfo1Rate', 'lfo1Depth'],
+  sync: ['syncAmt', 'syncAxis'], part: ['partX', 'partXMix', 'partY', 'partYMix', 'partAxis'], damp: ['damp'], uni: ['unisonDetune', 'unisonMix'], lfo1: ['lfo0Rate', 'lfo0Depth'], lfo2: ['lfo1Rate', 'lfo1Depth'],
 };
 let roOpen = null;
 const roPop = document.getElementById('ro-pop');
