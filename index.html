@@ -1656,6 +1656,34 @@
     padding: 0; margin: -1px; overflow: hidden;
     clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
   }
+
+  /* ── Intro (hidden: type "intro" into the search) ─────────────────────────
+     Everything not yet unlocked carries .intro-hide while the intro runs. */
+  body.intro .intro-hide,
+  body.intro .synth-readout, body.intro .ro-pop,
+  body.intro:not(.intro-locks) .lock-btn,
+  body.intro:not(.intro-pins) .pin-btn { display: none !important; }
+  .intro-card {
+    position: absolute; top: 10px; left: 12px; z-index: 4;
+    width: min(300px, calc(100% - 64px));
+    padding: 10px 12px 12px; pointer-events: auto;
+    background: rgba(17,17,21,0.92); border: 1px solid var(--border); border-radius: 6px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text);
+  }
+  .intro-card .ic-top { display: flex; align-items: center; gap: 4px; color: var(--muted); font-size: 10.5px; letter-spacing: 0.08em; }
+  .intro-card .ic-n { margin-right: auto; }
+  .intro-card .ic-link { background: none; border: 0; color: var(--label); font: inherit; cursor: pointer; padding: 2px 5px; }
+  .intro-card .ic-link:hover { color: var(--text); }
+  .intro-card .ic-title { margin: 6px 0 4px; color: var(--accent); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+  .intro-card .ic-text { line-height: 1.5; }
+  .intro-card .ic-swatch { display: inline-block; width: 0.9em; height: 0.9em; margin: 0 2px; vertical-align: -1px; border-radius: 2px; border: 1px solid var(--control-border); }
+  .intro-card .ic-meter { height: 3px; margin-top: 10px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .intro-card .ic-meter i { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.15s linear; }
+  .intro-card.won .ic-meter i { background: var(--accent-hi); }
+  .intro-card .ic-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .intro-card .ic-actions .map-add-btn { margin-top: 0; }
+  @media (max-width: 860px) { .intro-card { top: 6px; left: 8px; padding: 8px 10px 10px; } }
+  @media (prefers-reduced-motion: reduce) { .intro-card .ic-meter i { transition: none; } }
 </style>
 </head>
 <body>
@@ -5716,6 +5744,7 @@ function render(now) {
     advanceMode4();
   }
   if (params.frameFront && !column) drawFrameLayer(drawPhase, zoom);
+  if (intro) introDrawGhost();
 
   if (recording) captureRecFrame(drawPhase);
 
@@ -7033,7 +7062,7 @@ document.getElementById('audio-enable').addEventListener('change', e => {
 document.getElementById('audio-vol').addEventListener('input', e => {
   const v = parseFloat(e.target.value);
   document.getElementById('vol-val').textContent = Math.round(v * 100) + '%';
-  if (masterGain) masterGain.gain.setTargetAtTime(v, audioCtx.currentTime, 0.01);
+  if (masterGain && audioCtx) masterGain.gain.setTargetAtTime(v, audioCtx.currentTime, 0.01);
 });
 
 document.getElementById('audio-stereo-btn').addEventListener('click', () => { audioStereo = true;  applyAudioChannelMode(); });
@@ -8053,6 +8082,7 @@ function checkMidiConnection() {
 }
 
 function onMidiMessage(e, srcId) {
+  if (intro) return;   // the intro's goals are for hands, not controllers
   const status = e.data[0], data1 = e.data[1], data2 = e.data[2];
   const type = status & 0xf0;
   const ch   = (status & 0x0f) + 1;
@@ -8403,7 +8433,7 @@ const MAP_TARGETS = {
   lineWidth: { label:'Line Width',    min:0.5,  max:8,              apply:v => { params.lineWidth = v; document.getElementById('line-width').value=v; document.getElementById('line-width-val').textContent=v.toFixed(1); } },
   phase:     { label:'Phase δ',       min:0,    max:2,              apply:v => { params.phase = v; animPhase = v; document.getElementById('phase').value=v; document.getElementById('phase-val').textContent=v.toFixed(2)+'π'; updateStatus(); } },
   animSpeed: { label:'Anim Speed',    min:0.1,  max:5,              apply:v => { animSpeed = v; document.getElementById('anim-speed').value=v; document.getElementById('speed-val').textContent=v.toFixed(1)+'×'; } },
-  volume:    { label:'Volume',        min:0,    max:1,              apply:v => { document.getElementById('audio-vol').value=v; document.getElementById('vol-val').textContent=Math.round(v*100)+'%'; if (masterGain) masterGain.gain.setTargetAtTime(v, audioCtx.currentTime, 0.02); } },
+  volume:    { label:'Volume',        min:0,    max:1,              apply:v => { document.getElementById('audio-vol').value=v; document.getElementById('vol-val').textContent=Math.round(v*100)+'%'; if (masterGain && audioCtx) masterGain.gain.setTargetAtTime(v, audioCtx.currentTime, 0.02); } },
   filterCutoff:{ label:'Filter Cutoff', min:0, max:1,              apply:v => { params.filterCutoff=v; const e=document.getElementById('filter-freq'); if(e)e.value=v; const d=document.getElementById('filter-freq-val'); if(d)d.textContent=fmtCutoff(v); drawWavePreview(); schedulePeriodicWaveUpdate(); } },
   filterQ:   { label:'Filter Reso',   min:0.1,  max:20,             apply:v => { params.filterQ=v; const e=document.getElementById('filter-res'); if(e)e.value=v; const d=document.getElementById('filter-res-val'); if(d)d.textContent=v.toFixed(1); drawWavePreview(); schedulePeriodicWaveUpdate(); } },
   dotsLine:  { label:'Dots ↔ Line',   min:0,    max:1,              apply:v => { params.dotsLine=v; const e=document.getElementById('dots-line'); if(e)e.value=v; const d=document.getElementById('dots-line-val'); if(d)d.textContent=fmtDotSpacing(v); } },
@@ -9558,7 +9588,7 @@ window.addEventListener('keydown', e => {
   if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
   const m = /^(?:Digit|Numpad)([1-9])$/.exec(e.code || '');
   if (!m) return;
-  if (typingInField(e.target)) return;
+  if (typingInField(e.target) || introBlocks('pads')) return;
   const i = parseInt(m[1], 10) - 1;
   if (e.shiftKey) { storeGridPad(i); }
   else if (gridPresets[i]) { loadGridPad(i); }
@@ -9778,6 +9808,7 @@ document.getElementById('evolve-dev').addEventListener('input', e => {
 });
 document.getElementById('evolve-mutate').addEventListener('click', () => {
   evolve(parseFloat(document.getElementById('evolve-dev').value));
+  introEvent('mutate');
 });
 document.getElementById('evolve-all').addEventListener('click', () => setAllEvolve(true));
 document.getElementById('evolve-none').addEventListener('click', () => setAllEvolve(false));
@@ -9861,6 +9892,7 @@ function storeGridPad(i) {
   gridActiveIdx = i;
   renderGrid();
   flashGridPad(i);
+  introEvent('store', i);
 }
 // A stored pad flashes once. Without the old STORE mode light there is otherwise
 // nothing to tell an overwrite apart from a load.
@@ -9986,6 +10018,7 @@ function loadGridPad(i) {
   startPresetMorph(gridPresets[i]);
   gridActiveIdx = i;
   renderGrid();
+  introEvent('load', i);
 }
 
 function clearGridPad(i) {
@@ -10412,7 +10445,8 @@ function buildSearchIndex() {
   document.querySelectorAll('.sidebar .section-label, .sidebar .subsection-label').forEach(h => {
     items.push({ key: null, name: h.textContent.trim(), el: h, where: controlWhere(h), heading: true });
   });
-  return items;
+  // During the intro, only what has been unlocked can be found.
+  return intro ? items.filter(it => it.el && !it.el.closest('.intro-hide')) : items;
 }
 const psEl = document.getElementById('param-search');
 const psInput = document.getElementById('ps-input');
@@ -10504,7 +10538,10 @@ function closeSearch(restore) {
   psEl.hidden = true;
   if (restore !== false && psReturnFocus && psReturnFocus.focus) try { psReturnFocus.focus(); } catch (e) {}
 }
-psInput.addEventListener('input', () => { psSel = 0; psRender(); });
+psInput.addEventListener('input', () => {
+  if (!intro && psInput.value.trim().toLowerCase() === 'intro') { closeSearch(false); startIntro(); return; }
+  psSel = 0; psRender();
+});
 psInput.addEventListener('keydown', e => {
   if (e.key === 'ArrowDown') { psSel = Math.min(psHits.length - 1, psSel + 1); psMark(); e.preventDefault(); }
   else if (e.key === 'ArrowUp') { psSel = Math.max(0, psSel - 1); psMark(); e.preventDefault(); }
@@ -10910,6 +10947,376 @@ function initPanelToggleState() {
   if (sb) sb.addEventListener('click', () => setTimeout(sync, 0));
   if (gt) gt.addEventListener('click', () => setTimeout(sync, 0));
 }
+
+// ── Intro (hidden: type "intro" into the search) ──────────────────────────────
+// Starts from a bare figure with every control hidden and unlocks the app one
+// piece per level. Each level has a goal read straight off the state (a ratio,
+// a phase, a hue …); reaching it and holding it for a moment unlocks the next.
+// The level and the patch are kept per browser, so typing "intro" again picks up
+// where you left off. Patch, pins, locks, pads and panels are put back on exit.
+const INTRO_KEY = 'lissa.intro';
+const INTRO_HOLD_MS = 600;
+let intro = null;   // the running intro, or null
+
+function introLoad() { try { return JSON.parse(localStorage.getItem(INTRO_KEY)) || null; } catch (e) { return null; } }
+function introSave(active) {
+  try {
+    localStorage.setItem(INTRO_KEY, JSON.stringify({
+      level: intro.level, patch: serializePreset(), active,
+      pins: intro.orig.pins, locks: intro.orig.locks,   // so a reload mid-intro can put them back
+    }));
+  } catch (e) {}
+}
+function introClearSaved() { try { localStorage.removeItem(INTRO_KEY); } catch (e) {} }
+// A reload while the intro ran left the intro's empty pins and locks behind.
+{
+  const r = introLoad();
+  if (r && r.active) {
+    setPins(Array.isArray(r.pins) ? r.pins : []);
+    introSetLocks(Array.isArray(r.locks) ? r.locks : []);
+    r.active = false;
+    try { localStorage.setItem(INTRO_KEY, JSON.stringify(r)); } catch (e) {}
+  }
+}
+function introSetLocks(keys) {
+  lockedKeys = new Set(keys);
+  saveLocks();
+  document.querySelectorAll('.lock-btn').forEach(paintLock);
+}
+
+const introRow = sel => { const e = document.querySelector(sel); return e && (e.closest('.param-row, .checkbox-row') || e); };
+const introRatio = () => params.fx / params.fy;
+// 1 on the target, otherwise how close, capped below 1 so only a hit completes.
+const introNear = (v, t, span) => Math.abs(v - t) < 1e-6 ? 1 : Math.min(0.9, Math.max(0, 1 - Math.abs(v - t) / span));
+const introSetPhase = v => MAP_TARGETS.phase.apply(v);
+const INTRO_HUE = 200;
+const INTRO_DICE = new Set(['fx', 'fy', 'ax', 'ay', 'fmAmount', 'amAmt', 'warp', 'shapeAmt', 'hue', 'lineWidth']);
+
+const INTRO_LEVELS = [
+  { id: 'fx', title: 'Two wires',
+    text: 'One point, two oscillators: X moves it sideways, Y up and down. Turn X frequency until your figure lies on the ghost.',
+    reveal: () => [introRow('#fx')],
+    setup() { applyPreset(1, 1); introSetPhase(0.5); },
+    ghost: { fx: 3, fy: 1, phase: 0.5 },
+    check: () => introNear(introRatio(), 3, 3) },
+  { id: 'fy', title: 'Ratio',
+    text: 'Y has a frequency too, and only the ratio decides the shape. Make it 3 : 2 — the buttons count.',
+    reveal: () => [introRow('#fy'), document.getElementById('preset-grid'), document.getElementById('preset-grid').previousElementSibling],
+    ghost: { fx: 3, fy: 2, phase: 0.5 },
+    check: () => introNear(introRatio(), 1.5, 1.5) },
+  { id: 'phase', title: 'Phase',
+    text: 'δ slides X ahead of Y. Same ratio, different shape: flatten the circle into a line.',
+    reveal: () => [introRow('#phase'), document.querySelector('.bottom-bar')],
+    setup() { clickCheckbox('animate', false); applyPreset(1, 1); introSetPhase(0.5); },
+    ghost: { fx: 1, fy: 1, phase: 0 },
+    check: () => { const d = Math.abs(params.phase - Math.round(params.phase)); return d < 0.015 ? 1 : Math.min(0.9, 1 - d / 0.5); } },
+  { id: 'animate', title: 'Drift',
+    text: 'Or let δ run by itself.',
+    reveal: () => [introRow('#animate'), document.getElementById('anim-speed-row')],
+    setup() { applyPreset(3, 2); introSetPhase(0.5); },
+    check: () => animating ? 1 : 0 },
+  { id: 'audio', title: 'Listen',
+    text: 'The figure is a sound as well: X in the left ear, Y in the right. Switch the output on.',
+    reveal: () => [introRow('#audio-enable'), introRow('#audio-vol')],
+    check: () => audioEnabled ? 1 : 0 },
+  { id: 'waves', title: 'Corners',
+    text: 'A square wave puts corners in the line and a buzz in the sound. Give one axis SQR.',
+    reveal: () => [document.querySelector('[data-axis="x"][data-bwave]').closest('.param-row'),
+                   document.querySelector('[data-axis="y"][data-bwave]').closest('.param-row'),
+                   document.getElementById('wave-preview')],
+    check: () => { const m = Math.max(params.morphX || 0, params.morphY || 0); return m > 2.99 ? 1 : Math.min(0.9, m / 3); } },
+  { id: 'fm', title: 'Fizz',
+    text: 'FM lets another oscillator wobble the frequency. Push FM amount past 2.',
+    reveal: () => [introRow('#fm-amount'), introRow('#fm-ratio')],
+    check: () => Math.min(1, (params.fmAmount || 0) / 2) },
+  { id: 'look', title: 'Paint',
+    text: `Drawing never touches the sound. Turn the hue to <span class="ic-swatch" style="background:hsl(${INTRO_HUE},84%,66%)"></span>, then give the line a long afterglow.`,
+    reveal: () => [introRow('#hsl-h'), document.getElementById('trail-amt-row')],
+    check: () => {
+      const d = Math.abs(((strokeHSL.h - INTRO_HUE) % 360 + 540) % 360 - 180);
+      const hue = d <= 10 ? 1 : Math.min(0.9, 1 - d / 180);
+      return hue * 0.5 + Math.min(1, (params.trailAmt || 0) / 0.8) * 0.5;
+    } },
+  { id: 'geometry', title: 'Other shapes',
+    text: 'The same two waves can be combined other ways. Click the shape button on the canvas until you find the rose.',
+    reveal: () => [document.getElementById('vt-geo')],
+    setup() { setGeometry(0); },
+    check: () => { const i = vtGeoIndex(); return figGeometry() === 3 ? 1 : i < 4 ? i / 4 * 0.9 : 0.45; } },
+  { id: 'mutate', title: 'Dice',
+    text: 'Mutate nudges every parameter at once, as far as Deviation lets it. Roll three times.',
+    reveal: () => [document.getElementById('evolve-mutate'), introRow('#evolve-dev')],
+    // A few gentle parameters only: a full draw can land on a patch heavy enough
+    // to stall the drawing, which is a poor first roll.
+    setup() {
+      setGeometry(0);
+      EVOLVE_KEYS.forEach(k => { evolveInclude[k] = INTRO_DICE.has(k); });
+      syncEvolveChecks();
+    },
+    check: s => Math.min(1, (s.rolls || 0) / 3) },
+  { id: 'locks', title: 'Hold on',
+    text: 'A lock keeps a value safe from Mutate and from pads. Lock X frequency, then mutate again.',
+    reveal: () => [document.querySelector('.lock-btn[data-lockkey="fx"]')],
+    check: s => !lockedKeys.has('fx') ? 0 : s.lockedRolls ? 1 : 0.5 },
+  { id: 'pads', title: 'Keep it',
+    text: 'Pads hold whole patches. Shift-click one to store this, change anything, then click the pad to bring it back.',
+    reveal: () => [document.getElementById('grid-toggle'), document.getElementById('preset-sidebar')],
+    setup() { if (document.getElementById('layout').classList.contains('grid-hidden')) document.getElementById('grid-toggle').click(); },
+    check: s => s.loaded ? 1 : s.stored != null ? 0.5 : 0 },
+  { id: 'pins', title: 'Find anything',
+    text: 'Press / and type a name: every control is one search away. ☆ pins it to the canvas. Pin one.',
+    reveal: () => [document.getElementById('search-toggle'), document.getElementById('pin-dock')],
+    check: () => pinnedKeys.length ? 1 : 0 },
+];
+const introLevelOf = id => INTRO_LEVELS.findIndex(l => l.id === id);
+// True while the intro has not yet reached the level that unlocks `id`.
+function introBlocks(id) { return !!intro && intro.level < introLevelOf(id); }
+
+// Outside the sidebar, these are hidden until a level unlocks them (or something in them).
+const INTRO_OUTSIDE = ['#sidebar-toggle', '#search-toggle', '#grid-toggle', '.view-toggles', '.bottom-bar',
+                       '#preset-sidebar', '#pin-dock'];
+// Shown whenever their parent is: the labels that say what a group is.
+const INTRO_ALWAYS = '.section-label, .vel-row, .tab-bar';
+function introApplyVisibility() {
+  const open = intro.unlocked;
+  const inside = el => open.some(u => u === el || u.contains(el));
+  const holds = el => open.some(u => el.contains(u));
+  const walk = node => [...node.children].forEach(c => {
+    if (c.matches(INTRO_ALWAYS) || inside(c)) { c.classList.remove('intro-hide'); return; }
+    if (holds(c)) { c.classList.remove('intro-hide'); walk(c); return; }
+    c.classList.add('intro-hide');
+  });
+  walk(sidebarEl);
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('intro-hide', !holds(document.getElementById('tab-' + b.dataset.tab)));
+  });
+  INTRO_OUTSIDE.forEach(sel => {
+    const el = document.querySelector(sel);
+    if (!el) return;
+    if (inside(el)) el.classList.remove('intro-hide');
+    else if (holds(el)) { el.classList.remove('intro-hide'); walk(el); }
+    else el.classList.add('intro-hide');
+  });
+}
+
+function introCapture() {
+  const layout = document.getElementById('layout');
+  return {
+    patch: serializePreset(), phase: params.phase, animPhase,
+    pins: [...pinnedKeys], locks: [...lockedKeys],
+    grid: gridPresets.slice(), gridActive: gridActiveIdx,
+    audio: audioEnabled, volume: parseFloat(document.getElementById('audio-vol').value),
+    dev: document.getElementById('evolve-dev').value, evolveInclude: { ...evolveInclude },
+    tab: activeTab,
+    collapsed: [...document.querySelectorAll('.sidebar .section.collapsed')].map(s => s.id),
+    sidebarHidden: layout.classList.contains('sidebar-hidden'),
+    gridHidden: layout.classList.contains('grid-hidden'),
+  };
+}
+// Panels go through their own buttons, so the buttons' labels and aria stay true.
+function introSetPanels(sidebarHidden, gridHidden) {
+  const layout = document.getElementById('layout');
+  if (layout.classList.contains('sidebar-hidden') !== sidebarHidden) document.getElementById('sidebar-toggle').click();
+  if (layout.classList.contains('grid-hidden') !== gridHidden) document.getElementById('grid-toggle').click();
+}
+function introBarePatch() {
+  evolveReset();
+  lfos.forEach(l => { l.assignments = []; });
+  animating = false;
+  constructionView = false;
+  params.columnView = false;
+  params.fx = 1; params.fy = 1;
+  params.phase = 0.5; animPhase = 0.5;
+  refreshAllControls();
+  clickCheckbox('audio-enable', false);
+  setPins([]);
+  introSetLocks([]);
+}
+
+function startIntro() {
+  if (intro) return;
+  const saved = introLoad();
+  intro = { level: 0, phase: 'splash', unlocked: [], state: {}, heldSince: 0, orig: introCapture(), raf: 0, card: null };
+  introBarePatch();
+  document.body.classList.add('intro');
+  introSetPanels(true, true);
+  intro.card = document.createElement('div');
+  intro.card.className = 'intro-card';
+  intro.card.setAttribute('role', 'region');
+  intro.card.setAttribute('aria-label', 'Intro');
+  document.querySelector('.canvas-area').appendChild(intro.card);
+  introApplyVisibility();
+  if (saved && saved.level > 0 && saved.level < INTRO_LEVELS.length) {
+    if (saved.patch) {
+      if (saved.patch.params && typeof saved.patch.params.phase === 'number') params.phase = animPhase = saved.patch.params.phase;
+      applyPresetDataRaw(saved.patch);
+    }
+    introSetPanels(false, true);
+    introEnter(saved.level);
+  } else {
+    introCard('', 'lissa', 'A figure and nothing else. The rest comes back one piece at a time.',
+              [['begin', () => { introSetPanels(false, true); introEnter(0); }]]);
+  }
+  intro.raf = requestAnimationFrame(introTick);
+}
+
+function introCard(n, title, text, actions, meter) {
+  const c = intro.card;
+  c.classList.remove('won');
+  c.innerHTML = `<div class="ic-top"><span class="ic-n">${n}</span>`
+    + (meter ? '<button type="button" class="ic-link" data-ic="skip">skip</button>' : '')
+    + '<button type="button" class="ic-link" data-ic="quit" aria-label="Leave the intro" title="Leave (esc) — progress is kept">✕</button></div>'
+    + `<div aria-live="polite"><div class="ic-title">${title}</div><div class="ic-text">${text}</div></div>`
+    + (meter ? '<div class="ic-meter" role="progressbar" aria-label="Progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div>' : '')
+    + (actions && actions.length ? '<div class="ic-actions"></div>' : '');
+  c.querySelector('[data-ic="quit"]').addEventListener('click', quitIntro);
+  const skip = c.querySelector('[data-ic="skip"]');
+  if (skip) skip.addEventListener('click', introComplete);
+  (actions || []).forEach(([label, fn]) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'map-add-btn'; b.textContent = label;
+    b.addEventListener('click', fn);
+    c.querySelector('.ic-actions').appendChild(b);
+  });
+  const first = c.querySelector('.ic-actions button');
+  if (first) first.focus({ preventScroll: true });
+}
+
+function introEnter(i) {
+  const L = INTRO_LEVELS[i];
+  intro.level = i; intro.phase = 'play'; intro.state = {}; intro.heldSince = 0; intro.shown = -1;
+  if (L.setup) L.setup(intro.state);
+  intro.unlocked = INTRO_LEVELS.slice(0, i + 1).flatMap(l => (l.reveal ? l.reveal() : []).filter(Boolean));
+  document.body.classList.toggle('intro-locks', i >= introLevelOf('locks'));
+  document.body.classList.toggle('intro-pins', i >= introLevelOf('pins'));
+  introApplyVisibility();
+  introCard(`${i + 1} / ${INTRO_LEVELS.length}`, L.title, L.text, null, true);
+  const fresh = (L.reveal ? L.reveal() : []).filter(Boolean);
+  fresh.forEach(el => {
+    if (el.closest('.sidebar')) return;
+    el.classList.remove('flash-find'); void el.offsetWidth; el.classList.add('flash-find');
+    setTimeout(() => el.classList.remove('flash-find'), 1600);
+  });
+  const inSidebar = fresh.find(el => el.closest('.sidebar'));
+  if (inSidebar && !document.getElementById('layout').classList.contains('sidebar-hidden')) revealControl(inSidebar);
+  introSave(true);
+}
+
+function introTick(now) {
+  if (!intro) return;
+  intro.raf = requestAnimationFrame(introTick);
+  if (intro.phase !== 'play') return;
+  const p = Math.max(0, Math.min(1, INTRO_LEVELS[intro.level].check(intro.state) || 0));
+  const pct = Math.round(p * 100);
+  if (pct !== intro.shown) {
+    intro.shown = pct;
+    const m = intro.card.querySelector('.ic-meter');
+    if (m) { m.firstChild.style.width = pct + '%'; m.setAttribute('aria-valuenow', pct); }
+  }
+  if (p < 1) { intro.heldSince = 0; return; }
+  if (!intro.heldSince) intro.heldSince = now;
+  else if (now - intro.heldSince >= INTRO_HOLD_MS) introComplete();
+}
+
+function introComplete() {
+  if (!intro || intro.phase !== 'play') return;
+  intro.phase = 'won';
+  intro.card.classList.add('won');
+  const m = intro.card.querySelector('.ic-meter');
+  if (m) { m.firstChild.style.width = '100%'; m.setAttribute('aria-valuenow', 100); }
+  const next = intro.level + 1;
+  setTimeout(() => {
+    if (!intro || intro.phase !== 'won') return;
+    if (next < INTRO_LEVELS.length) introEnter(next);
+    else introFinale();
+  }, 900);
+}
+
+function introFinale() {
+  intro.level = INTRO_LEVELS.length;
+  intro.phase = 'end';
+  introClearSaved();
+  document.body.classList.remove('intro');
+  introCard('', 'All unlocked', 'Still to find on your own: LFOs, MIDI, 3D, the construction and column views, video and files.',
+            [['keep this patch', () => introEnd(true)], ['back to mine', () => introEnd(false)]]);
+}
+
+function quitIntro() {
+  if (!intro) return;
+  if (intro.phase === 'end') { introEnd(false); return; }
+  introSave(false);
+  introEnd(false);
+}
+
+function introEnd(keepPatch) {
+  const o = intro.orig;
+  cancelAnimationFrame(intro.raf);
+  intro.card.remove();
+  intro = null;
+  document.body.classList.remove('intro', 'intro-locks', 'intro-pins');
+  document.querySelectorAll('.intro-hide').forEach(el => el.classList.remove('intro-hide'));
+  if (!keepPatch) {
+    params.phase = o.phase;   // applyPresetDataRaw keeps the running phase
+    applyPresetDataRaw(o.patch);
+    animPhase = o.animPhase;
+  }
+  setPins(o.pins);
+  introSetLocks(o.locks);
+  // A pad the intro filled stays only if it was empty and the patch is kept.
+  gridPresets = o.grid.map((p, i) => p || (keepPatch ? gridPresets[i] : null));
+  gridActiveIdx = o.gridActive;
+  renderGrid();
+  clickCheckbox('audio-enable', o.audio);
+  MAP_TARGETS.volume.apply(o.volume);
+  const dev = document.getElementById('evolve-dev');
+  dev.value = o.dev;
+  dev.dispatchEvent(new Event('input'));
+  Object.assign(evolveInclude, o.evolveInclude);
+  syncEvolveChecks();
+  introSetPanels(o.sidebarHidden, o.gridHidden);
+  showTab(o.tab);
+  document.querySelectorAll('.sidebar .section').forEach(s => s.classList.toggle('collapsed', o.collapsed.includes(s.id)));
+  saveCollapsed();
+}
+
+// Events the checks cannot read off the state.
+function introEvent(kind, i) {
+  if (!intro || intro.phase !== 'play') return;
+  const s = intro.state, id = INTRO_LEVELS[intro.level].id;
+  if (kind === 'mutate') {
+    s.rolls = (s.rolls || 0) + 1;
+    if (id === 'locks' && lockedKeys.has('fx')) s.lockedRolls = (s.lockedRolls || 0) + 1;
+  } else if (kind === 'store') s.stored = i;
+  else if (kind === 'load' && s.stored === i) s.loaded = true;
+}
+
+// The target figure, dashed, over the live one. Lateral only, plain sines.
+function introDrawGhost() {
+  const L = intro.phase === 'play' && INTRO_LEVELS[intro.level];
+  const g = L && L.ghost;
+  if (!g || figGeometry() !== 0) return;
+  const size = figBox.size, z = Math.max(ZOOM_MIN, recZoom), pad = size * 0.034;
+  const cx = figBox.x + size / 2, cy = figBox.y + size / 2;
+  const rx = (size / 2 - pad) * params.ax * z, ry = (size / 2 - pad) * params.ay * z;
+  const N = 600;
+  ctx.save();
+  ctx.setLineDash([4, 6]);
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+  ctx.beginPath();
+  for (let k = 0; k <= N; k++) {
+    const t = (k / N) * Math.PI * 2;
+    const x = cx + rx * Math.sin(g.fx * t + g.phase * Math.PI), y = cy + ry * Math.sin(g.fy * t);
+    if (k) ctx.lineTo(x, y); else ctx.moveTo(x, y);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+window.addEventListener('keydown', e => {
+  if (!intro || e.key !== 'Escape' || e.defaultPrevented) return;
+  if (!psEl.hidden || !document.getElementById('ro-pop').hidden) return;
+  quitIntro();
+});
 
 initInfoToggles();
 initControlLabels();
