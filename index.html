@@ -10986,6 +10986,7 @@ function introSetLocks(keys) {
 
 const introRow = sel => { const e = document.querySelector(sel); return e && (e.closest('.param-row, .checkbox-row') || e); };
 const introRatio = () => params.fx / params.fy;
+const introGroup = axisKey => document.querySelector(`.sidebar .mod-group[data-axis="${axisKey}"]`);
 // 1 on the target, otherwise how close, capped below 1 so only a hit completes.
 const introNear = (v, t, span) => Math.abs(v - t) < 1e-6 ? 1 : Math.min(0.9, Math.max(0, 1 - Math.abs(v - t) / span));
 const introSetPhase = v => MAP_TARGETS.phase.apply(v);
@@ -11015,6 +11016,11 @@ const INTRO_LEVELS = [
     reveal: () => [introRow('#animate'), document.getElementById('anim-speed-row')],
     setup() { applyPreset(3, 2); introSetPhase(0.5); },
     check: () => animating ? 1 : 0 },
+  { id: 'damp', title: 'Damping',
+    text: 'Damping draws the way a pendulum harmonograph does: the figure runs lap after lap, each a little smaller and slipping a little, until it spirals into the centre. It only changes the drawing, never the sound. Turn it past 0.5.',
+    reveal: () => [introRow('#damp')],
+    snap: ['damp'],
+    check: () => Math.min(1, (params.damp || 0) / 0.5) },
   { id: 'audio', title: 'Listen',
     text: 'The figure is a sound as well: X in the left ear, Y in the right. Switch the output on.',
     reveal: () => [introRow('#audio-enable'), introRow('#audio-vol')],
@@ -11025,10 +11031,74 @@ const INTRO_LEVELS = [
                    document.querySelector('[data-axis="y"][data-bwave]').closest('.param-row'),
                    document.getElementById('wave-preview')],
     check: () => { const m = Math.max(params.morphX || 0, params.morphY || 0); return m > 2.99 ? 1 : Math.min(0.9, m / 3); } },
-  { id: 'fm', title: 'Fizz',
-    text: 'FM lets another oscillator wobble the frequency. Push FM amount past 2.',
-    reveal: () => [introRow('#fm-amount'), introRow('#fm-ratio')],
-    check: () => Math.min(1, (params.fmAmount || 0) / 2) },
+  // ── Synthesis, one stage per level. Each stage glides back to off when its
+  // level is done (`snap`), so the next one is heard and seen on its own.
+  { id: 'am', title: 'AM',
+    text: 'Back to sines: from here each synthesis stage gets a level of its own and switches off again when you move on. AM lets a second oscillator swell and shrink the wave. Set Depth to 0.5 or more, then try another Ratio.',
+    reveal: () => [introGroup('amAxis')],
+    setup() { setWaveMorph('x', 0); setWaveMorph('y', 0); },
+    snap: ['amAmt', 'amRatio', 'amRef', 'amAxis', 'amWave'],
+    check: () => Math.min(1, (params.amAmt || 0) / 0.5) * 0.5 + (params.amRatio !== PARAM_DEFAULTS.amRatio ? 0.5 : 0) },
+  { id: 'fm', title: 'FM',
+    text: 'FM swings the frequency instead of the size, so the line bends sideways rather than swelling. Push Amount past 2, then pick another Mod shape.',
+    reveal: () => [introGroup('fmAxis')],
+    snap: ['fmAmount', 'fmRatio', 'fmRef', 'fmAxis', 'fmWave'],
+    check: () => Math.min(1, (params.fmAmount || 0) / 2) * 0.5 + (params.fmWave !== 'sine' ? 0.5 : 0) },
+  { id: 'cross', title: 'Cross',
+    text: 'Here X and Y modulate each other. Cross FM lets each wobble the other’s frequency; Ring mod multiplies the two. Raise both past 0.5.',
+    reveal: () => [introGroup('crossAxis')],
+    snap: ['crossFm', 'ringAmt', 'crossAxis'],
+    check: () => Math.min(1, (params.crossFm || 0) / 0.5) * 0.5 + Math.min(1, (params.ringAmt || 0) / 0.5) * 0.5 },
+  { id: 'shape', title: 'Drive',
+    text: 'Drive pushes the wave into a soft clip: a sine flattens toward a square and gains overtones. Drive past 0.7.',
+    reveal: () => [introGroup('shapeAxis')],
+    snap: ['shapeAmt', 'shapeAxis'],
+    check: () => Math.min(1, (params.shapeAmt || 0) / 0.7) },
+  { id: 'feedback', title: 'Feedback',
+    text: 'Feedback feeds the wave back into its own phase: a sine leans over toward a saw, then breaks up. Amount past 0.6.',
+    reveal: () => [introGroup('fbAxis')],
+    snap: ['fbAmt', 'fbAxis'],
+    check: () => Math.min(1, (params.fbAmt || 0) / 0.6) },
+  { id: 'warp', title: 'Warp & fold',
+    text: 'Warp squeezes each cycle toward its start or its end. Fold reflects the wave back at the edges instead of clipping it, adding lobes. Move Warp off centre, then Fold past 3.',
+    reveal: () => [introGroup('warpAxis')],
+    snap: ['warp', 'foldDrive', 'foldBias', 'warpAxis'],
+    check: () => Math.min(1, Math.abs(params.warp || 0) / 0.3) * 0.5 + Math.min(1, ((params.foldDrive || 1) - 1) / 2) * 0.5 },
+  { id: 'crush', title: 'Crush',
+    text: 'Crush is digital damage. Bits rounds the height into steps, Decimate holds each value for a while. Bits down to 4, Decimate past 0.3.',
+    reveal: () => [introGroup('crushAxis')],
+    snap: ['crushBits', 'crushRate', 'crushAxis'],
+    check: () => Math.min(1, (16 - (params.crushBits ?? 16)) / 12) * 0.5 + Math.min(1, (params.crushRate || 0) / 0.3) * 0.5 },
+  { id: 'noise', title: 'Noise',
+    text: 'Noise jitters every sample of the wave. A little goes a long way: 0.02 is plenty.',
+    reveal: () => [introGroup('noiseAxis')],
+    snap: ['noiseAmt', 'noiseAxis'],
+    check: () => Math.min(1, (params.noiseAmt || 0) / 0.02) },
+  { id: 'filter', title: 'Filter',
+    text: 'Square waves again, to give it something to cut. The filter is the last stage and shapes the waveform itself, so you see it as well as hear it. Lower Cutoff until the corners round off, then raise Resonance past 5.',
+    reveal: () => [introGroup('filterAxis')],
+    setup() { setWaveMorph('x', 3); setWaveMorph('y', 3); },
+    snap: ['filterCutoff', 'filterQ', 'filterAxis', 'morphX', 'morphY'],
+    unsnap() { filterType = 'lowpass'; },
+    check: () => Math.min(1, (1 - params.filterCutoff) / 0.5) * 0.5 + Math.min(1, ((params.filterQ || 0.7) - 0.7) / 4.3) * 0.5 },
+  { id: 'sync', title: 'Sync',
+    text: 'Sync restarts the wave on a clock of its own each cycle: the tearing, vocal sound of an analogue sync sweep. Move Ratio well away from 1.',
+    reveal: () => [introGroup('syncAxis')],
+    snap: ['syncAmt', 'syncAxis'],
+    check: () => Math.min(1, Math.abs((params.syncAmt ?? 1) - 1) / 0.4) },
+  { id: 'partials', title: 'Partials',
+    text: 'A wave can also be painted from its first 16 harmonics: bar n is n × the frequency. Drag across X’s bars.',
+    reveal: () => [introGroup('partAxis')],
+    snap: ['partsX', 'partsY', 'partAxis'],
+    check: () => {
+      const b = params.partsX || [], d = PARAM_DEFAULTS.partsX;
+      return Math.min(1, b.reduce((a, v, i) => a + Math.abs(v - d[i]), 0) / 0.6);
+    } },
+  { id: 'unison', title: 'Unison',
+    text: 'Unison adds a slightly detuned copy: the figure opens, closes and slowly turns. Mix past 0.4, then some Detune.',
+    reveal: () => [introRow('#unison-mix').closest('.mod-group')],
+    snap: ['unisonDetune', 'unisonMix'],
+    check: () => Math.min(1, (params.unisonMix || 0) / 0.4) * 0.5 + Math.min(1, (params.unisonDetune || 0) / 5) * 0.5 },
   { id: 'look', title: 'Paint',
     text: `Drawing never touches the sound. Turn the hue to <span class="ic-swatch" style="background:hsl(${INTRO_HUE},84%,66%)"></span>, then give the line a long afterglow.`,
     reveal: () => [introRow('#hsl-h'), document.getElementById('trail-amt-row')],
@@ -11221,6 +11291,7 @@ function introComplete() {
   if (!intro || intro.phase !== 'play') return;
   intro.phase = 'won';
   intro.card.classList.add('won');
+  introSnap(INTRO_LEVELS[intro.level]);
   const m = intro.card.querySelector('.ic-meter');
   if (m) { m.firstChild.style.width = '100%'; m.setAttribute('aria-valuenow', 100); }
   const next = intro.level + 1;
@@ -11276,6 +11347,30 @@ function introEnd(keepPatch) {
   showTab(o.tab);
   document.querySelectorAll('.sidebar .section').forEach(s => s.classList.toggle('collapsed', o.collapsed.includes(s.id)));
   saveCollapsed();
+}
+
+// A level's stage glides back to its default once the level is done.
+function introSnap(L) {
+  const keys = L.snap || [];
+  if (!keys.length) return;
+  const finish = () => {
+    if (!intro) return;   // left mid-glide: the exit restore owns the patch now
+    keys.forEach(k => { const d = PARAM_DEFAULTS[k]; params[k] = Array.isArray(d) ? d.slice() : d; });
+    if (L.unsnap) L.unsnap();
+    refreshAllControls();
+  };
+  const from = {};
+  const glide = keys.filter(k => MAP_TARGETS[k] && typeof params[k] === 'number' && params[k] !== PARAM_DEFAULTS[k]);
+  glide.forEach(k => { from[k] = params[k]; });
+  if (!glide.length || matchMedia('(prefers-reduced-motion: reduce)').matches) { finish(); return; }
+  const t0 = performance.now(), T = 450;
+  const step = now => {
+    if (!intro) return;
+    const u = Math.min(1, (now - t0) / T), e = u * u * (3 - 2 * u);
+    glide.forEach(k => MAP_TARGETS[k].apply(from[k] + (PARAM_DEFAULTS[k] - from[k]) * e));
+    if (u < 1) requestAnimationFrame(step); else finish();
+  };
+  requestAnimationFrame(step);
 }
 
 // Events the checks cannot read off the state.
