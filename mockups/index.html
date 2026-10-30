@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>lissa · design mockups</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #0c0c0e; color: #d4d4d8; font: 12px/1.4 'IBM Plex Mono', ui-monospace, monospace; }
+  body { display: flex; flex-direction: column; }
+  .bar { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-bottom: 1px solid #222228; overflow-x: auto; flex-shrink: 0; }
+  .bar b { color: #c8f060; letter-spacing: 0.12em; margin-right: 8px; white-space: nowrap; }
+  .bar button {
+    flex: none; background: none; border: 1px solid #3a3a44; border-radius: 3px; color: #a1a1aa;
+    font: inherit; padding: 4px 9px; cursor: pointer; white-space: nowrap;
+  }
+  .bar button:hover { color: #fff; border-color: #6a6a7b; }
+  .bar button[aria-pressed="true"] { background: #c8f060; border-color: #c8f060; color: #0c0c0e; }
+  .note { padding: 6px 12px; color: #8b8b98; border-bottom: 1px solid #222228; flex-shrink: 0; }
+  .note strong { color: #d4d4d8; font-weight: 500; }
+  iframe { flex: 1; width: 100%; border: 0; display: block; }
+</style>
+</head>
+<body>
+  <nav class="bar" id="bar" aria-label="Theme"><b>LISSA MOCKUPS</b></nav>
+  <div class="note" id="note" aria-live="polite"></div>
+  <iframe id="app" src="../index.html" title="lissa"></iframe>
+<script src="apply-theme.js"></script>
+<script>
+  const { THEMES, applyTheme } = window.LissaMockups;
+  const bar = document.getElementById('bar');
+  const note = document.getElementById('note');
+  const frame = document.getElementById('app');
+  const buttons = THEMES.map((t, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = (i ? String(i).padStart(2, '0') + ' ' : '') + t.name;
+    b.addEventListener('click', () => select(t.id));
+    bar.appendChild(b);
+    return b;
+  });
+  function select(id) {
+    const t = applyTheme(frame.contentWindow, id, new URL('themes/', location.href).href);
+    buttons.forEach((b, i) => b.setAttribute('aria-pressed', THEMES[i].id === t.id));
+    note.innerHTML = '<strong>' + t.name + '</strong> — ' + t.note;
+    history.replaceState(null, '', '#' + t.id);
+  }
+  frame.addEventListener('load', () => select(location.hash.slice(1) || 'swiss'));
+  // ← / → step through the themes when focus is out here, not inside the app.
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    const cur = THEMES.findIndex(t => t.id === (location.hash.slice(1) || 'swiss'));
+    const n = (cur + (e.key === 'ArrowRight' ? 1 : -1) + THEMES.length) % THEMES.length;
+    select(THEMES[n].id);
+  });
+</script>
+</body>
+</html>

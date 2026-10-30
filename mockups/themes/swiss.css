@@ -1,0 +1,93 @@
+/* 01 · Swiss Grid — International Typographic Style.
+   White paper, black type, a single red. Structure comes from hairlines and
+   type weight; there are no fills, no radii and no shadows. */
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;700;800&display=swap');
+
+:root {
+  --font-ui: 'Inter Tight', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-display: var(--font-ui);
+  --font-num: var(--font-ui);
+  --bg: #ffffff; --panel: #ffffff; --border: #111111;
+  --accent: #e3120b; --accent-hi: #ff2a20; --accent2: #111111;
+  --text: #111111; --label: #111111; --muted: #6b6b6b;
+  --control-border: #111111; --track: #e6e6e6; --focus: #e3120b;
+  --danger: #e3120b;
+  --card: transparent; --card-border: transparent; --card-radius: 0; --card-shadow: none;
+  --head-wash: transparent; --head-text: #111111; --sub-text: #111111;
+  --on-accent: #ffffff; --radius: 0; --ctl-radius: 0; --btn-radius: 0; --pill-radius: 0;
+  --a1-soft: transparent; --a1-mid: rgba(227,18,11,0.08);
+  --a2-soft: #f2f2f2; --a2-mid: #111111; --a2-strong: #333;
+  --wash: transparent; --wash-2: #f0f0f0; --hover-wash: #f2f2f2;
+  --overlay: rgba(255,255,255,0.9); --popover: #ffffff; --popover-sel: #f2f2f2;
+  --dock: rgba(255,255,255,0.95); --scrim: rgba(255,255,255,0.7);
+  --pop-shadow: 0 0 0 1px #111;
+  --track-h: 2px; --track-radius: 0;
+  --thumb-w: 4px; --thumb-h: 18px; --thumb-radius: 0; --thumb-ring: #e3120b; --thumb-shadow: none;
+  --mod-edge: 0px;
+}
+body { font-size: 12px; }
+header { padding: 18px 24px 14px; border-bottom: 2px solid #111; align-items: flex-end; }
+header h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.04em; text-transform: lowercase; line-height: 0.8; color: #111; }
+header > span { font-size: 12px; color: #111; letter-spacing: 0; }
+header > span::before { content: '—  '; color: var(--accent); }
+.sidebar { width: 300px; min-width: 300px; border-right: 2px solid #111; padding: 20px 20px; --sb-px: 20px; gap: 0; }
+.tab-bar { border-bottom: 2px solid #111; padding: 0 20px; gap: 0; }
+.tab-btn { align-items: flex-start; font-size: 11px; font-weight: 700; letter-spacing: 0; text-transform: none; padding: 12px 0 10px; border-bottom-width: 4px; color: #9a9a9a; }
+.tab-btn svg { display: none; }
+.tab-btn[aria-selected="true"] { color: #111; border-bottom-color: var(--accent); }
+.tab-btn[data-tab="setup"]::before { display: none; }
+
+.tab-panel { counter-reset: sec; gap: 0; }
+.section { padding: 0 0 22px; border: 0; border-top: 1px solid #111; counter-increment: sec; }
+.section > .section-label {
+  margin: 0 0 14px; padding: 8px 0 0; border: 0; font-size: 22px; font-weight: 800;
+  letter-spacing: -0.02em; text-transform: none; align-items: flex-start; justify-content: flex-start;
+}
+.section > .section-label::after { margin-left: auto; }
+.section > .section-label::before {
+  content: counter(sec, decimal-leading-zero); font-size: 11px; font-weight: 500;
+  color: var(--accent); margin-right: 10px; padding-top: 4px; letter-spacing: 0;
+}
+.section > .section-label::after { content: '–'; font-size: 18px; opacity: 1; color: #111; }
+.section.collapsed > .section-label::after { content: '+'; transform: none; }
+.section.collapsed > .section-label { margin-bottom: 0; }
+.section.collapsed { padding-bottom: 8px; }
+.section > .section-label.has-help::after { top: 6px; right: 0; }
+.sec-help { top: 10px; right: 22px; border: 0; padding: 0; height: auto; font-size: 10px; font-weight: 700; color: #111; }
+.sec-help .info-mark { border-radius: 0; }
+.subsection-label { font-size: 11px; font-weight: 700; letter-spacing: 0; text-transform: none; border-bottom: 1px solid #111; margin-top: 18px; }
+.mod-group { padding: 8px 0 2px; margin-top: 10px; border-top: 1px solid #d0d0d0; }
+.vel-label, .mod-group-label { font-weight: 700; letter-spacing: 0; text-transform: none; font-size: 12px; }
+.param-header label { font-size: 12px; font-weight: 500; }
+.param-header .val { color: #111; font-weight: 700; font-size: 12px; font-variant-numeric: tabular-nums; }
+input[type=range] { border: 0; background: #111; margin: 8px 0; }
+
+.wave-toggle { border: 0; padding: 0; gap: 0; background: none; border-top: 1px solid #111; border-bottom: 1px solid #111; }
+.wave-btn { border-right: 1px solid #e0e0e0; padding: 8px 4px; font-weight: 500; }
+.wave-btn:last-child { border-right: 0; }
+.wave-btn.active { background: var(--accent); }
+.preset-grid { gap: 0; border-left: 1px solid #111; border-top: 1px solid #111; }
+.preset-btn { border: 0; border-right: 1px solid #111; border-bottom: 1px solid #111; color: #111; font-weight: 500; padding: 6px 9px; background: #fff; }
+.preset-btn.active, .preset-btn.active:hover { background: #111; color: #fff; }
+.preset-btn:not(.active):hover { color: var(--accent); }
+.lfo-wave-btn.active, .mod-wave-btn.active, .mod-axis-btn.active,
+.lfo-wave-btn.active:hover, .mod-wave-btn.active:hover, .mod-axis-btn.active:hover { color: #fff; }
+.info-text { border-left: 4px solid var(--accent); background: #f4f4f4; color: #111; }
+.info-text strong { color: #111; font-weight: 700; }
+.info-text em { color: var(--accent); }
+.checkbox-row input[type=checkbox] { accent-color: #111; }
+
+.bottom-bar { border-top: 2px solid #111; padding: 12px 24px; }
+.status { color: #111; font-weight: 500; }
+.btn { font-weight: 700; letter-spacing: 0; text-transform: none; font-size: 12px; }
+.btn-outline { border: 1px solid #111; color: #111; }
+.btn-primary { background: var(--accent); }
+.sidebar-toggle, .grid-toggle, .search-toggle { border: 0; color: #111; font-weight: 700; letter-spacing: 0; }
+.grid-toggle.open, .grid-toggle:hover { color: var(--accent); }
+kbd { border-color: #111; color: #111; border-radius: 0; }
+.view-tg { border: 0; background: none; color: #111; }
+.view-tg.active, .view-tg.active:hover { color: #fff; background: var(--accent); }
+.preset-sidebar { border-left: 2px solid #111; }
+.grid-pad { border-color: #111; }
+#interval-label { font-weight: 700; letter-spacing: 0 !important; text-transform: lowercase; }
+.pin-btn, .lock-btn { color: #b5b5b5; }

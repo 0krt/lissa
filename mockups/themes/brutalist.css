@@ -1,0 +1,78 @@
+/* 02 · Brutalist — raw web. Thick black outlines, hard offset shadows,
+   acid yellow and hot pink, everything shouting in caps. */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Archivo+Black&family=Space+Mono:wght@400;700&display=swap');
+
+:root {
+  --font-ui: 'Space Grotesk', sans-serif;
+  --font-display: 'Archivo Black', sans-serif;
+  --font-num: 'Space Mono', monospace;
+  --bg: #ffffff; --panel: #fff36b; --border: #000000;
+  --accent: #ff2e88; --accent-hi: #ff5ca3; --accent2: #2b2bff;
+  --text: #000; --label: #000; --muted: #333;
+  --control-border: #000; --track: #ffffff; --focus: #2b2bff; --danger: #ff2e88;
+  --card: #ffffff; --card-border: #000; --card-radius: 0; --card-shadow: 5px 5px 0 #000;
+  --head-wash: #000; --head-text: #fff36b; --sub-text: #000;
+  --on-accent: #000; --radius: 0; --ctl-radius: 0; --btn-radius: 0; --pill-radius: 0;
+  --a1-soft: #ff2e88; --a1-mid: #ff5ca3; --a2-soft: #c9c9ff; --a2-mid: #2b2bff; --a2-strong: #4b4bff;
+  --wash: #f2f2f2; --wash-2: #fff; --hover-wash: #fff36b;
+  --overlay: #ffffff; --popover: #ffffff; --popover-sel: #fff36b; --dock: #ffffff; --scrim: rgba(255,46,136,0.35);
+  --pop-shadow: 10px 10px 0 #000;
+  --track-h: 14px; --track-radius: 0;
+  --thumb-w: 20px; --thumb-h: 26px; --thumb-radius: 0; --thumb-ring: #000; --thumb-shadow: 3px 3px 0 #000;
+  --label-case: uppercase; --label-spacing: 0.02em; --mod-edge: 0px; --panel-edge: 4px;
+}
+header { border-bottom: 4px solid #000; background: #000; padding: 12px 20px; }
+header h1 { font-size: 34px; letter-spacing: -0.03em; color: #fff36b; text-transform: uppercase; line-height: 1; }
+header > span { color: #fff; text-transform: uppercase; font-family: 'Space Mono', monospace !important; }
+.sidebar-toggle, .grid-toggle, .search-toggle { background: #fff36b; color: #000; border: 3px solid #fff36b; font-weight: 700; box-shadow: 3px 3px 0 var(--accent); }
+.grid-toggle.open { background: var(--accent); border-color: var(--accent); color: #000; }
+kbd { border: 2px solid #000; color: #000; border-radius: 0; }
+.sidebar { width: 310px; min-width: 310px; border-right: 4px solid #000; --sb-px: 18px; padding: 20px 18px; gap: 22px; }
+.tab-bar { background: #fff36b; border-bottom: 4px solid #000; padding: 8px 10px; gap: 6px; }
+.tab-btn { border: 3px solid #000; background: #fff; color: #000; font-weight: 700; font-size: 10px; padding: 6px 2px; letter-spacing: 0.04em; }
+.tab-btn[aria-selected="true"] { background: #000; color: #fff36b; border-bottom-color: #000; transform: translate(2px,2px); }
+.tab-btn:not([aria-selected="true"]) { box-shadow: 3px 3px 0 #000; }
+.tab-btn[data-tab="setup"]::before { display: none; }
+.section { border: 4px solid #000; padding: 12px 13px 16px; margin-right: 6px; }
+.section > .section-label { margin: -12px -13px 14px; padding: 10px 13px; font-size: 18px; letter-spacing: 0; border-bottom: 4px solid #000; }
+.section-label:hover { color: #fff; }
+.section-label::after { content: '▼'; opacity: 1; font-size: 12px; }
+.section.collapsed > .section-label { margin-bottom: -16px; }
+.sec-help { background: #fff36b; color: #000; border: 2px solid #fff36b; top: 8px; font-weight: 700; }
+.subsection-label { font-size: 13px; border-bottom: 3px solid #000; letter-spacing: 0; font-family: 'Archivo Black', sans-serif !important; }
+.mod-group { border: 3px solid #000; background: #fff; padding: 8px; margin-top: 10px; }
+.mod-group:nth-of-type(odd) { background: #e7f9ff; }
+.vel-label, .mod-group-label { font-family: 'Archivo Black', sans-serif !important; font-size: 12px; letter-spacing: 0; background: #000; color: #fff; padding: 2px 6px; }
+.param-header label { font-weight: 700; font-size: 12px; }
+.param-header .val { background: #000; color: #fff36b; padding: 1px 5px; font-size: 12px; }
+input[type=range] { border: 3px solid #000; background: repeating-linear-gradient(90deg, #fff 0 8px, #eee 8px 9px); }
+.wave-toggle { border: 3px solid #000; padding: 0; gap: 0; background: #fff; }
+.wave-btn { border-right: 3px solid #000; padding: 8px 4px; font-weight: 700; color: #000; }
+.wave-btn:last-child { border-right: 0; }
+.wave-btn.active, .wave-btn.active:hover { background: var(--accent); }
+#xy-swap-btn { border: 3px solid #000 !important; box-shadow: 4px 4px 0 #000; background: #fff; font-weight: 700; text-transform: uppercase; }
+.preset-grid { gap: 6px; }
+.preset-btn { border: 2px solid #000; color: #000; background: #fff; font-family: 'Space Mono', monospace !important; font-weight: 700; box-shadow: 2px 2px 0 #000; }
+.preset-btn:not(.active):hover { background: #fff36b; color: #000; border-color: #000; }
+.preset-btn.active, .preset-btn.active:hover { background: var(--accent); color: #000; border-color: #000; transform: translate(2px,2px); box-shadow: none; }
+.lfo-wave-btn, .mod-wave-btn, .mod-axis-btn, .retrig-btn, .map-cc-btn { border: 2px solid #000; color: #000; font-weight: 700; }
+.lfo-wave-btn.active, .mod-wave-btn.active, .mod-axis-btn.active,
+.lfo-wave-btn.active:hover, .mod-wave-btn.active:hover, .mod-axis-btn.active:hover { color: #fff; border-color: #000; }
+.info-btn { border: 2px solid #000; color: #000; font-weight: 700; }
+.info-text { border: 3px solid #000; background: #c9c9ff; color: #000; border-radius: 0; }
+.info-text strong { color: #000; background: #fff36b; padding: 0 2px; }
+.info-text em { color: #2b2bff; font-weight: 700; }
+.checkbox-row input[type=checkbox] { accent-color: var(--accent); }
+.btn { border: 3px solid #000; box-shadow: 4px 4px 0 #000; font-weight: 700; }
+.btn-outline { background: #fff; color: #000; border-color: #000; }
+.btn:active { transform: translate(4px,4px); box-shadow: none; }
+.bottom-bar { background: #000; border-top: 4px solid #000; }
+.status, .status span { color: #fff36b; font-family: 'Space Mono', monospace !important; }
+.view-tg { background: #fff; border: 3px solid #000; color: #000; box-shadow: 3px 3px 0 #000; width: 34px; height: 34px; }
+.view-toggles { gap: 8px; }
+.view-tg.active, .view-tg.active:hover { background: var(--accent); color: #000; border-color: #000; }
+.preset-sidebar { border-left: 4px solid #000; background: #fff36b; }
+.grid-pad { border: 2px solid #000; background: #fff; color: #000; }
+.ps-box, .ro-pop, .pin-dock, .intro-card { border: 4px solid #000; }
+#interval-label { font-family: 'Archivo Black', sans-serif !important; text-transform: uppercase; background: #000; color: #fff36b !important; padding: 4px 10px; }
+.preset-sidebar-head .section-label { color: #000; }
