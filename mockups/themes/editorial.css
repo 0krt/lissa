@@ -1,0 +1,87 @@
+/* 08 · Editorial — a printed journal. Warm newsprint, high-contrast serif
+   display, italic small text, oxblood ink, column rules and a masthead. */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,900;1,9..144,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap');
+
+:root {
+  --font-ui: 'Newsreader', Georgia, serif;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-num: 'Newsreader', Georgia, serif;
+  --bg: #fbf8f1; --panel: #f6f1e7; --border: #1f1a17;
+  --accent: #7a1f2b; --accent-hi: #9a2a38; --accent2: #2f4a3a;
+  --text: #1f1a17; --label: #3a332d; --muted: #6f655b;
+  --control-border: #8a7f73; --track: #e3dbcc; --focus: #7a1f2b; --danger: #a3242f;
+  --card: transparent; --card-border: transparent; --card-radius: 0; --card-shadow: none;
+  --head-wash: transparent; --head-text: #1f1a17; --sub-text: #7a1f2b;
+  --on-accent: #fbf8f1; --radius: 0; --ctl-radius: 0; --btn-radius: 0; --pill-radius: 0;
+  --a1-soft: rgba(122,31,43,0.07); --a1-mid: rgba(122,31,43,0.12);
+  --a2-soft: rgba(47,74,58,0.08); --a2-mid: rgba(47,74,58,0.12); --a2-strong: rgba(47,74,58,0.2);
+  --wash: transparent; --wash-2: #ece4d4; --hover-wash: rgba(122,31,43,0.06);
+  --overlay: rgba(246,241,231,0.92); --popover: #fbf8f1; --popover-sel: #f1ead9; --dock: rgba(251,248,241,0.96);
+  --scrim: rgba(246,241,231,0.7); --pop-shadow: 0 1px 0 #1f1a17, 0 18px 40px rgba(31,26,23,0.18);
+  --track-h: 1px; --track-radius: 0;
+  --thumb-w: 11px; --thumb-h: 11px; --thumb-radius: 50%; --thumb-ring: #fbf8f1; --thumb-shadow: 0 0 0 1px #7a1f2b;
+  --mod-edge: 0px;
+}
+body { font-size: 14px; }
+header { flex-direction: column; align-items: center; gap: 2px; padding: 14px 24px 10px; border-bottom: 0; position: relative; }
+header::after { content: ''; position: absolute; left: 24px; right: 24px; bottom: 0; border-bottom: 3px double #1f1a17; }
+header h1 { font-size: 40px; font-weight: 900; font-style: normal; letter-spacing: -0.03em; text-transform: none; color: #1f1a17; line-height: 0.95; }
+header > span { font-style: italic; font-size: 14px; color: var(--muted); letter-spacing: 0.02em; }
+header > span::before { content: 'Vol. I  ·  '; font-style: normal; font-variant: small-caps; letter-spacing: 0.1em; }
+.sidebar-toggle { position: absolute; left: 24px; top: 22px; }
+.search-toggle { position: absolute; right: 120px; top: 22px; }
+.grid-toggle { position: absolute; right: 24px; top: 22px; }
+.sidebar-toggle, .grid-toggle, .search-toggle { border: 0; color: #1f1a17; font-style: italic; letter-spacing: 0; text-transform: none; font-size: 14px; }
+.grid-toggle.open { color: var(--accent); }
+kbd { border-color: #8a7f73; border-radius: 2px; font-style: normal; }
+.sidebar { width: 310px; min-width: 310px; border-right: 1px solid #1f1a17; gap: 0; }
+.tab-bar { border-bottom: 1px solid #1f1a17; }
+.tab-btn { font-size: 14px; font-style: italic; text-transform: none; letter-spacing: 0; font-weight: 400; }
+.tab-btn svg { display: none; }
+.tab-btn[aria-selected="true"] { color: var(--accent); border-bottom: 2px solid var(--accent); font-weight: 600; }
+.tab-btn[data-tab="setup"]::before { background: #8a7f73; }
+.tab-panel { gap: 0; }
+.section { padding: 4px 0 20px; border-bottom: 1px solid #c9bfae; }
+.section > .section-label {
+  margin: 0 0 10px; padding: 12px 0 0; border: 0; font-size: 26px; font-weight: 600;
+  letter-spacing: -0.02em; text-transform: none; line-height: 1.05;
+}
+.section-label::after { content: '§'; font-family: 'Fraunces', serif; font-size: 16px; color: var(--accent); opacity: 1; }
+.section.collapsed .section-label::after { transform: none; opacity: 0.45; }
+.section > .section-label.has-help::after { top: 16px; right: 0; }
+.sec-help { border: 0; text-transform: none; font-style: italic; letter-spacing: 0; color: var(--accent); top: 14px; right: 22px; font-size: 13px; }
+.sec-help .info-mark { display: none; }
+.section.collapsed { padding-bottom: 10px; }
+.subsection-label { font-family: 'Newsreader', serif !important; font-size: 12px; font-variant: small-caps; text-transform: lowercase; letter-spacing: 0.14em; color: var(--accent); border-bottom: 1px solid #c9bfae; }
+.mod-group { padding: 6px 0 2px 12px; border-left: 2px solid #1f1a17; margin-top: 10px; }
+.vel-label, .mod-group-label { font-family: 'Fraunces', serif !important; font-size: 15px; font-style: italic; font-weight: 400; text-transform: none; letter-spacing: 0; color: #1f1a17; }
+.param-header label { font-size: 14px; letter-spacing: 0; }
+.param-header .val { font-size: 14px; color: var(--accent); font-style: italic; font-weight: 500; font-variant-numeric: oldstyle-nums tabular-nums; }
+input[type=range] { border: 0; background: #1f1a17; margin: 6px 0; }
+input[type=range]::-webkit-slider-thumb { background: var(--accent); border: 2px solid #fbf8f1; }
+input[type=range]::-moz-range-thumb { background: var(--accent); border: 2px solid #fbf8f1; }
+.wave-toggle { border: 0; border-top: 1px solid #1f1a17; border-bottom: 1px solid #1f1a17; padding: 2px 0; background: none; }
+.wave-btn { color: #3a332d; font-style: italic; font-size: 13px; }
+.wave-btn.active, .wave-btn.active:hover { background: #1f1a17; color: #fbf8f1; }
+#xy-swap-btn { border: 0 !important; font-style: italic; text-decoration: underline; text-underline-offset: 3px; color: var(--accent); }
+.preset-grid { gap: 2px 12px; }
+.preset-btn { border: 0; background: none; color: #3a332d; font-size: 14px; padding: 2px 0; font-variant-numeric: oldstyle-nums; }
+.preset-btn:not(.active):hover { color: var(--accent); }
+.preset-btn.active, .preset-btn.active:hover { color: var(--accent); background: none; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; font-weight: 600; }
+.lfo-wave-btn, .mod-wave-btn, .mod-axis-btn, .retrig-btn, .map-cc-btn { font-size: 12px; font-style: italic; }
+.info-btn { border: 0; text-transform: none; letter-spacing: 0; font-style: italic; color: var(--accent); }
+.info-text { font-size: 14px; line-height: 1.55; border-left: 0; background: none; padding: 4px 0; color: #3a332d; }
+.info-text::first-letter { font-family: 'Fraunces', serif; font-size: 2.6em; float: left; line-height: 0.85; margin: 4px 6px 0 0; color: var(--accent); font-weight: 900; }
+.info-text strong { color: #1f1a17; font-weight: 600; }
+.info-text em { color: var(--accent2); font-style: italic; }
+.checkbox-row input[type=checkbox] { accent-color: var(--accent); }
+.bottom-bar { border-top: 3px double #1f1a17; }
+.status { font-style: italic; font-size: 14px; color: #3a332d; }
+.btn { font-family: 'Fraunces', serif !important; text-transform: none; letter-spacing: 0; font-size: 14px; }
+.btn-outline { border: 1px solid #1f1a17; color: #1f1a17; }
+.btn-primary { background: var(--accent); }
+.view-tg { border: 1px solid #c9bfae; color: #3a332d; }
+.view-tg.active, .view-tg.active:hover { color: var(--accent); border-color: var(--accent); }
+.preset-sidebar { border-left: 1px solid #1f1a17; }
+.grid-pad { background: #fbf8f1; border-color: #c9bfae; }
+#interval-label { font-family: 'Fraunces', serif !important; font-style: italic; font-size: 18px !important; letter-spacing: 0 !important; }

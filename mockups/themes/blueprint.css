@@ -1,0 +1,97 @@
+/* 05 · Blueprint — a drafting sheet. Cobalt ground with a fine grid, white
+   linework, dashed construction borders, dimension-line sliders and a
+   title block for a footer. */
+@import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root {
+  --font-ui: 'JetBrains Mono', monospace;
+  --font-display: 'Architects Daughter', cursive;
+  --font-num: 'JetBrains Mono', monospace;
+  --bg: #0f3576; --panel: #134089; --border: rgba(255,255,255,0.55);
+  --accent: #ffffff; --accent-hi: #ffffff; --accent2: #ffd166;
+  --text: #ffffff; --label: #d6e6ff; --muted: #9fbfee;
+  --control-border: rgba(255,255,255,0.8); --track: transparent; --focus: #ffd166; --danger: #ff8a80;
+  --card: transparent; --card-border: rgba(255,255,255,0.7); --card-radius: 0; --card-shadow: none;
+  --head-wash: transparent; --head-text: #ffffff; --sub-text: #ffd166;
+  --on-accent: #134089; --radius: 0; --ctl-radius: 0; --btn-radius: 0; --pill-radius: 0;
+  --a1-soft: rgba(255,255,255,0.12); --a1-mid: rgba(255,255,255,0.2);
+  --a2-soft: rgba(255,209,102,0.12); --a2-mid: rgba(255,209,102,0.2); --a2-strong: rgba(255,209,102,0.32);
+  --wash: transparent; --wash-2: rgba(255,255,255,0.08); --hover-wash: rgba(255,255,255,0.1);
+  --overlay: rgba(19,64,137,0.9); --popover: #134089; --popover-sel: #1a4c9e; --dock: rgba(19,64,137,0.95);
+  --scrim: rgba(8,30,70,0.6); --pop-shadow: none;
+  --track-h: 1px; --track-radius: 0;
+  --thumb-w: 12px; --thumb-h: 12px; --thumb-radius: 50%; --thumb-ring: #134089;
+  --thumb-shadow: 0 0 0 1px #fff, 0 0 0 5px rgba(255,255,255,0.0);
+  --label-case: uppercase; --label-spacing: 0.12em; --mod-edge: 0px;
+}
+header, .sidebar, .preset-sidebar, .tab-bar, .bottom-bar {
+  background-color: #134089;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px),
+    linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size: 40px 40px, 40px 40px, 8px 8px, 8px 8px;
+}
+header { border-bottom: 2px solid #fff; }
+header h1 { font-size: 26px; letter-spacing: 0.08em; color: #fff; text-transform: uppercase; line-height: 1; }
+header > span { font-family: 'Architects Daughter', cursive !important; font-size: 15px; color: #d6e6ff; }
+.sidebar { border-right: 2px solid #fff; }
+.tab-bar { border-bottom: 1px solid #fff; }
+.tab-btn { font-size: 13px; letter-spacing: 0; text-transform: none; color: #9fbfee; }
+.tab-btn[aria-selected="true"] { color: #fff; border-bottom: 2px dashed #ffd166; }
+.section { border: 1px dashed var(--card-border); }
+/* corner registration ticks */
+.section::before {
+  content: ''; position: absolute; inset: -5px; pointer-events: none;
+  background:
+    linear-gradient(#fff,#fff) top left / 10px 1px no-repeat, linear-gradient(#fff,#fff) top left / 1px 10px no-repeat,
+    linear-gradient(#fff,#fff) top right / 10px 1px no-repeat, linear-gradient(#fff,#fff) top right / 1px 10px no-repeat,
+    linear-gradient(#fff,#fff) bottom left / 10px 1px no-repeat, linear-gradient(#fff,#fff) bottom left / 1px 10px no-repeat,
+    linear-gradient(#fff,#fff) bottom right / 10px 1px no-repeat, linear-gradient(#fff,#fff) bottom right / 1px 10px no-repeat;
+}
+.section > .section-label { justify-content: flex-start; font-size: 21px; letter-spacing: 0.04em; text-transform: none; border-bottom: 1px solid rgba(255,255,255,0.7); }
+.section > .section-label::before { content: 'DET. '; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #ffd166; margin-right: 6px; letter-spacing: 0.2em; }
+.section-label::after { content: '⌄'; opacity: 1; margin-left: auto; }
+.sec-help { border-style: dashed; color: #ffd166; border-color: #ffd166; }
+.subsection-label { font-size: 16px; text-transform: none; letter-spacing: 0.02em; border-bottom: 1px dashed rgba(255,255,255,0.5); }
+.mod-group { border: 1px solid rgba(255,255,255,0.35); padding: 8px 9px; }
+.vel-label, .mod-group-label { font-size: 10px; letter-spacing: 0.2em; }
+.param-header label { font-size: 11px; color: #d6e6ff; }
+.param-header .val { color: #ffd166; font-weight: 600; }
+.param-header .val::before { content: '⟨ '; opacity: 0.6; }
+.param-header .val::after { content: ' ⟩'; opacity: 0.6; }
+/* dimension line: arrowheads at both ends */
+input[type=range] {
+  border: 0; height: 12px;
+  background:
+    linear-gradient(#fff,#fff) center / 100% 1px no-repeat,
+    linear-gradient(#fff,#fff) left center / 1px 10px no-repeat,
+    linear-gradient(#fff,#fff) right center / 1px 10px no-repeat;
+}
+input[type=range]::-webkit-slider-thumb { background: #134089; border: 1px solid #fff; }
+input[type=range]::-moz-range-thumb { background: #134089; border: 1px solid #fff; }
+.wave-toggle { background: none; border: 1px solid #fff; }
+.wave-btn { color: #d6e6ff; }
+.wave-btn.active, .wave-btn.active:hover { background: #fff; color: #134089; }
+#xy-swap-btn { border: 1px dashed #fff !important; }
+.preset-btn { background: none; border: 1px solid rgba(255,255,255,0.7); color: #fff; }
+.preset-btn.active, .preset-btn.active:hover { background: #ffd166; color: #134089; border-color: #ffd166; }
+.lfo-wave-btn.active, .mod-wave-btn.active, .mod-axis-btn.active { color: #ffd166; }
+.info-text { border-left: 1px solid #ffd166; background: rgba(8,30,70,0.4); font-family: 'Architects Daughter', cursive !important; font-size: 13px; }
+.info-text * { font-family: 'Architects Daughter', cursive !important; }
+.info-text strong { color: #fff; text-decoration: underline; }
+.checkbox-row input[type=checkbox] { accent-color: #ffd166; }
+.bottom-bar { border-top: 2px solid #fff; padding: 0; align-items: stretch; }
+.bottom-bar > * { padding: 10px 24px; }
+.bottom-bar > *:first-child { border-right: 1px solid #fff; }
+.bottom-bar > :empty { display: none; }
+.status::before { content: 'SHEET 1/1 · SCALE 1:1 · '; color: #ffd166; letter-spacing: 0.12em; }
+.btn-outline { border: 1px solid #fff; color: #fff; }
+.btn-primary { background: #fff; color: #134089; }
+.sidebar-toggle, .grid-toggle, .search-toggle { border: 1px solid #fff; color: #fff; background: none; }
+kbd { border-color: #fff; color: #fff; }
+.view-tg { border: 1px dashed #fff; color: #d6e6ff; }
+.view-tg.active, .view-tg.active:hover { border-style: solid; color: #ffd166; border-color: #ffd166; }
+.grid-pad { background: none; border: 1px dashed rgba(255,255,255,0.6); color: #d6e6ff; }
+#interval-label { font-family: 'Architects Daughter', cursive !important; font-size: 18px !important; letter-spacing: 0.02em !important; }
