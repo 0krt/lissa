@@ -1,0 +1,30 @@
+/* Reader — a book page: white, black serif text, small caps headings, one
+   brick-red for whatever is selected. */
+@import url('https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&display=swap');
+:root {
+  --font-ui: 'Literata', Georgia, serif; --font-display: var(--font-ui); --font-num: var(--font-ui);
+  --bg: #f7f5f0; --panel: #fdfcf9; --border: #e5e1d8;
+  --accent: #a33a25; --accent-hi: #bb4a33; --accent2: #a33a25;
+  --text: #1a1a1a; --label: #333; --muted: #6a665e;
+  --control-border: #b8b2a6; --track: #e5e1d8; --focus: #a33a25; --danger: #a33a25;
+  --card: transparent; --card-solid: #fdfcf9; --card-border: #e5e1d8; --card-radius: 0; --card-shadow: none;
+  --on-accent: #fdfcf9; --radius: 2px; --ctl-radius: 2px; --btn-radius: 2px; --pill-radius: 2px;
+  --a1-soft: rgba(163,58,37,0.07); --a1-mid: rgba(163,58,37,0.12); --a2-soft: rgba(163,58,37,0.07);
+  --a2-mid: rgba(163,58,37,0.12); --a2-strong: rgba(163,58,37,0.2);
+  --wash: #f5f2ec; --wash-2: #ece8e0; --hover-wash: #f5f2ec;
+  --overlay: rgba(253,252,249,0.94); --popover: #fdfcf9; --popover-sel: #f5f2ec; --dock: rgba(253,252,249,0.96);
+  --scrim: rgba(247,245,240,0.7); --pop-shadow: 0 12px 30px rgba(0,0,0,0.1);
+  --seg-active-shadow: 0 0 0 1px #d8d3c8;
+}
+body { font-size: 13.5px; }
+header h1 { font-variant: small-caps; font-size: 20px; font-weight: 600; letter-spacing: 0.04em; text-transform: lowercase; }
+.section { border-width: 0 0 1px; padding-left: 0; padding-right: 0; }
+.section > .section-label { margin-left: 0; margin-right: 0; padding-left: 0; padding-right: 0;
+  font-variant: small-caps; text-transform: lowercase; letter-spacing: 0.06em; font-size: 16px; }
+.section > .section-label.has-help::after { right: 0; }
+.sec-help { right: 18px; font-style: italic; }
+.subsection-label { font-variant: small-caps; text-transform: lowercase; letter-spacing: 0.06em; font-weight: 400; }
+.tab-btn { font-size: 12.5px; }
+.tab-btn svg { display: none; }
+.mod-group { background: none; padding-left: 0; padding-right: 0; border-top: 1px solid var(--card-border); border-radius: 0; }
+.subsection-label { font-size: 14px; }

@@ -85,3 +85,4 @@ input[type=range]::-moz-range-thumb { background: var(--accent); border: 2px sol
 .preset-sidebar { border-left: 1px solid #1f1a17; }
 .grid-pad { background: #fbf8f1; border-color: #c9bfae; }
 #interval-label { font-family: 'Fraunces', serif !important; font-style: italic; font-size: 18px !important; letter-spacing: 0 !important; }
+.wave-preview { filter: invert(1) grayscale(1) contrast(1.4); mix-blend-mode: multiply; }

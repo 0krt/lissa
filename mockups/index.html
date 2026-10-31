@@ -46,11 +46,11 @@
     note.innerHTML = '<strong>' + t.name + '</strong> — ' + t.note;
     history.replaceState(null, '', '#' + t.id);
   }
-  frame.addEventListener('load', () => select(location.hash.slice(1) || 'swiss'));
+  frame.addEventListener('load', () => select(location.hash.slice(1) || 'editorial'));
   // ← / → step through the themes when focus is out here, not inside the app.
   document.addEventListener('keydown', e => {
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-    const cur = THEMES.findIndex(t => t.id === (location.hash.slice(1) || 'swiss'));
+    const cur = THEMES.findIndex(t => t.id === (location.hash.slice(1) || 'editorial'));
     const n = (cur + (e.key === 'ArrowRight' ? 1 : -1) + THEMES.length) % THEMES.length;
     select(THEMES[n].id);
   });

@@ -1,0 +1,99 @@
+/* Shared structure for the quiet themes: sentence case instead of tracked
+   capitals, bigger labels, soft surfaces, one accent. A theme loaded after this
+   sets the palette and type through variables and adds at most a few rules. */
+:root {
+  --head-wash: transparent; --head-text: var(--text); --sub-text: var(--muted);
+  --thumb-ring: var(--card-solid); --thumb-shadow: 0 0 0 1px var(--accent);
+  --thumb-w: 14px; --thumb-h: 14px; --track-h: 4px; --track-radius: 999px;
+  --label-case: none; --label-spacing: 0; --mod-edge: 0px;
+  --seg-bg: var(--wash); --seg-active-bg: var(--card-solid); --seg-active-fg: var(--text);
+  --seg-active-shadow: 0 1px 2px rgba(0,0,0,0.12);
+}
+body { font-size: 13px; }
+
+header { padding: 14px 22px; align-items: center; }
+header h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; text-transform: none; color: var(--text); }
+header > span { font-size: 13px; letter-spacing: 0; color: var(--muted); }
+.sidebar-toggle, .grid-toggle, .search-toggle {
+  background: none; border: 1px solid var(--card-border); color: var(--label);
+  font-size: 12px; letter-spacing: 0; text-transform: none; padding: 5px 11px;
+}
+.sidebar-toggle:hover, .grid-toggle:hover, .search-toggle:hover, .grid-toggle.open { color: var(--accent); border-color: var(--accent); }
+kbd { border-color: var(--card-border); color: var(--muted); }
+
+.sidebar { width: 300px; min-width: 300px; --sb-px: 18px; padding: 20px 18px; gap: 14px; }
+.tab-bar { padding: 6px 12px 0; }
+.tab-btn { font-size: 12px; letter-spacing: 0; text-transform: none; color: var(--muted); padding: 8px 2px 9px; gap: 3px; }
+.tab-btn svg { width: 16px; height: 16px; }
+.tab-btn[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+.tab-btn[data-tab="setup"]::before { background: var(--card-border); }
+
+.section { border: 1px solid var(--card-border); padding: 12px 14px 16px; }
+.section > .section-label {
+  margin: -12px -14px 10px; padding: 12px 14px 8px; border-bottom: 0;
+  font-size: 15px; font-weight: 600; letter-spacing: 0; text-transform: none;
+}
+.section-label:hover { color: var(--accent); }
+.section-label::after { content: '⌄'; font-size: 14px; opacity: 1; color: var(--muted); }
+.section.collapsed > .section-label { margin-bottom: -16px; padding-bottom: 12px; }
+.section > .section-label.has-help::after { top: 11px; right: 14px; }
+.sec-help {
+  border: 0; background: none; color: var(--muted); text-transform: none; letter-spacing: 0;
+  font-size: 12px; top: 10px; right: 32px;
+}
+.sec-help:hover, .sec-help[aria-expanded="true"] { color: var(--accent); background: none; }
+.subsection-label {
+  font-size: 12px; font-weight: 600; letter-spacing: 0; text-transform: none;
+  border-bottom: 0; margin: 18px 0 8px; padding: 0;
+}
+.mod-group { border-radius: var(--ctl-radius); padding: 9px 10px 4px; margin-top: 8px; }
+.vel-label, .mod-group-label { font-size: 12px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--text); }
+.param-header label, .checkbox-row label, .color-row label, .number-input label { font-size: 12.5px; color: var(--label); }
+.param-header .val { font-size: 12.5px; font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
+input[type=range] { border: 0; margin: 4px 0; }
+input[type=range]::-webkit-slider-thumb { background: var(--accent); border: 2px solid var(--card-solid); }
+input[type=range]::-moz-range-thumb { background: var(--accent); border: 2px solid var(--card-solid); }
+
+.wave-toggle { background: var(--seg-bg); border: 0; padding: 3px; gap: 3px; }
+.wave-btn { color: var(--label); font-size: 12px; }
+.wave-btn:not(.active):hover { color: var(--text); background: transparent; }
+.wave-btn.active, .wave-btn.active:hover { background: var(--seg-active-bg); color: var(--seg-active-fg); box-shadow: var(--seg-active-shadow); }
+#xy-swap-btn { border: 1px solid var(--card-border) !important; color: var(--label); font-size: 12px; }
+
+.preset-grid { gap: 5px; }
+.preset-btn { border: 1px solid var(--card-border); background: var(--card-solid); color: var(--label); font-size: 12px; padding: 4px 8px; }
+.preset-btn:not(.active):hover { color: var(--accent); border-color: var(--accent); }
+.preset-btn.active, .preset-btn.active:hover { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.lfo-wave-btn, .mod-wave-btn, .mod-axis-btn, .retrig-btn, .map-cc-btn, .map-add-btn {
+  border-color: var(--card-border); color: var(--label); font-size: 11px; letter-spacing: 0; text-transform: none;
+}
+.lfo-wave-btn.active, .mod-wave-btn.active, .mod-axis-btn.active,
+.lfo-wave-btn.active:hover, .mod-wave-btn.active:hover, .mod-axis-btn.active:hover,
+.retrig-btn.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.info-btn { border: 0; color: var(--muted); text-transform: none; letter-spacing: 0; font-size: 12px; }
+.info-btn:hover, .info-btn[aria-expanded="true"] { color: var(--accent); background: none; }
+.info-text { background: var(--wash); border-left: 0; border-radius: var(--ctl-radius); color: var(--text); font-size: 12.5px; line-height: 1.55; padding: 9px 11px; }
+.info-text strong { color: var(--text); font-weight: 600; }
+.info-text em { color: var(--accent); }
+.checkbox-row input[type=checkbox], .evolve-list input[type=checkbox],
+.lfo-targets input[type=checkbox], .vel-toggle input[type=checkbox] { accent-color: var(--accent); }
+.pin-btn, .lock-btn { color: var(--control-border); }
+.pin-btn[aria-pressed="true"], .lock-btn[aria-pressed="true"] { color: var(--accent); }
+
+.status { font-size: 12.5px; color: var(--muted); letter-spacing: 0; }
+.status span { color: var(--label); }
+.btn { text-transform: none; letter-spacing: 0; font-size: 12.5px; }
+.btn-outline { border-color: var(--card-border); color: var(--label); }
+.btn-primary { background: var(--accent); }
+
+.view-tg { background: var(--card-solid); border: 1px solid var(--card-border); color: var(--muted); }
+.view-tg.active, .view-tg.active:hover { color: var(--accent); border-color: var(--accent); }
+.grid-pad { background: var(--card-solid); border-color: var(--card-border); color: var(--muted); }
+.ps-box, .ro-pop, .pin-dock, .intro-card { border-color: var(--card-border); }
+#interval-label { letter-spacing: 0 !important; font-weight: 500; }
+.preset-sidebar-head .section-label {
+  font-size: 15px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--text); border-bottom: 0;
+}
+/* The waveform previews are canvases the app paints lime on black. Invert and
+   desaturate them, then multiply onto the card: a dark-grey trace on the page. */
+.wave-preview { filter: invert(1) grayscale(1) contrast(1.4); mix-blend-mode: multiply; }

@@ -4,29 +4,31 @@
    matches the chrome. Everything else — state, presets, MIDI, audio — is the
    app as it ships. */
 (function (root) {
+  // quiet: true also loads _quiet.css, the shared structure the eight newer
+  // themes are built on; editorial and clay stand on their own.
   const THEMES = [
     { id: 'current',    name: 'Current',          note: 'The shipping design, for reference.',
       fig: null },
-    { id: 'swiss',      name: 'Swiss Grid',       note: 'White paper, black type, one red. Hairline grid, no radii, numbered sections.',
-      fig: { stroke: '#e3120b', grad: '#111111', bg: '#f4f3ef', x: '#e3120b', y: '#111111', z: '#7a7a7a', grid: '#c9c7c0' } },
-    { id: 'brutalist',  name: 'Brutalist',        note: 'Thick black borders, hard offset shadows, acid yellow and hot pink, oversized type.',
-      fig: { stroke: '#ff2e88', grad: '#111111', bg: '#fffef5', x: '#ff2e88', y: '#2b2bff', z: '#111111', grid: '#111111' } },
-    { id: 'hardware',   name: 'Modular Panel',    note: 'Anodised aluminium rack panel: silkscreen labels, screws, fader caps, LED-orange.',
-      fig: { stroke: '#ff8a1f', grad: '#ffd36b', bg: '#0e1013', x: '#ff5a3c', y: '#7ee081', z: '#5fb4ff', grid: '#444a52' } },
-    { id: 'phosphor',   name: 'Phosphor CRT',     note: 'Green-phosphor oscilloscope: scanlines, glow, pixel type, graticule frame.',
-      fig: { stroke: '#4dff7a', grad: '#c8ffb0', bg: '#020a04', x: '#4dff7a', y: '#4dff7a', z: '#2a9c4a', grid: '#0f3a1a' } },
-    { id: 'blueprint',  name: 'Blueprint',        note: 'Cobalt drafting sheet, white linework, dashed construction borders, title-block footer.',
-      fig: { stroke: '#ffffff', grad: '#9fd3ff', bg: '#123e8c', x: '#ffd166', y: '#9fd3ff', z: '#ffffff', grid: '#3d6bb8' } },
-    { id: 'bauhaus',    name: 'Bauhaus',          note: 'Cream ground, primary red/blue/yellow, circles and bars, geometric sans.',
-      fig: { stroke: '#1d3fbb', grad: '#d6281e', bg: '#f1e9d8', x: '#d6281e', y: '#1d3fbb', z: '#f2b705', grid: '#b9ae98' } },
-    { id: 'glass',      name: 'Aurora Glass',     note: 'Frosted translucent panels floating over a violet–teal field, soft radii.',
-      fig: { stroke: '#a8f0ff', grad: '#ff9be6', bg: '#1a1033', x: '#ff9be6', y: '#a8f0ff', z: '#c7b8ff', grid: '#4a3d7a' } },
     { id: 'editorial',  name: 'Editorial',        note: 'Warm newsprint, serif display, italic captions, oxblood ink, column rules.',
       fig: { stroke: '#7a1f2b', grad: '#1f1a17', bg: '#f6f1e7', x: '#7a1f2b', y: '#2f4a3a', z: '#1f1a17', grid: '#d6ccb8' } },
-    { id: 'desktop',    name: 'Retro Desktop',    note: 'Bevelled grey windows, navy title bars, teal desktop, pixel-era system type.',
-      fig: { stroke: '#ffff00', grad: '#00ffff', bg: '#008080', x: '#ff0000', y: '#00ff00', z: '#ffffff', grid: '#006060' } },
-    { id: 'clay',       name: 'Soft Clay',        note: 'Neumorphic: one soft grey material, extruded and pressed-in controls, no lines.',
+    { id: 'clay',       name: 'Soft Clay',        note: 'Neumorphic: one soft grey material, raised and pressed-in controls, no lines.',
       fig: { stroke: '#6c63ff', grad: '#ff7aa8', bg: '#e4e8ef', x: '#ff7aa8', y: '#6c63ff', z: '#3fb8af', grid: '#c4cad6' } },
+    { id: 'paper',      name: 'Paper',     quiet: true, note: 'White page, near-black sans, one quiet blue. Hairlines, no cards.',
+      fig: { stroke: '#2f5fb3', grad: '#1c1c1c', bg: '#fbfbf9', x: '#c0392b', y: '#2f8a57', z: '#2f5fb3', grid: '#dcdcd8' } },
+    { id: 'notebook',   name: 'Notebook',  quiet: true, note: 'Cream page, a readable serif, ink-blue accent, faint rules.',
+      fig: { stroke: '#23468c', grad: '#22201b', bg: '#f6f2e8', x: '#a5352b', y: '#3d6b48', z: '#23468c', grid: '#ddd6c4' } },
+    { id: 'stone',      name: 'Stone',     quiet: true, note: 'Warm grey, soft raised cards, terracotta accent.',
+      fig: { stroke: '#b5532f', grad: '#2c2824', bg: '#efebe5', x: '#b5532f', y: '#5d7a5a', z: '#4f6a8a', grid: '#d6cfc5' } },
+    { id: 'sage',       name: 'Sage',      quiet: true, note: 'Pale green-grey, rounded pills, one muted green.',
+      fig: { stroke: '#3f6b4f', grad: '#1f2a22', bg: '#eef2ec', x: '#a8443a', y: '#3f6b4f', z: '#45658a', grid: '#d3dbd0' } },
+    { id: 'kraft',      name: 'Kraft',     quiet: true, note: 'Brown-paper ground, flat surfaces, dark brown ink, no shadows.',
+      fig: { stroke: '#5a3a1e', grad: '#2b2117', bg: '#e8ddcb', x: '#9a3324', y: '#4c6a3a', z: '#3d5878', grid: '#cbbca3' } },
+    { id: 'fog',        name: 'Fog',       quiet: true, note: 'Cool off-white, borderless floating cards, slate accent.',
+      fig: { stroke: '#3d5a80', grad: '#1f2933', bg: '#f3f5f7', x: '#b83a3a', y: '#3a8a63', z: '#3d5a80', grid: '#dce1e7' } },
+    { id: 'reader',     name: 'Reader',    quiet: true, note: 'A book page: white, black serif, small-caps headings, brick red for the selection.',
+      fig: { stroke: '#1a1a1a', grad: '#a33a25', bg: '#fdfcf9', x: '#a33a25', y: '#3f6a4a', z: '#34558a', grid: '#e0dbd0' } },
+    { id: 'evening',    name: 'Evening',   quiet: true, note: 'The dark one: warm charcoal, cream text, soft amber accent.',
+      fig: { stroke: '#e3b061', grad: '#ece6da', bg: '#1b1a18', x: '#f08a7a', y: '#9cc59a', z: '#8fb3e0', grid: '#3a3833' } },
   ];
 
   function setColor(doc, id, value) {
@@ -43,7 +45,8 @@
     doc.querySelectorAll('link[data-mockup]').forEach(l => l.remove());
     const theme = THEMES.find(t => t.id === id) || THEMES[0];
     if (theme.id !== 'current') {
-      for (const href of [base + '_base.css', base + theme.id + '.css']) {
+      const sheets = ['_base.css'].concat(theme.quiet ? ['_quiet.css'] : [], [theme.id + '.css']);
+      for (const href of sheets.map(f => base + f)) {
         const l = doc.createElement('link');
         l.rel = 'stylesheet'; l.href = href; l.dataset.mockup = '1';
         doc.head.appendChild(l);

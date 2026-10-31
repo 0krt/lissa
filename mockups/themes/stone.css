@@ -1,0 +1,24 @@
+/* Stone — warm grey, soft raised cards, terracotta accent. */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap');
+:root {
+  --font-ui: 'DM Sans', system-ui, sans-serif; --font-display: var(--font-ui); --font-num: var(--font-ui);
+  --bg: #e9e5df; --panel: #ece8e2; --border: #dcd6cd;
+  --accent: #b5532f; --accent-hi: #c9653f; --accent2: #b5532f;
+  --text: #2c2824; --label: #4a443d; --muted: #766e64;
+  --control-border: #b0a79a; --track: #ddd7ce; --focus: #b5532f; --danger: #b5352f;
+  --card: #f6f3ee; --card-solid: #f6f3ee; --card-border: transparent; --card-radius: 14px;
+  --card-shadow: 0 1px 2px rgba(60,45,30,0.06), 0 4px 14px rgba(60,45,30,0.06);
+  --on-accent: #ffffff; --radius: 10px; --ctl-radius: 9px; --btn-radius: 999px; --pill-radius: 999px;
+  --a1-soft: rgba(181,83,47,0.08); --a1-mid: rgba(181,83,47,0.14); --a2-soft: rgba(181,83,47,0.08);
+  --a2-mid: rgba(181,83,47,0.12); --a2-strong: rgba(181,83,47,0.2);
+  --wash: #efebe5; --wash-2: #e6e1d9; --hover-wash: #efebe5;
+  --overlay: rgba(246,243,238,0.94); --popover: #f6f3ee; --popover-sel: #efebe5; --dock: rgba(246,243,238,0.96);
+  --scrim: rgba(233,229,223,0.65); --pop-shadow: 0 20px 50px rgba(60,45,30,0.16);
+}
+.view-tg { border-radius: 10px; }
+.grid-pad { border-radius: 10px; }
+/* Cards here have no outline, so controls take theirs from the panel rule. */
+.preset-btn, #xy-swap-btn, .sidebar-toggle, .grid-toggle, .search-toggle, .btn-outline,
+.lfo-wave-btn, .mod-wave-btn, .mod-axis-btn, .retrig-btn, .map-cc-btn, .map-add-btn { border-color: var(--border) !important; }
+.preset-btn:not(.active):hover { border-color: var(--accent) !important; }
+.preset-btn.active, .lfo-wave-btn.active, .mod-wave-btn.active, .mod-axis-btn.active { border-color: var(--accent) !important; }
