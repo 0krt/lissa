@@ -1,0 +1,27 @@
+/* Notebook — cream page, a readable serif, ink-blue accents, faint rules. */
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap');
+:root {
+  --font-ui: 'Source Serif 4', Georgia, serif; --font-display: var(--font-ui); --font-num: var(--font-ui);
+  --bg: #f3efe4; --panel: #faf7ef; --border: #e2dccb;
+  --accent: #23468c; --accent-hi: #2d58ad; --accent2: #23468c;
+  --text: #22201b; --label: #3f3a31; --muted: #6f685a;
+  --control-border: #b3ab98; --track: #e2dccb; --focus: #23468c; --danger: #a5352b;
+  --card: transparent; --card-solid: #faf7ef; --card-border: #e2dccb; --card-radius: 0; --card-shadow: none;
+  --on-accent: #faf7ef; --radius: 3px; --ctl-radius: 3px; --btn-radius: 3px; --pill-radius: 3px;
+  --a1-soft: rgba(35,70,140,0.07); --a1-mid: rgba(35,70,140,0.12); --a2-soft: rgba(35,70,140,0.07);
+  --a2-mid: rgba(35,70,140,0.12); --a2-strong: rgba(35,70,140,0.2);
+  --wash: #f1ecdf; --wash-2: #e9e3d3; --hover-wash: #f1ecdf;
+  --overlay: rgba(250,247,239,0.92); --popover: #faf7ef; --popover-sel: #f1ecdf; --dock: rgba(250,247,239,0.95);
+  --scrim: rgba(243,239,228,0.7); --pop-shadow: 0 12px 32px rgba(60,50,30,0.12);
+  --seg-active-shadow: 0 0 0 1px #d6cfbb;
+}
+body { font-size: 14px; }
+.section { border-width: 0 0 1px; padding-left: 0; padding-right: 0; }
+.section > .section-label { margin-left: 0; margin-right: 0; padding-left: 0; padding-right: 0; font-size: 17px; }
+.section > .section-label.has-help::after { right: 0; }
+.sec-help { right: 18px; font-style: italic; }
+.param-header label { font-size: 13.5px; }
+.param-header .val { font-size: 13.5px; }
+.subsection-label { font-style: italic; font-weight: 400; font-size: 13.5px; }
+.mod-group { background: none; border-left: 1px solid var(--card-border); border-radius: 0; }
+.vel-label { font-style: italic; font-weight: 400; font-size: 13.5px; }

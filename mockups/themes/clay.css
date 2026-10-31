@@ -86,3 +86,4 @@ input[type=range]::-moz-range-thumb { background: radial-gradient(circle, var(--
 input[type=color] { border: 0; box-shadow: var(--out-sm); border-radius: 8px; }
 #interval-label { font-weight: 900; letter-spacing: 0.04em !important; }
 .pin-btn, .lock-btn { color: #a9b0c0; }
+.wave-preview { filter: invert(1) grayscale(1) contrast(1.4); mix-blend-mode: multiply; }

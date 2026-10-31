@@ -1,0 +1,18 @@
+/* Kraft — brown-paper ground, flat surfaces, dark brown text. No shadows. */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+:root {
+  --font-ui: 'IBM Plex Sans', system-ui, sans-serif; --font-display: var(--font-ui); --font-num: var(--font-ui);
+  --bg: #e2d6c2; --panel: #e8ddcb; --border: #cfc0a8;
+  --accent: #5a3a1e; --accent-hi: #6e4826; --accent2: #5a3a1e;
+  --text: #2b2117; --label: #43362a; --muted: #6b5b49;
+  --control-border: #a8957a; --track: #d3c5ae; --focus: #5a3a1e; --danger: #9a3324;
+  --card: #efe6d6; --card-solid: #efe6d6; --card-border: #d8cab3; --card-radius: 6px; --card-shadow: none;
+  --on-accent: #f4ecdf; --radius: 4px; --ctl-radius: 4px; --btn-radius: 4px; --pill-radius: 4px;
+  --a1-soft: rgba(90,58,30,0.08); --a1-mid: rgba(90,58,30,0.14); --a2-soft: rgba(90,58,30,0.08);
+  --a2-mid: rgba(90,58,30,0.12); --a2-strong: rgba(90,58,30,0.2);
+  --wash: #e8ddcb; --wash-2: #ddd0ba; --hover-wash: #e8ddcb;
+  --overlay: rgba(239,230,214,0.94); --popover: #efe6d6; --popover-sel: #e8ddcb; --dock: rgba(239,230,214,0.96);
+  --scrim: rgba(226,214,194,0.65); --pop-shadow: 0 0 0 1px #cfc0a8, 0 12px 30px rgba(60,40,20,0.14);
+  --seg-active-shadow: none;
+}
+.wave-btn.active, .wave-btn.active:hover { background: var(--accent); color: var(--on-accent); }

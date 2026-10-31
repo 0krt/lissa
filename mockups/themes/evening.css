@@ -1,0 +1,20 @@
+/* Evening — the dark one. Warm charcoal, cream text, soft amber accent,
+   same quiet structure as the light themes. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+:root {
+  --font-ui: 'Inter', system-ui, sans-serif; --font-display: var(--font-ui); --font-num: var(--font-ui);
+  --bg: #1b1a18; --panel: #22211e; --border: #34322e;
+  --accent: #e3b061; --accent-hi: #f0c27a; --accent2: #e3b061;
+  --text: #ece6da; --label: #cfc7b8; --muted: #9a9284;
+  --control-border: #6a645a; --track: #3a3833; --focus: #f0c27a; --danger: #f08a7a;
+  --card: #2a2925; --card-solid: #2a2925; --card-border: #36342f; --card-radius: 12px; --card-shadow: none;
+  --on-accent: #1b1a18; --radius: 8px; --ctl-radius: 8px; --btn-radius: 8px; --pill-radius: 999px;
+  --a1-soft: rgba(227,176,97,0.1); --a1-mid: rgba(227,176,97,0.18); --a2-soft: rgba(227,176,97,0.1);
+  --a2-mid: rgba(227,176,97,0.16); --a2-strong: rgba(227,176,97,0.26);
+  --wash: #24231f; --wash-2: #33312c; --hover-wash: #2f2d29;
+  --overlay: rgba(34,33,30,0.92); --popover: #2a2925; --popover-sel: #33312c; --dock: rgba(34,33,30,0.95);
+  --scrim: rgba(10,10,9,0.55); --pop-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  --seg-active-bg: #3a3833; --seg-active-shadow: none;
+}
+/* Dark page: keep the trace light and drop the black ground instead. */
+.wave-preview { filter: grayscale(1) contrast(1.8) brightness(1.1); mix-blend-mode: screen; }
