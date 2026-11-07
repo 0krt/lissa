@@ -1,0 +1,12 @@
+/* Shared by every Dark variant, loaded after the theme and before its
+   <id>-dark.css palette. Only things that flip with the ground live here. */
+:root {
+  --on-accent: #141414;
+  --scrim: rgba(0,0,0,0.5); --pop-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  --card-shadow: none; --seg-active-shadow: none;
+  --danger: #f08a7a;
+}
+/* The app paints the waveform previews light-on-black: keep the light trace,
+   drop the black ground into the card. */
+.wave-preview { filter: grayscale(1) contrast(1.8) brightness(1.1); mix-blend-mode: screen; }
+input[type=range]::-webkit-slider-thumb { box-shadow: 0 0 0 1px var(--accent); }

@@ -1,0 +1,12 @@
+/* Sage · Dark — palette only; type and shape come from sage.css. */
+:root {
+  --bg: #141915; --panel: #181e19; --border: #2a342b;
+  --card: #1f2720; --card-solid: #1f2720; --card-border: #2a342b;
+  --wash: #1b221c; --wash-2: #2a342b; --hover-wash: #2a342b;
+  --track: #313c32; --control-border: #5b6b5d;
+  --text: #e7eee7; --label: #c4d0c5; --muted: #8a9a8c;
+  --accent: #8cc79c;
+  --overlay: color-mix(in srgb, #181e19 92%, transparent); --popover: #1f2720; --popover-sel: #2a342b;
+  --dock: color-mix(in srgb, #181e19 95%, transparent);
+  --seg-active-bg: #2a342b;
+}

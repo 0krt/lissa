@@ -1,7 +1,0 @@
-/* IBM Plex Sans + Plex Mono — engineered and plain; the closest relative of
-   the current Plex Mono UI, with the mono kept for numbers only. */
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
-:root {
-  --font-ui: 'IBM Plex Sans', sans-serif; --font-display: var(--font-ui); --font-num: 'IBM Plex Mono', monospace;
-  --accent: #1f5fbf; --title-spacing: 0;
-}

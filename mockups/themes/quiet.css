@@ -97,3 +97,6 @@ input[type=range]::-moz-range-thumb { background: var(--accent); border: 2px sol
 /* The waveform previews are canvases the app paints lime on black. Invert and
    desaturate them, then multiply onto the card: a dark-grey trace on the page. */
 .wave-preview { filter: invert(1) grayscale(1) contrast(1.4); mix-blend-mode: multiply; }
+/* A display face is for the brand and section titles only; small text stays in
+   the working face, where it was drawn to be read. */
+.subsection-label, .tab-btn, .vel-label, .mod-group-label { font-family: var(--font-ui) !important; }

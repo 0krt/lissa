@@ -1,54 +1,59 @@
 /* Applies a mockup theme to a running lissa document without touching its code:
-   it adds the token layer and the theme stylesheet, then sets the figure's own
-   colour controls the way a user would (value + input event), so the canvas
-   matches the chrome. Everything else — state, presets, MIDI, audio — is the
-   app as it ships. */
-(function (root) {
-  // quiet: true also loads quiet.css, the shared structure of the later
-  // themes; type: true adds type.css on top of it. round groups the gallery.
-  function type3(id, name, note, accent, dark) {
-    return { id, name, note, round: 3, quiet: true, type: true,
-      fig: dark
-        ? { stroke: accent, grad: '#ecebe6', bg: '#161615', x: '#e5806e', y: '#8fc29a', z: '#8fb3e0', grid: '#34332f' }
-        : { stroke: accent, grad: '#1b1b19', bg: '#fbfaf8', x: '#b42318', y: '#2f7a4f', z: '#2f5fb3', grid: '#e2e0d9' } };
-  }
+   it adds the stylesheets, then sets the figure's own colour controls the way a
+   user would (value + input event), so the canvas matches the chrome.
+   Everything else — state, presets, MIDI, audio — is the app as it ships.
 
+   applyTheme(win, id, base, opts)
+     opts.mode   'bright' | 'dark'
+     opts.accent '#rrggbb' to replace the theme's highlight colour, or null
+     opts.text   a FONTS key to replace the theme's text face, or null
+     opts.title  a FONTS key to replace the theme's title face, or null */
+(function (root) {
+  // Stylesheets per theme, in order: base.css always; quiet.css for the shared
+  // structure; type.css for the round-3 type rules; then <id>.css; in Dark
+  // also dark.css and <id>-dark.css.
   const THEMES = [
-    { id: 'current',    name: 'Current',          note: 'The shipping design, for reference.',
-      fig: null },
-    { id: 'editorial',  name: 'Editorial', round: 2,        note: 'Warm newsprint, serif display, italic captions, oxblood ink, column rules.',
-      fig: { stroke: '#7a1f2b', grad: '#1f1a17', bg: '#f6f1e7', x: '#7a1f2b', y: '#2f4a3a', z: '#1f1a17', grid: '#d6ccb8' } },
-    { id: 'clay',       name: 'Soft Clay', round: 2,        note: 'Neumorphic: one soft grey material, raised and pressed-in controls, no lines.',
-      fig: { stroke: '#6c63ff', grad: '#ff7aa8', bg: '#e4e8ef', x: '#ff7aa8', y: '#6c63ff', z: '#3fb8af', grid: '#c4cad6' } },
-    { id: 'paper',      name: 'Paper',     round: 2, quiet: true, note: 'White page, near-black sans, one quiet blue. Hairlines, no cards.',
-      fig: { stroke: '#2f5fb3', grad: '#1c1c1c', bg: '#fbfbf9', x: '#c0392b', y: '#2f8a57', z: '#2f5fb3', grid: '#dcdcd8' } },
-    { id: 'notebook',   name: 'Notebook',  round: 2, quiet: true, note: 'Cream page, a readable serif, ink-blue accent, faint rules.',
-      fig: { stroke: '#23468c', grad: '#22201b', bg: '#f6f2e8', x: '#a5352b', y: '#3d6b48', z: '#23468c', grid: '#ddd6c4' } },
-    { id: 'stone',      name: 'Stone',     round: 2, quiet: true, note: 'Warm grey, soft raised cards, terracotta accent.',
-      fig: { stroke: '#b5532f', grad: '#2c2824', bg: '#efebe5', x: '#b5532f', y: '#5d7a5a', z: '#4f6a8a', grid: '#d6cfc5' } },
-    { id: 'sage',       name: 'Sage',      round: 2, quiet: true, note: 'Pale green-grey, rounded pills, one muted green.',
-      fig: { stroke: '#3f6b4f', grad: '#1f2a22', bg: '#eef2ec', x: '#a8443a', y: '#3f6b4f', z: '#45658a', grid: '#d3dbd0' } },
-    { id: 'kraft',      name: 'Kraft',     round: 2, quiet: true, note: 'Brown-paper ground, flat surfaces, dark brown ink, no shadows.',
-      fig: { stroke: '#5a3a1e', grad: '#2b2117', bg: '#e8ddcb', x: '#9a3324', y: '#4c6a3a', z: '#3d5878', grid: '#cbbca3' } },
-    { id: 'fog',        name: 'Fog',       round: 2, quiet: true, note: 'Cool off-white, borderless floating cards, slate accent.',
-      fig: { stroke: '#3d5a80', grad: '#1f2933', bg: '#f3f5f7', x: '#b83a3a', y: '#3a8a63', z: '#3d5a80', grid: '#dce1e7' } },
-    { id: 'reader',     name: 'Reader',    round: 2, quiet: true, note: 'A book page: white, black serif, small-caps headings, brick red for the selection.',
-      fig: { stroke: '#1a1a1a', grad: '#a33a25', bg: '#fdfcf9', x: '#a33a25', y: '#3f6a4a', z: '#34558a', grid: '#e0dbd0' } },
-    { id: 'evening',    name: 'Evening',   round: 2, quiet: true, note: 'The dark one: warm charcoal, cream text, soft amber accent.',
-      fig: { stroke: '#e3b061', grad: '#ece6da', bg: '#1b1a18', x: '#f08a7a', y: '#9cc59a', z: '#8fb3e0', grid: '#3a3833' } },
-    // Round 3 — typefaces. Same palette and layout throughout (type.css), so
-    // the font is what changes.
-    type3('geist',      'Geist',        'Geist + Geist Mono: neutral modern grotesk; black is the only accent.', '#111111'),
-    type3('plex',       'Plex Sans',    'IBM Plex Sans + Plex Mono for numbers: plain and engineered, closest to today.', '#1f5fbf'),
-    type3('atkinson',   'Atkinson',     'Atkinson Hyperlegible: drawn for low vision, no look-alike letters. The most legible.', '#b0412e'),
-    type3('instrument', 'Instrument',   'Instrument Sans for controls, Instrument Serif for titles only.', '#6b4fa8'),
-    type3('garamond',   'Garamond',     'Public Sans for controls, EB Garamond for titles: a bookish heading over a neutral UI face.', '#2f5d50'),
-    type3('figtree',    'Figtree',      'Figtree: friendly geometric sans, rounder controls.', '#c4561f'),
-    type3('grotesk',    'Space Grotesk','Space Grotesk + Space Mono figures: slightly technical, a little quirky.', '#be185d'),
-    type3('lexend',     'Lexend',       'Lexend: wide letterforms and loose spacing, built for easy scanning.', '#0f766e'),
-    type3('dmmono',     'DM Mono',      'DM Mono throughout, on a dark ground: hierarchy by weight and colour only.', '#e0a84a', true),
-    type3('franklin',   'Franklin',     'Libre Franklin: sturdy classic grotesk, very clear at small sizes.', '#8a5a14'),
+    { id: 'current', name: 'Current', note: 'The shipping design, for reference.' },
+    { id: 'instrument', name: 'Instrument', type: true,
+      note: 'Instrument Sans for controls, Instrument Serif for titles.',
+      fig: { bright: { bg: '#fbfaf8', grid: '#e2e0d9' }, dark: { bg: '#1a191f', grid: '#34323c' } } },
+    { id: 'figtree', name: 'Figtree', type: true,
+      note: 'Figtree: friendly geometric sans, rounder controls.',
+      fig: { bright: { bg: '#fbfaf8', grid: '#e2e0d9' }, dark: { bg: '#1d1916', grid: '#3a332d' } } },
+    { id: 'lexend', name: 'Lexend', type: true,
+      note: 'Lexend: wide letterforms and loose spacing, built for easy scanning.',
+      fig: { bright: { bg: '#fbfaf8', grid: '#e2e0d9' }, dark: { bg: '#151c1b', grid: '#2f3a38' } } },
+    { id: 'sage', name: 'Sage',
+      note: 'Karla on a green-grey ground, rounded pills, one muted green.',
+      fig: { bright: { bg: '#eef2ec', grid: '#d3dbd0' }, dark: { bg: '#181e19', grid: '#313c32' } } },
+    { id: 'fog', name: 'Fog',
+      note: 'Inter on cool off-white, borderless floating cards, slate accent.',
+      fig: { bright: { bg: '#f3f5f7', grid: '#dce1e7' }, dark: { bg: '#161b21', grid: '#2f3843' } } },
   ];
+
+  // Faces offered by the font selectors: family → [Google Fonts axis spec, generic fallback].
+  const FONTS = {
+    'Instrument Sans':       ['wght@400;500;600', 'sans-serif'],
+    'Instrument Serif':      ['ital@0;1', 'serif'],
+    'Figtree':               ['wght@400;500;600;700', 'sans-serif'],
+    'Lexend':                ['wght@300;400;500;600', 'sans-serif'],
+    'Karla':                 ['wght@400;500;700', 'sans-serif'],
+    'Inter':                 ['wght@400;500;600', 'sans-serif'],
+    'DM Sans':               ['opsz,wght@9..40,400;9..40,500;9..40,700', 'sans-serif'],
+    'Manrope':               ['wght@400;500;600;700', 'sans-serif'],
+    'Atkinson Hyperlegible': ['wght@400;700', 'sans-serif'],
+    'IBM Plex Sans':         ['wght@400;500;600', 'sans-serif'],
+    'Geist':                 ['wght@400;500;600', 'sans-serif'],
+    'Public Sans':           ['wght@400;500;600', 'sans-serif'],
+    'Nunito':                ['wght@500;700;800', 'sans-serif'],
+    'Work Sans':             ['wght@400;500;600', 'sans-serif'],
+    'Source Serif 4':        ['opsz,wght@8..60,400;8..60,600', 'serif'],
+    'Fraunces':              ['opsz,wght@9..144,400;9..144,600', 'serif'],
+    'Newsreader':            ['opsz,wght@6..72,400;6..72,500', 'serif'],
+    'EB Garamond':           ['wght@500;600', 'serif'],
+    'IBM Plex Mono':         ['wght@400;500', 'monospace'],
+    'DM Mono':               ['wght@400;500', 'monospace'],
+  };
 
   function setColor(doc, id, value) {
     const el = doc.getElementById(id);
@@ -58,33 +63,87 @@
     el.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
-  function applyTheme(win, id, base) {
-    const doc = win.document;
+  function addSheet(doc, href, kind) {
+    const l = doc.createElement('link');
+    l.rel = 'stylesheet'; l.href = href; l.dataset.mockup = kind;
+    doc.head.appendChild(l);
+    return l;
+  }
+
+  const family = name => `'${name}', ${FONTS[name][1]}`;
+  // Text on a filled accent needs to read either way: dark on light picks, white on dark ones.
+  function onAccent(hex) {
+    const n = parseInt(hex.slice(1), 16), c = [n >> 16, (n >> 8) & 255, n & 255].map(v => {
+      v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2] > 0.4 ? '#141414' : '#ffffff';
+  }
+
+  function applyTheme(win, id, base, opts) {
+    const doc = win.document, html = doc.documentElement;
+    opts = opts || {};
     base = base || 'themes/';
-    doc.querySelectorAll('link[data-mockup]').forEach(l => l.remove());
     const theme = THEMES.find(t => t.id === id) || THEMES[0];
-    if (theme.id !== 'current') {
-      const sheets = ['base.css'].concat(theme.quiet ? ['quiet.css'] : [], theme.type ? ['type.css'] : [], [theme.id + '.css']);
-      for (const href of sheets.map(f => base + f)) {
-        const l = doc.createElement('link');
-        l.rel = 'stylesheet'; l.href = href; l.dataset.mockup = '1';
-        doc.head.appendChild(l);
-      }
+    const mode = opts.mode === 'dark' ? 'dark' : 'bright';
+    const custom = theme.id !== 'current';
+
+    doc.querySelectorAll('link[data-mockup]').forEach(l => l.remove());
+    if (custom) {
+      const sheets = ['base.css', 'quiet.css'].concat(theme.type ? ['type.css'] : [], [theme.id + '.css'],
+        mode === 'dark' ? ['dark.css', theme.id + '-dark.css'] : []);
+      sheets.forEach(f => addSheet(doc, base + f, 'theme'));
     }
-    doc.documentElement.dataset.mockup = theme.id;
-    const f = theme.fig || { stroke: '#c8f060', grad: '#5b8def', bg: '#0c0c0e', x: '#e5484d', y: '#4cc38a', z: '#5b8def', grid: '#8b909a' };
-    setColor(doc, 'stroke-color', f.stroke);
-    setColor(doc, 'grad-color', f.grad);
-    setColor(doc, 'bg-color', f.bg);
-    setColor(doc, 'frame-col-x', f.x);
-    setColor(doc, 'frame-col-y', f.y);
-    setColor(doc, 'frame-col-z', f.z);
-    setColor(doc, 'frame-col-grid', f.grid);
+
+    // Manual overrides sit on the root element's inline style, above every sheet.
+    ['--accent', '--on-accent', '--font-ui', '--font-num', '--font-display'].forEach(p => html.style.removeProperty(p));
+    const picked = [opts.text, opts.title].filter(f => custom && f && FONTS[f]);
+    if (picked.length) {
+      const q = [...new Set(picked)].map(f => 'family=' + f.replace(/ /g, '+') + ':' + FONTS[f][0]).join('&');
+      addSheet(doc, 'https://fonts.googleapis.com/css2?' + q + '&display=swap', 'font');
+    }
+    if (custom && opts.text && FONTS[opts.text]) {
+      html.style.setProperty('--font-ui', family(opts.text));
+      html.style.setProperty('--font-num', family(opts.text));
+    }
+    if (custom && opts.title && FONTS[opts.title]) html.style.setProperty('--font-display', family(opts.title));
+    if (custom && opts.accent) {
+      html.style.setProperty('--accent', opts.accent);
+      html.style.setProperty('--on-accent', onAccent(opts.accent));
+    }
+    html.dataset.mockup = theme.id;
+    html.dataset.mockupMode = mode;
+
+    // The figure follows the highlight colour: read it back once the sheets apply.
+    const paintFigure = () => {
+      if (!custom) {
+        const f = { stroke: '#c8f060', grad: '#5b8def', bg: '#0c0c0e', x: '#e5484d', y: '#4cc38a', z: '#5b8def', grid: '#8b909a' };
+        Object.entries({ 'stroke-color': f.stroke, 'grad-color': f.grad, 'bg-color': f.bg, 'frame-col-x': f.x,
+          'frame-col-y': f.y, 'frame-col-z': f.z, 'frame-col-grid': f.grid }).forEach(([k, v]) => setColor(doc, k, v));
+        return;
+      }
+      const toHex = c => { const m = c.match(/\d+(\.\d+)?/g); return m && m.length >= 3
+        ? '#' + m.slice(0, 3).map(v => Math.round(+v).toString(16).padStart(2, '0')).join('') : null; };
+      const probe = doc.createElement('span'); probe.style.color = 'var(--accent)'; doc.body.appendChild(probe);
+      const accent = toHex(win.getComputedStyle(probe).color); probe.style.color = 'var(--text)';
+      const text = toHex(win.getComputedStyle(probe).color); probe.remove();
+      const f = theme.fig[mode];
+      setColor(doc, 'stroke-color', accent);
+      setColor(doc, 'grad-color', text);
+      setColor(doc, 'bg-color', f.bg);
+      setColor(doc, 'frame-col-x', mode === 'dark' ? '#e5806e' : '#b42318');
+      setColor(doc, 'frame-col-y', mode === 'dark' ? '#8fc29a' : '#2f7a4f');
+      setColor(doc, 'frame-col-z', mode === 'dark' ? '#8fb3e0' : '#2f5fb3');
+      setColor(doc, 'frame-col-grid', f.grid);
+    };
+    const links = [...doc.querySelectorAll('link[data-mockup="theme"]')];
+    Promise.all(links.map(l => new Promise(r => { l.onload = l.onerror = r; }))).then(paintFigure);
+    if (!links.length) paintFigure();
+
     // Panel widths differ per theme; let the app re-measure its figure box.
     setTimeout(() => win.dispatchEvent(new Event('resize')), 60);
     setTimeout(() => win.dispatchEvent(new Event('resize')), 400);
     return theme;
   }
 
-  root.LissaMockups = { THEMES, applyTheme };
+  root.LissaMockups = { THEMES, FONTS, applyTheme };
 })(typeof window !== 'undefined' ? window : globalThis);
