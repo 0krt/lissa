@@ -1,7 +1,0 @@
-/* Space Grotesk + Space Mono — slightly technical, quirky details (the
-   flat-topped 'a', the 'G'), mono figures for every number. */
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Space+Mono&display=swap');
-:root {
-  --font-ui: 'Space Grotesk', sans-serif; --font-display: var(--font-ui); --font-num: 'Space Mono', monospace;
-  --accent: #be185d; --title-spacing: -0.02em; --card-radius: 4px; --ctl-radius: 3px; --btn-radius: 3px;
-}

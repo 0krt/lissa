@@ -1,0 +1,15 @@
+/* Fog · Dark — palette only; type and shape come from fog.css. */
+:root {
+  --bg: #12161b; --panel: #161b21; --border: #283039;
+  --card: #1d232a; --card-solid: #1d232a; --card-border: #283039;
+  --wash: #191e25; --wash-2: #283039; --hover-wash: #283039;
+  --track: #2f3843; --control-border: #5b6878;
+  --text: #e8edf2; --label: #c3ccd6; --muted: #8b97a4;
+  --accent: #8db4e2;
+  --overlay: color-mix(in srgb, #161b21 92%, transparent); --popover: #1d232a; --popover-sel: #283039;
+  --dock: color-mix(in srgb, #161b21 95%, transparent);
+  --seg-active-bg: #283039;
+}
+/* Fog's floating cards rely on shadow; on a dark ground a hairline does that job. */
+.section { box-shadow: 0 0 0 1px var(--border); }
+.view-tg, .grid-pad { box-shadow: 0 0 0 1px var(--border); }

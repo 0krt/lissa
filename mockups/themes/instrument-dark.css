@@ -1,0 +1,12 @@
+/* Instrument · Dark — palette only; type and shape come from instrument.css. */
+:root {
+  --bg: #151419; --panel: #1a191f; --border: #2e2c36;
+  --card: #222128; --card-solid: #222128; --card-border: #2e2c36;
+  --wash: #1d1c22; --wash-2: #2e2c36; --hover-wash: #2e2c36;
+  --track: #34323c; --control-border: #625f6e;
+  --text: #ecebf1; --label: #c8c6d2; --muted: #918e9c;
+  --accent: #a996e6;
+  --overlay: color-mix(in srgb, #1a191f 92%, transparent); --popover: #222128; --popover-sel: #2e2c36;
+  --dock: color-mix(in srgb, #1a191f 95%, transparent);
+  --seg-active-bg: #2e2c36;
+}
