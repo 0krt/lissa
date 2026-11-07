@@ -1,0 +1,9 @@
+/* Figtree — friendly geometric sans with round dots and generous spacing.
+   Softer radii to match. */
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap');
+:root {
+  --font-ui: 'Figtree', sans-serif; --font-display: var(--font-ui); --font-num: var(--font-ui);
+  --accent: #c4561f; --title-weight: 700; --title-spacing: -0.01em;
+  --card-radius: 14px; --ctl-radius: 9px; --btn-radius: 9px;
+}
+.preset-btn { border-radius: 999px; }

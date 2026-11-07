@@ -1,12 +1,42 @@
 # Design mockups
 
-Ten alternative visual directions for lissa, all aiming for simple, quiet and
-legible. Each one is a stylesheet laid over
-the unmodified `index.html`, so every control, preset, shortcut and MIDI
-mapping works exactly as it does in the app.
+Alternative visual directions for lissa, in rounds. Each one is a stylesheet
+laid over the unmodified `index.html`, so every control, preset, shortcut and
+MIDI mapping works exactly as it does in the app.
 
 Open `mockups/index.html` (served, e.g. `python3 -m http.server`, or on the
-Pages site at `/mockups/`) and pick a theme from the bar; ← / → step through.
+Pages site at `/mockups/`) and pick a theme from the bar; ← / → step through. Round 3 opens first.
+
+### Round 3 — typefaces
+
+One palette and one layout throughout, so the font is the variable.
+
+| # | Theme | Typeface |
+|---|-------|----------|
+| 01 | Geist | Geist + Geist Mono figures; black as the only accent |
+| 02 | Plex Sans | IBM Plex Sans + Plex Mono figures; closest to the current UI |
+| 03 | Atkinson | Atkinson Hyperlegible; no look-alike letters, the most legible |
+| 04 | Instrument | Instrument Sans, Instrument Serif for titles |
+| 05 | Garamond | Public Sans, EB Garamond for titles |
+| 06 | Figtree | Figtree; friendly geometric, rounder controls |
+| 07 | Space Grotesk | Space Grotesk + Space Mono figures |
+| 08 | Lexend | Lexend; wide, loosely spaced, easy to scan |
+| 09 | DM Mono | DM Mono throughout, dark |
+| 10 | Franklin | Libre Franklin; sturdy classic grotesk |
+
+UI/UX choices shared by the round (`themes/_type.css`):
+
+- `font-size-adjust` gives every face the same x-height, so sizes compare fairly
+  and nothing drops below a legible size.
+- A three-step type scale (11.5 / 13 / 16): weight separates titles from labels,
+  colour separates labels from values.
+- Tabular figures for values and ratio buttons, so numbers don't jitter while a
+  slider moves.
+- Pin and lock icons stay faint until their row is hovered or focused; set ones
+  and touch screens always show them.
+- Display faces are used for the brand and section titles only.
+
+### Round 2 — quiet
 
 | # | Theme | Direction |
 |---|-------|-----------|
@@ -26,9 +56,10 @@ Pages site at `/mockups/`) and pick a theme from the bar; ← / → step through
 - `themes/_base.css` re-points the colours, fonts and radii that `index.html`
   hard-codes to variables whose defaults match the shipping design. On its own
   it changes nothing.
-- `themes/_quiet.css` is the shared structure for themes 03–10: sentence case,
+- `themes/_quiet.css` is the shared structure for round 2's themes 03–10 and all of round 3: sentence case,
   larger labels, soft surfaces, one accent. Those themes mostly just set a
   palette and a typeface.
+- `themes/_type.css` adds round 3's shared palette and type rules.
 - `themes/<id>.css` sets those variables and adds the theme's own rules.
 - `apply-theme.js` injects both into the running app and sets the figure's own
   colour controls (stroke, gradient, background, frame axes) through their
