@@ -1,7 +1,0 @@
-/* Instrument Sans for the controls, Instrument Serif for titles only — one
-   warm accent of personality on top of a plain working face. */
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif&display=swap');
-:root {
-  --font-ui: 'Instrument Sans', sans-serif; --font-display: 'Instrument Serif', serif; --font-num: var(--font-ui);
-  --accent: #6b4fa8; --title-weight: 400; --title-spacing: 0; --fs-title: 21px; --fs-brand: 26px;
-}

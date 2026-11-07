@@ -1,56 +1,48 @@
-# Design mockups
+# Style editor
 
-Five visual directions for lissa, each in a Bright and a Dark version. Every one
-is a stylesheet laid over the unmodified `index.html`, so every control, preset,
-shortcut and MIDI mapping works exactly as it does in the app.
+A live editor for lissa's look, working on the shipping design rather than on
+separate themes. It loads the unmodified `index.html`, so every control,
+preset, shortcut and MIDI mapping works as it does in the app.
 
 Open `mockups/index.html` (served, e.g. `python3 -m http.server`, or on the
 Pages site at `/mockups/`).
 
-| Theme | Direction |
-|-------|-----------|
-| Instrument | Instrument Sans for controls, Instrument Serif for titles; violet |
-| Figtree | Friendly geometric sans, rounder controls; orange |
-| Lexend | Wide, loosely spaced letterforms built for easy scanning; teal |
-| Sage | Karla on a green-grey ground, rounded pills; green |
-| Fog | Inter on cool off-white, borderless floating cards; slate |
+The defaults are the app as it ships, except that the parameter boxes (the
+X axis / Y axis groups and similar) have no left line.
 
-## Gallery controls
+## Controls
 
-- **Theme** buttons, and ← / → to step through them.
-- **Bright / Dark** switches the palette of the current theme.
-- **Highlight** replaces the theme's accent colour. The figure's stroke follows
-  it, and text on filled highlights flips between dark and white to stay
-  readable. "theme" returns to the theme's own colour.
-- **Text** and **Titles** replace the typefaces; "theme font" returns to the
-  theme's own.
-- **Reset all** clears the highlight and font overrides.
+| Group | What it sets |
+|-------|--------------|
+| Highlights | Highlight 1 (active switches, values, sliders, titles) and Highlight 2 (group labels, modulation, help); whether the figure stroke follows Highlight 1 |
+| Backgrounds | Figure, panels, sections, fields and slider tracks |
+| Text & lines | Text, labels, muted text, dividers, control outlines |
+| Fonts | Separate faces for text, titles and numbers (22 Google Fonts) |
+| Sections | Corner radius, outline, tinted title bar, title case and size |
+| Parameter boxes | Left line on/off, fill strength, corner radius, label colour |
+| Labels & values | Label size, value colour, pin/lock icons faint until hover |
+| Sliders | Handle shape (round, square, bar), handle size, track height and colour |
+| Buttons & switches | Corner radius; active state filled, outlined or tinted |
+| Tabs & layout | Tab icons, tab case, spacing density, sidebar width |
 
-Theme and mode are kept in the URL (e.g. `#sage/dark`) so a view can be linked;
-the overrides are remembered in this browser only.
+Changed controls are marked, with a count per group. Settings are remembered in
+this browser. **Copy CSS** puts the generated rules on the clipboard and shows
+them; **Reset all** returns to the defaults.
+
+To adopt a look in the app, paste `themes/base.css` and then the copied CSS at
+the end of the `<style>` block in `index.html`.
 
 ## How it is put together
-
-The site is built by Jekyll (GitHub Pages), which drops files and folders whose
-names start with `_`, so nothing in here may use that prefix.
-
-Stylesheets load in this order:
 
 - `themes/base.css` re-points the colours, fonts and radii that `index.html`
   hard-codes to variables whose defaults match the shipping design. On its own
   it changes nothing.
-- `themes/quiet.css` is the shared structure: sentence case, larger labels,
-  soft surfaces, one accent.
-- `themes/type.css` (Instrument, Figtree, Lexend) adds a shared palette and type
-  rules: an even x-height across faces via `font-size-adjust`, a three-step
-  type scale, tabular figures, pin/lock icons faint until their row is hovered.
-- `themes/<id>.css` sets the theme's palette and typeface.
-- In Dark, `themes/dark.css` and then `themes/<id>-dark.css` swap the palette.
+- `editor.js` holds the control schema, builds the override CSS from it, and
+  applies it to the running app: base.css, one generated `<style>`, a Google
+  Fonts link for the chosen faces, and the figure's own colour inputs set
+  through their input events, as a user would.
+- Text on a filled highlight switches between dark and white by luminance, and
+  on light section colours the app's waveform previews are inverted to match.
 
-`apply-theme.js` injects these into the running app, applies the overrides as
-inline variables on the root element, and sets the figure's own colour controls
-through their input events, as a user would. Accent tints elsewhere are mixed
-from `--accent`, so one picked colour carries through the whole UI.
-
-The app paints the small waveform previews lime on black; the themes recolour
-them with a CSS filter rather than touching the app.
+The site is built by Jekyll (GitHub Pages), which drops files and folders whose
+names start with `_`, so nothing in here may use that prefix.
