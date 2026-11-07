@@ -1,0 +1,17 @@
+/* DM Mono throughout, on a dark ground — the "instrument" option. One face,
+   so hierarchy is weight, size and colour only. */
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap');
+:root {
+  --font-ui: 'DM Mono', monospace; --font-display: var(--font-ui); --font-num: var(--font-ui);
+  --accent: #e0a84a; --on-accent: #161615; --title-weight: 500; --title-spacing: -0.02em;
+  --x-height: 0.5; --fs-body: 12.5px; --fs-meta: 11px; --fs-title: 15px;
+  --bg: #161615; --panel: #1b1b19; --border: #2c2b28;
+  --text: #ecebe6; --label: #c9c7bf; --muted: #918f87;
+  --control-border: #615f58; --track: #34332f;
+  --card: #222220; --card-solid: #222220; --card-border: #2f2e2b;
+  --wash: #1d1d1b; --wash-2: #2f2e2b; --hover-wash: #2a2927;
+  --overlay: rgba(27,27,25,0.92); --popover: #222220; --popover-sel: #2c2b28;
+  --dock: rgba(27,27,25,0.95); --scrim: rgba(0,0,0,0.5); --pop-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  --seg-active-bg: #34332f; --seg-active-shadow: none;
+}
+.wave-preview { filter: grayscale(1) contrast(1.8) brightness(1.1); mix-blend-mode: screen; }

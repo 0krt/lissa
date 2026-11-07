@@ -1,0 +1,81 @@
+/* Round 3: one calm palette and one layout, so the typeface is the variable.
+   Loaded after _quiet.css. A theme file sets the fonts, an accent and, where a
+   face needs it, its own size or spacing.
+
+   UI/UX choices made here, and why:
+   - font-size-adjust pins every face to the same x-height, so 13px reads as the
+     same size in a narrow grotesk and a small-eyed serif. Comparing fonts is
+     fair, and no face drops below a legible size.
+   - A three-step scale with clear jumps: 11.5 for meta text, 13 for labels and
+     values, 16 for section titles. Weight separates title from label, colour
+     separates label from value.
+   - Values use tabular figures so numbers don't jitter while a slider moves.
+   - Pin and lock icons are secondary: faint until the row is hovered or
+     focused, always visible when set, and always visible on touch screens.
+   - Section titles get room above, controls sit tighter below, so each group
+     reads as one block. */
+:root {
+  --bg: #f4f3ef; --panel: #faf9f6; --border: #e7e5df;
+  --text: #1b1b19; --label: #3b3a36; --muted: #6b6a64;
+  --control-border: #b6b3aa; --track: #e4e2db; --focus: var(--accent); --danger: #b42318;
+  --card: #ffffff; --card-solid: #ffffff; --card-border: #ebe9e3; --card-radius: 10px; --card-shadow: none;
+  --on-accent: #ffffff; --radius: 6px; --ctl-radius: 6px; --btn-radius: 6px; --pill-radius: 999px;
+  --a1-soft: color-mix(in srgb, var(--accent) 8%, transparent);
+  --a1-mid: color-mix(in srgb, var(--accent) 14%, transparent);
+  --a2-soft: var(--a1-soft); --a2-mid: var(--a1-mid);
+  --a2-strong: color-mix(in srgb, var(--accent) 22%, transparent);
+  --accent-hi: color-mix(in srgb, var(--accent) 82%, white);
+  --accent2: var(--accent);
+  --wash: #f6f5f1; --wash-2: #eceae4; --hover-wash: #f6f5f1;
+  --overlay: rgba(255,255,255,0.94); --popover: #ffffff; --popover-sel: #f6f5f1;
+  --dock: rgba(255,255,255,0.96); --scrim: rgba(244,243,239,0.7);
+  --pop-shadow: 0 16px 40px rgba(20,20,15,0.12);
+  --seg-active-shadow: 0 0 0 1px var(--card-border), 0 1px 2px rgba(20,20,15,0.08);
+  --thumb-w: 16px; --thumb-h: 16px; --track-h: 4px;
+  --x-height: 0.53;
+  --fs-meta: 11.5px; --fs-body: 13px; --fs-title: 16px; --fs-brand: 19px;
+  --title-weight: 600; --title-spacing: -0.01em;
+}
+body { font-size: var(--fs-body); font-size-adjust: var(--x-height); line-height: 1.4; }
+
+header h1 { font-family: var(--font-display) !important; font-size: var(--fs-brand); font-weight: var(--title-weight); letter-spacing: var(--title-spacing); }
+header > span { font-size: var(--fs-body); }
+.tab-btn { font-size: 12px; }
+
+.section { padding: 14px 16px 18px; }
+.section > .section-label {
+  margin: -14px -16px 12px; padding: 14px 16px 6px;
+  font-size: var(--fs-title); font-weight: var(--title-weight); letter-spacing: var(--title-spacing);
+}
+.section.collapsed > .section-label { margin-bottom: -18px; padding-bottom: 14px; }
+.section > .section-label.has-help::after { top: 14px; right: 16px; }
+.sec-help { top: 13px; right: 34px; font-size: var(--fs-meta); }
+.preset-sidebar-head .section-label { font-size: var(--fs-title); font-weight: var(--title-weight); letter-spacing: var(--title-spacing); }
+.subsection-label { font-size: var(--fs-meta); font-weight: 600; color: var(--muted); margin: 20px 0 8px; }
+.vel-label, .mod-group-label { font-size: var(--fs-meta); font-weight: 600; color: var(--muted); }
+
+.param-row { gap: 6px; margin-bottom: 12px; }
+.param-header label, .checkbox-row label, .color-row label, .number-input label { font-size: var(--fs-body); color: var(--label); }
+.param-header .val, .ps-val, .pin-dock .dk-v, .status {
+  font-family: var(--font-num) !important; font-variant-numeric: tabular-nums lining-nums;
+}
+.param-header .val { font-size: var(--fs-body); font-weight: 500; color: var(--text); }
+
+/* Secondary row actions: present, but quiet until wanted. */
+.param-row .pin-btn, .param-row .lock-btn, .checkbox-row .pin-btn, .checkbox-row .lock-btn { opacity: 0.35; transition: opacity 0.12s; }
+.param-row:hover .pin-btn, .param-row:hover .lock-btn, .param-row:focus-within .pin-btn, .param-row:focus-within .lock-btn,
+.checkbox-row:hover .pin-btn, .checkbox-row:hover .lock-btn,
+.pin-btn[aria-pressed="true"], .lock-btn[aria-pressed="true"] { opacity: 1; }
+@media (hover: none) { .param-row .pin-btn, .param-row .lock-btn, .checkbox-row .pin-btn, .checkbox-row .lock-btn { opacity: 1; } }
+
+input[type=range] { margin: 5px 0; }
+input[type=range]::-webkit-slider-thumb { box-shadow: 0 0 0 1px var(--accent), 0 1px 3px rgba(0,0,0,0.15); }
+
+.wave-btn, .preset-btn, #xy-swap-btn { font-size: 12.5px; }
+.preset-btn { font-family: var(--font-num) !important; font-variant-numeric: tabular-nums; min-width: 38px; text-align: center; }
+.info-text { font-size: var(--fs-body); line-height: 1.6; }
+.status { font-size: 12px; }
+#interval-label { font-family: var(--font-ui) !important; font-size: 13px !important; }
+/* A display face is for the brand and section titles only; small text stays in
+   the working face, where it was drawn to be read. */
+.subsection-label, .tab-btn, .vel-label, .mod-group-label { font-family: var(--font-ui) !important; }

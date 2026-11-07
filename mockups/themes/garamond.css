@@ -1,0 +1,7 @@
+/* Public Sans for the controls, EB Garamond for titles — a bookish heading
+   over a neutral, government-grade UI face. */
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600&family=EB+Garamond:wght@500;600&display=swap');
+:root {
+  --font-ui: 'Public Sans', sans-serif; --font-display: 'EB Garamond', serif; --font-num: var(--font-ui);
+  --accent: #2f5d50; --title-weight: 600; --title-spacing: 0; --fs-title: 19px; --fs-brand: 24px;
+}

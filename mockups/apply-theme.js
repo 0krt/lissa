@@ -4,31 +4,50 @@
    matches the chrome. Everything else — state, presets, MIDI, audio — is the
    app as it ships. */
 (function (root) {
-  // quiet: true also loads _quiet.css, the shared structure the eight newer
-  // themes are built on; editorial and clay stand on their own.
+  // quiet: true also loads _quiet.css, the shared structure of the later
+  // themes; type: true adds _type.css on top of it. round groups the gallery.
+  function type3(id, name, note, accent, dark) {
+    return { id, name, note, round: 3, quiet: true, type: true,
+      fig: dark
+        ? { stroke: accent, grad: '#ecebe6', bg: '#161615', x: '#e5806e', y: '#8fc29a', z: '#8fb3e0', grid: '#34332f' }
+        : { stroke: accent, grad: '#1b1b19', bg: '#fbfaf8', x: '#b42318', y: '#2f7a4f', z: '#2f5fb3', grid: '#e2e0d9' } };
+  }
+
   const THEMES = [
     { id: 'current',    name: 'Current',          note: 'The shipping design, for reference.',
       fig: null },
-    { id: 'editorial',  name: 'Editorial',        note: 'Warm newsprint, serif display, italic captions, oxblood ink, column rules.',
+    { id: 'editorial',  name: 'Editorial', round: 2,        note: 'Warm newsprint, serif display, italic captions, oxblood ink, column rules.',
       fig: { stroke: '#7a1f2b', grad: '#1f1a17', bg: '#f6f1e7', x: '#7a1f2b', y: '#2f4a3a', z: '#1f1a17', grid: '#d6ccb8' } },
-    { id: 'clay',       name: 'Soft Clay',        note: 'Neumorphic: one soft grey material, raised and pressed-in controls, no lines.',
+    { id: 'clay',       name: 'Soft Clay', round: 2,        note: 'Neumorphic: one soft grey material, raised and pressed-in controls, no lines.',
       fig: { stroke: '#6c63ff', grad: '#ff7aa8', bg: '#e4e8ef', x: '#ff7aa8', y: '#6c63ff', z: '#3fb8af', grid: '#c4cad6' } },
-    { id: 'paper',      name: 'Paper',     quiet: true, note: 'White page, near-black sans, one quiet blue. Hairlines, no cards.',
+    { id: 'paper',      name: 'Paper',     round: 2, quiet: true, note: 'White page, near-black sans, one quiet blue. Hairlines, no cards.',
       fig: { stroke: '#2f5fb3', grad: '#1c1c1c', bg: '#fbfbf9', x: '#c0392b', y: '#2f8a57', z: '#2f5fb3', grid: '#dcdcd8' } },
-    { id: 'notebook',   name: 'Notebook',  quiet: true, note: 'Cream page, a readable serif, ink-blue accent, faint rules.',
+    { id: 'notebook',   name: 'Notebook',  round: 2, quiet: true, note: 'Cream page, a readable serif, ink-blue accent, faint rules.',
       fig: { stroke: '#23468c', grad: '#22201b', bg: '#f6f2e8', x: '#a5352b', y: '#3d6b48', z: '#23468c', grid: '#ddd6c4' } },
-    { id: 'stone',      name: 'Stone',     quiet: true, note: 'Warm grey, soft raised cards, terracotta accent.',
+    { id: 'stone',      name: 'Stone',     round: 2, quiet: true, note: 'Warm grey, soft raised cards, terracotta accent.',
       fig: { stroke: '#b5532f', grad: '#2c2824', bg: '#efebe5', x: '#b5532f', y: '#5d7a5a', z: '#4f6a8a', grid: '#d6cfc5' } },
-    { id: 'sage',       name: 'Sage',      quiet: true, note: 'Pale green-grey, rounded pills, one muted green.',
+    { id: 'sage',       name: 'Sage',      round: 2, quiet: true, note: 'Pale green-grey, rounded pills, one muted green.',
       fig: { stroke: '#3f6b4f', grad: '#1f2a22', bg: '#eef2ec', x: '#a8443a', y: '#3f6b4f', z: '#45658a', grid: '#d3dbd0' } },
-    { id: 'kraft',      name: 'Kraft',     quiet: true, note: 'Brown-paper ground, flat surfaces, dark brown ink, no shadows.',
+    { id: 'kraft',      name: 'Kraft',     round: 2, quiet: true, note: 'Brown-paper ground, flat surfaces, dark brown ink, no shadows.',
       fig: { stroke: '#5a3a1e', grad: '#2b2117', bg: '#e8ddcb', x: '#9a3324', y: '#4c6a3a', z: '#3d5878', grid: '#cbbca3' } },
-    { id: 'fog',        name: 'Fog',       quiet: true, note: 'Cool off-white, borderless floating cards, slate accent.',
+    { id: 'fog',        name: 'Fog',       round: 2, quiet: true, note: 'Cool off-white, borderless floating cards, slate accent.',
       fig: { stroke: '#3d5a80', grad: '#1f2933', bg: '#f3f5f7', x: '#b83a3a', y: '#3a8a63', z: '#3d5a80', grid: '#dce1e7' } },
-    { id: 'reader',     name: 'Reader',    quiet: true, note: 'A book page: white, black serif, small-caps headings, brick red for the selection.',
+    { id: 'reader',     name: 'Reader',    round: 2, quiet: true, note: 'A book page: white, black serif, small-caps headings, brick red for the selection.',
       fig: { stroke: '#1a1a1a', grad: '#a33a25', bg: '#fdfcf9', x: '#a33a25', y: '#3f6a4a', z: '#34558a', grid: '#e0dbd0' } },
-    { id: 'evening',    name: 'Evening',   quiet: true, note: 'The dark one: warm charcoal, cream text, soft amber accent.',
+    { id: 'evening',    name: 'Evening',   round: 2, quiet: true, note: 'The dark one: warm charcoal, cream text, soft amber accent.',
       fig: { stroke: '#e3b061', grad: '#ece6da', bg: '#1b1a18', x: '#f08a7a', y: '#9cc59a', z: '#8fb3e0', grid: '#3a3833' } },
+    // Round 3 — typefaces. Same palette and layout throughout (_type.css), so
+    // the font is what changes.
+    type3('geist',      'Geist',        'Geist + Geist Mono: neutral modern grotesk; black is the only accent.', '#111111'),
+    type3('plex',       'Plex Sans',    'IBM Plex Sans + Plex Mono for numbers: plain and engineered, closest to today.', '#1f5fbf'),
+    type3('atkinson',   'Atkinson',     'Atkinson Hyperlegible: drawn for low vision, no look-alike letters. The most legible.', '#b0412e'),
+    type3('instrument', 'Instrument',   'Instrument Sans for controls, Instrument Serif for titles only.', '#6b4fa8'),
+    type3('garamond',   'Garamond',     'Public Sans for controls, EB Garamond for titles: a bookish heading over a neutral UI face.', '#2f5d50'),
+    type3('figtree',    'Figtree',      'Figtree: friendly geometric sans, rounder controls.', '#c4561f'),
+    type3('grotesk',    'Space Grotesk','Space Grotesk + Space Mono figures: slightly technical, a little quirky.', '#be185d'),
+    type3('lexend',     'Lexend',       'Lexend: wide letterforms and loose spacing, built for easy scanning.', '#0f766e'),
+    type3('dmmono',     'DM Mono',      'DM Mono throughout, on a dark ground: hierarchy by weight and colour only.', '#e0a84a', true),
+    type3('franklin',   'Franklin',     'Libre Franklin: sturdy classic grotesk, very clear at small sizes.', '#8a5a14'),
   ];
 
   function setColor(doc, id, value) {
@@ -45,7 +64,7 @@
     doc.querySelectorAll('link[data-mockup]').forEach(l => l.remove());
     const theme = THEMES.find(t => t.id === id) || THEMES[0];
     if (theme.id !== 'current') {
-      const sheets = ['_base.css'].concat(theme.quiet ? ['_quiet.css'] : [], [theme.id + '.css']);
+      const sheets = ['_base.css'].concat(theme.quiet ? ['_quiet.css'] : [], theme.type ? ['_type.css'] : [], [theme.id + '.css']);
       for (const href of sheets.map(f => base + f)) {
         const l = doc.createElement('link');
         l.rel = 'stylesheet'; l.href = href; l.dataset.mockup = '1';

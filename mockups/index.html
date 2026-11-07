@@ -17,6 +17,7 @@
   }
   .bar button:hover { color: #fff; border-color: #6a6a7b; }
   .bar button[aria-pressed="true"] { background: #c8f060; border-color: #c8f060; color: #0c0c0e; }
+  .bar .round { flex: none; color: #8b8b98; margin: 0 2px 0 10px; white-space: nowrap; }
   .note { padding: 6px 12px; color: #8b8b98; border-bottom: 1px solid #222228; flex-shrink: 0; }
   .note strong { color: #d4d4d8; font-weight: 500; }
   iframe { flex: 1; width: 100%; border: 0; display: block; }
@@ -32,27 +33,35 @@
   const bar = document.getElementById('bar');
   const note = document.getElementById('note');
   const frame = document.getElementById('app');
-  const buttons = THEMES.map((t, i) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.textContent = (i ? String(i).padStart(2, '0') + ' ' : '') + t.name;
-    b.addEventListener('click', () => select(t.id));
-    bar.appendChild(b);
-    return b;
-  });
+  // Buttons are grouped by round, numbered within it; newest round first.
+  const DEFAULT = 'geist';
+  const rounds = [...new Set(THEMES.map(t => t.round || 0))].sort((a, b) => (b || 99) - (a || 99));
+  const order = rounds.flatMap(r => THEMES.filter(t => (t.round || 0) === r));
+  const buttons = new Map();
+  for (const r of rounds) {
+    if (r) { const l = document.createElement('span'); l.className = 'round'; l.textContent = 'Round ' + r; bar.appendChild(l); }
+    THEMES.filter(t => (t.round || 0) === r).forEach((t, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = (r ? String(i + 1).padStart(2, '0') + ' ' : '') + t.name;
+      b.addEventListener('click', () => select(t.id));
+      bar.appendChild(b);
+      buttons.set(t.id, b);
+    });
+  }
   function select(id) {
     const t = applyTheme(frame.contentWindow, id, new URL('themes/', location.href).href);
-    buttons.forEach((b, i) => b.setAttribute('aria-pressed', THEMES[i].id === t.id));
+    buttons.forEach((b, id) => b.setAttribute('aria-pressed', id === t.id));
     note.innerHTML = '<strong>' + t.name + '</strong> — ' + t.note;
     history.replaceState(null, '', '#' + t.id);
   }
-  frame.addEventListener('load', () => select(location.hash.slice(1) || 'editorial'));
-  // ← / → step through the themes when focus is out here, not inside the app.
+  frame.addEventListener('load', () => select(location.hash.slice(1) || DEFAULT));
+  // ← / → step through the themes in bar order when focus is out here, not inside the app.
   document.addEventListener('keydown', e => {
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-    const cur = THEMES.findIndex(t => t.id === (location.hash.slice(1) || 'editorial'));
-    const n = (cur + (e.key === 'ArrowRight' ? 1 : -1) + THEMES.length) % THEMES.length;
-    select(THEMES[n].id);
+    const cur = order.findIndex(t => t.id === (location.hash.slice(1) || DEFAULT));
+    const n = (cur + (e.key === 'ArrowRight' ? 1 : -1) + order.length) % order.length;
+    select(order[n].id);
   });
 </script>
 </body>

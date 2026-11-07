@@ -1,0 +1,8 @@
+/* Lexend — designed around reading proficiency: wide letterforms and loose
+   default spacing make dense labels easy to scan. */
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600&display=swap');
+:root {
+  --font-ui: 'Lexend', sans-serif; --font-display: var(--font-ui); --font-num: var(--font-ui);
+  --accent: #0f766e; --title-weight: 500; --title-spacing: -0.01em;
+}
+.param-header label { font-weight: 300; }
