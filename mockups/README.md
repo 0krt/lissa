@@ -24,7 +24,7 @@ One palette and one layout throughout, so the font is the variable.
 | 09 | DM Mono | DM Mono throughout, dark |
 | 10 | Franklin | Libre Franklin; sturdy classic grotesk |
 
-UI/UX choices shared by the round (`themes/_type.css`):
+UI/UX choices shared by the round (`themes/type.css`):
 
 - `font-size-adjust` gives every face the same x-height, so sizes compare fairly
   and nothing drops below a legible size.
@@ -53,13 +53,16 @@ UI/UX choices shared by the round (`themes/_type.css`):
 
 ## How it is put together
 
-- `themes/_base.css` re-points the colours, fonts and radii that `index.html`
+The site is built by Jekyll (GitHub Pages), which drops files and folders whose
+names start with `_`, so nothing in here may use that prefix.
+
+- `themes/base.css` re-points the colours, fonts and radii that `index.html`
   hard-codes to variables whose defaults match the shipping design. On its own
   it changes nothing.
-- `themes/_quiet.css` is the shared structure for round 2's themes 03–10 and all of round 3: sentence case,
+- `themes/quiet.css` is the shared structure for round 2's themes 03–10 and all of round 3: sentence case,
   larger labels, soft surfaces, one accent. Those themes mostly just set a
   palette and a typeface.
-- `themes/_type.css` adds round 3's shared palette and type rules.
+- `themes/type.css` adds round 3's shared palette and type rules.
 - `themes/<id>.css` sets those variables and adds the theme's own rules.
 - `apply-theme.js` injects both into the running app and sets the figure's own
   colour controls (stroke, gradient, background, frame axes) through their
