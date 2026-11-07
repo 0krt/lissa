@@ -4,8 +4,8 @@
    matches the chrome. Everything else — state, presets, MIDI, audio — is the
    app as it ships. */
 (function (root) {
-  // quiet: true also loads _quiet.css, the shared structure of the later
-  // themes; type: true adds _type.css on top of it. round groups the gallery.
+  // quiet: true also loads quiet.css, the shared structure of the later
+  // themes; type: true adds type.css on top of it. round groups the gallery.
   function type3(id, name, note, accent, dark) {
     return { id, name, note, round: 3, quiet: true, type: true,
       fig: dark
@@ -36,7 +36,7 @@
       fig: { stroke: '#1a1a1a', grad: '#a33a25', bg: '#fdfcf9', x: '#a33a25', y: '#3f6a4a', z: '#34558a', grid: '#e0dbd0' } },
     { id: 'evening',    name: 'Evening',   round: 2, quiet: true, note: 'The dark one: warm charcoal, cream text, soft amber accent.',
       fig: { stroke: '#e3b061', grad: '#ece6da', bg: '#1b1a18', x: '#f08a7a', y: '#9cc59a', z: '#8fb3e0', grid: '#3a3833' } },
-    // Round 3 — typefaces. Same palette and layout throughout (_type.css), so
+    // Round 3 — typefaces. Same palette and layout throughout (type.css), so
     // the font is what changes.
     type3('geist',      'Geist',        'Geist + Geist Mono: neutral modern grotesk; black is the only accent.', '#111111'),
     type3('plex',       'Plex Sans',    'IBM Plex Sans + Plex Mono for numbers: plain and engineered, closest to today.', '#1f5fbf'),
@@ -64,7 +64,7 @@
     doc.querySelectorAll('link[data-mockup]').forEach(l => l.remove());
     const theme = THEMES.find(t => t.id === id) || THEMES[0];
     if (theme.id !== 'current') {
-      const sheets = ['_base.css'].concat(theme.quiet ? ['_quiet.css'] : [], theme.type ? ['_type.css'] : [], [theme.id + '.css']);
+      const sheets = ['base.css'].concat(theme.quiet ? ['quiet.css'] : [], theme.type ? ['type.css'] : [], [theme.id + '.css']);
       for (const href of sheets.map(f => base + f)) {
         const l = doc.createElement('link');
         l.rel = 'stylesheet'; l.href = href; l.dataset.mockup = '1';
