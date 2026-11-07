@@ -3,135 +3,151 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>lissa · design mockups</title>
+<title>lissa · style editor</title>
 <style>
   :root { color-scheme: dark; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; background: #0c0c0e; color: #d4d4d8; font: 12px/1.4 'IBM Plex Mono', ui-monospace, monospace; }
-  body { display: flex; flex-direction: column; }
-  .bar { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-bottom: 1px solid #222228; flex-wrap: wrap; flex-shrink: 0; }
-  .bar b { color: #c8f060; letter-spacing: 0.12em; margin-right: 8px; white-space: nowrap; }
-  .group { display: flex; align-items: center; gap: 6px; }
-  .group + .group { margin-left: 10px; padding-left: 12px; border-left: 1px solid #2a2a32; }
-  .bar button, .bar select {
-    flex: none; background: none; border: 1px solid #3a3a44; border-radius: 3px; color: #a1a1aa;
-    font: inherit; padding: 4px 9px; cursor: pointer; white-space: nowrap;
+  body { display: grid; grid-template-columns: 290px 1fr; grid-template-rows: auto 1fr; }
+  .bar { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid #222228; }
+  .bar b { color: #c8f060; letter-spacing: 0.12em; margin-right: auto; white-space: nowrap; }
+  .bar .status { color: #8b8b98; }
+  button {
+    background: none; border: 1px solid #3a3a44; border-radius: 3px; color: #a1a1aa;
+    font: inherit; padding: 4px 10px; cursor: pointer; white-space: nowrap;
   }
-  .bar select { background: #0c0c0e; padding: 4px 6px; max-width: 190px; }
-  .bar button:hover, .bar select:hover { color: #fff; border-color: #6a6a7b; }
-  .bar button[aria-pressed="true"] { background: #c8f060; border-color: #c8f060; color: #0c0c0e; }
-  .bar button:disabled, .bar select:disabled, .bar input:disabled { opacity: 0.35; cursor: default; }
-  .bar label { color: #8b8b98; white-space: nowrap; }
-  .bar input[type=color] { width: 30px; height: 24px; padding: 1px; border: 1px solid #3a3a44; border-radius: 3px; background: none; cursor: pointer; }
-  .seg { display: inline-flex; }
-  .seg button { border-radius: 0; }
-  .seg button:first-child { border-radius: 3px 0 0 3px; }
-  .seg button:last-child { border-radius: 0 3px 3px 0; margin-left: -1px; }
-  .note { padding: 6px 12px; color: #8b8b98; border-bottom: 1px solid #222228; flex-shrink: 0; }
-  .note strong { color: #d4d4d8; font-weight: 500; }
-  .note em { color: #c8f060; font-style: normal; }
-  iframe { flex: 1; width: 100%; border: 0; display: block; }
+  button:hover { color: #fff; border-color: #6a6a7b; }
+  button.primary { background: #c8f060; border-color: #c8f060; color: #0c0c0e; }
+  .panel { overflow-y: auto; border-right: 1px solid #222228; background: #111115; padding: 6px 0 24px; }
+  details { border-bottom: 1px solid #1e1e24; }
+  summary { list-style: none; cursor: pointer; padding: 10px 14px; color: #c8f060; letter-spacing: 0.1em; text-transform: uppercase; font-size: 11px; display: flex; justify-content: space-between; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: '▾'; color: #8b8b98; }
+  details:not([open]) summary::after { transform: rotate(-90deg); }
+  summary .dirty { color: #60b0f0; letter-spacing: 0; text-transform: none; margin-left: auto; margin-right: 8px; }
+  .row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 10px; padding: 5px 14px; }
+  .row label { color: #a1a1aa; }
+  .row .hint { grid-column: 1 / -1; color: #6f6f7c; font-size: 10.5px; margin-top: -2px; }
+  .row.changed label { color: #fff; }
+  .row.changed label::after { content: ' •'; color: #60b0f0; }
+  .ctl { display: flex; align-items: center; gap: 6px; }
+  input[type=color] { width: 34px; height: 22px; padding: 1px; border: 1px solid #3a3a44; border-radius: 3px; background: none; cursor: pointer; }
+  .hex { width: 7ch; color: #8b8b98; font-size: 11px; }
+  select { background: #0c0c0e; color: #d4d4d8; border: 1px solid #3a3a44; border-radius: 3px; font: inherit; padding: 3px 4px; max-width: 150px; }
+  input[type=range] { width: 110px; accent-color: #c8f060; }
+  .num { width: 5ch; text-align: right; color: #8b8b98; font-size: 11px; font-variant-numeric: tabular-nums; }
+  input[type=checkbox] { width: 15px; height: 15px; accent-color: #c8f060; }
+  iframe { width: 100%; height: 100%; border: 0; display: block; }
+  dialog { margin: auto; width: min(720px, 92vw); background: #15151b; color: #d4d4d8; border: 1px solid #3a3a44; border-radius: 6px; padding: 14px; }
+  dialog::backdrop { background: rgba(0,0,0,0.6); }
+  dialog pre { max-height: 60vh; overflow: auto; background: #0c0c0e; padding: 10px; border-radius: 4px; font-size: 11px; white-space: pre-wrap; }
+  dialog p { margin-bottom: 8px; color: #a1a1aa; }
+  dialog .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+  @media (max-width: 760px) { body { grid-template-columns: 1fr; grid-template-rows: auto 45vh 1fr; } .panel { border-right: 0; border-bottom: 1px solid #222228; } }
 </style>
 </head>
 <body>
-  <nav class="bar" aria-label="Mockup controls">
-    <b>LISSA MOCKUPS</b>
-    <div class="group" id="themes" role="group" aria-label="Theme"></div>
-    <div class="group seg" role="group" aria-label="Brightness">
-      <button type="button" data-mode="bright">Bright</button>
-      <button type="button" data-mode="dark">Dark</button>
-    </div>
-    <div class="group">
-      <label for="accent">Highlight</label>
-      <input type="color" id="accent" title="Highlight colour">
-      <button type="button" id="accent-reset" title="Back to the theme's own highlight">theme</button>
-    </div>
-    <div class="group">
-      <label for="font-text">Text</label>
-      <select id="font-text"><option value="">theme font</option></select>
-      <label for="font-title">Titles</label>
-      <select id="font-title"><option value="">theme font</option></select>
-    </div>
-    <div class="group"><button type="button" id="reset-all">Reset all</button></div>
-  </nav>
-  <div class="note" id="note" aria-live="polite"></div>
+  <div class="bar">
+    <b>LISSA STYLE EDITOR</b>
+    <span class="status" id="status" aria-live="polite"></span>
+    <button type="button" id="reset">Reset all</button>
+    <button type="button" class="primary" id="export">Copy CSS</button>
+  </div>
+  <aside class="panel" id="panel" aria-label="Style controls"></aside>
   <iframe id="app" src="../index.html" title="lissa"></iframe>
-<script src="apply-theme.js"></script>
+  <dialog id="css-dialog">
+    <p>These rules restyle the app. Paste them at the end of the &lt;style&gt; block in <code>index.html</code>, together with the contents of <code>mockups/themes/base.css</code>, which they rely on.</p>
+    <pre id="css-out"></pre>
+    <div class="actions"><button type="button" id="copy">Copy again</button><button type="button" id="close">Close</button></div>
+  </dialog>
+<script src="editor.js"></script>
 <script>
-  const { THEMES, FONTS, applyTheme } = window.LissaMockups;
+  const { GROUPS, DEFAULTS, fontNames, FONTS, buildCSS, apply } = window.LissaEditor;
   const $ = id => document.getElementById(id);
   const frame = $('app');
-  const STORE = 'lissa.mockups';
-  const THEME_BASE = new URL('themes/', location.href).href;
+  const STORE = 'lissa.style-editor';
+  const BASE = new URL('themes/', location.href).href;
 
-  // State: theme + mode live in the URL (#sage/dark) so a view can be linked;
-  // the manual overrides are a per-browser convenience in localStorage.
-  const state = { theme: 'instrument', mode: 'bright', accent: null, text: '', title: '' };
-  try { Object.assign(state, JSON.parse(localStorage.getItem(STORE)) || {}); } catch (e) {}
-  const [hTheme, hMode] = location.hash.slice(1).split('/');
-  if (THEMES.some(t => t.id === hTheme)) state.theme = hTheme;
-  if (hMode === 'dark' || hMode === 'bright') state.mode = hMode;
-  if (!THEMES.some(t => t.id === state.theme)) state.theme = 'instrument';
+  // Per-browser convenience only: the styles live in this browser until exported.
+  let state = {};
+  try { state = JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) {}
+  for (const k of Object.keys(state)) if (!(k in DEFAULTS)) delete state[k];
+  const value = k => (k in state ? state[k] : DEFAULTS[k]);
 
-  const themeButtons = new Map();
-  THEMES.forEach(t => {
-    const b = document.createElement('button');
-    b.type = 'button'; b.textContent = t.name;
-    b.addEventListener('click', () => { state.theme = t.id; render(); });
-    $('themes').appendChild(b);
-    themeButtons.set(t.id, b);
-  });
-  for (const sel of [$('font-text'), $('font-title')]) {
-    for (const [name, [, generic]] of Object.entries(FONTS)) {
-      const o = document.createElement('option');
-      o.value = name; o.textContent = name + (generic === 'sans-serif' ? '' : ' · ' + generic);
-      sel.appendChild(o);
+  const rows = new Map();
+  for (const g of GROUPS) {
+    const d = document.createElement('details');
+    d.open = ['Highlights', 'Backgrounds', 'Parameter boxes'].includes(g.title);
+    const sm = document.createElement('summary');
+    sm.innerHTML = '<span>' + g.title + '</span><span class="dirty"></span>';
+    d.appendChild(sm);
+    for (const it of g.items) {
+      const row = document.createElement('div'); row.className = 'row';
+      const id = 'c-' + it.key;
+      const lab = document.createElement('label'); lab.htmlFor = id; lab.textContent = it.label;
+      const ctl = document.createElement('div'); ctl.className = 'ctl';
+      let input, readout;
+      if (it.type === 'color') {
+        input = Object.assign(document.createElement('input'), { type: 'color', id });
+        readout = Object.assign(document.createElement('span'), { className: 'hex' });
+        input.addEventListener('input', () => set(it.key, input.value));
+      } else if (it.type === 'toggle') {
+        input = Object.assign(document.createElement('input'), { type: 'checkbox', id });
+        input.addEventListener('change', () => set(it.key, input.checked));
+      } else if (it.type === 'range') {
+        input = Object.assign(document.createElement('input'), { type: 'range', id, min: it.min, max: it.max, step: it.step });
+        readout = Object.assign(document.createElement('span'), { className: 'num' });
+        input.addEventListener('input', () => set(it.key, +input.value));
+      } else {
+        input = Object.assign(document.createElement('select'), { id });
+        const opts = it.type === 'font' ? fontNames.map(f => [f, f + (FONTS[f][1] === 'sans-serif' ? '' : ' · ' + FONTS[f][1])]) : it.options;
+        for (const [v, t] of opts) input.appendChild(Object.assign(document.createElement('option'), { value: v, textContent: t }));
+        input.addEventListener('change', () => set(it.key, input.value));
+      }
+      ctl.appendChild(input); if (readout) ctl.appendChild(readout);
+      row.append(lab, ctl);
+      if (it.hint) row.appendChild(Object.assign(document.createElement('div'), { className: 'hint', textContent: it.hint }));
+      d.appendChild(row);
+      rows.set(it.key, { it, row, input, readout, group: sm });
     }
+    $('panel').appendChild(d);
   }
-  document.querySelectorAll('[data-mode]').forEach(b =>
-    b.addEventListener('click', () => { state.mode = b.dataset.mode; render(); }));
-  $('accent').addEventListener('input', e => { state.accent = e.target.value; render(); });
-  $('accent-reset').addEventListener('click', () => { state.accent = null; render(); });
-  $('font-text').addEventListener('change', e => { state.text = e.target.value; render(); });
-  $('font-title').addEventListener('change', e => { state.title = e.target.value; render(); });
-  $('reset-all').addEventListener('click', () => { Object.assign(state, { accent: null, text: '', title: '' }); render(); });
 
+  function set(k, v) {
+    if (v === DEFAULTS[k]) delete state[k]; else state[k] = v;
+    sync(); render();
+  }
+  // Panel reflects state; changed controls and groups are marked so it's clear what differs from the app.
+  function sync() {
+    const dirty = new Map();
+    rows.forEach(({ it, row, input, readout, group }, k) => {
+      const v = value(k);
+      if (it.type === 'toggle') input.checked = v; else input.value = v;
+      if (readout) readout.textContent = it.type === 'color' ? v : v + it.unit;
+      row.classList.toggle('changed', k in state);
+      dirty.set(group, (dirty.get(group) || 0) + (k in state ? 1 : 0));
+    });
+    dirty.forEach((n, sm) => { sm.querySelector('.dirty').textContent = n ? n + ' changed' : ''; });
+    const n = Object.keys(state).length;
+    $('status').textContent = n ? n + ' change' + (n > 1 ? 's' : '') + ' from the app' : 'defaults: the app as it ships, minus the box lines';
+  }
   function render() {
     const win = frame.contentWindow;
     if (!win || !win.document || !win.document.body) return;
-    const t = applyTheme(win, state.theme, THEME_BASE,
-      { mode: state.mode, accent: state.accent, text: state.text, title: state.title });
-    const custom = t.id !== 'current';
-    themeButtons.forEach((b, id) => b.setAttribute('aria-pressed', id === t.id));
-    document.querySelectorAll('[data-mode]').forEach(b => {
-      b.setAttribute('aria-pressed', b.dataset.mode === state.mode); b.disabled = !custom;
-    });
-    for (const id of ['accent', 'accent-reset', 'font-text', 'font-title', 'reset-all']) $(id).disabled = !custom;
-    $('font-text').value = state.text; $('font-title').value = state.title;
-    // Show the colour actually in use, the theme's own until one is picked.
-    if (custom && !state.accent) {
-      requestAnimationFrame(() => setTimeout(() => {
-        const p = win.document.createElement('span'); p.style.color = 'var(--accent)'; win.document.body.appendChild(p);
-        const m = win.getComputedStyle(p).color.match(/\d+/g); p.remove();
-        if (m) $('accent').value = '#' + m.slice(0, 3).map(v => (+v).toString(16).padStart(2, '0')).join('');
-      }, 150));
-    } else if (state.accent) $('accent').value = state.accent;
-    const over = [state.accent && 'highlight ' + state.accent, state.text && 'text in ' + state.text,
-      state.title && 'titles in ' + state.title].filter(Boolean);
-    $('note').innerHTML = '<strong>' + t.name + (custom ? ' · ' + (state.mode === 'dark' ? 'Dark' : 'Bright') : '') +
-      '</strong> — ' + t.note + (custom && over.length ? ' <em>Overrides: ' + over.join(', ') + '.</em>' : '');
-    history.replaceState(null, '', '#' + t.id + (custom ? '/' + state.mode : ''));
+    apply(win, state, BASE);
     try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {}
   }
+  $('reset').addEventListener('click', () => { state = {}; sync(); render(); });
+  const copy = async () => {
+    const css = buildCSS(state);
+    $('css-out').textContent = css;
+    try { await navigator.clipboard.writeText(css); $('status').textContent = 'CSS copied'; } catch (e) { $('status').textContent = 'Select the CSS below to copy it'; }
+  };
+  $('export').addEventListener('click', async () => { await copy(); $('css-dialog').showModal(); });
+  $('copy').addEventListener('click', copy);
+  $('close').addEventListener('click', () => $('css-dialog').close());
   frame.addEventListener('load', render);
-
-  // ← / → step through the themes when focus is out here, not inside the app.
-  document.addEventListener('keydown', e => {
-    if ((e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') || e.target.closest('select, input')) return;
-    const i = THEMES.findIndex(t => t.id === state.theme);
-    state.theme = THEMES[(i + (e.key === 'ArrowRight' ? 1 : -1) + THEMES.length) % THEMES.length].id;
-    render();
-  });
+  sync();
 </script>
 </body>
 </html>
