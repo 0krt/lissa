@@ -56,7 +56,7 @@
   <aside class="panel" id="panel" aria-label="Style controls"></aside>
   <iframe id="app" src="../index.html" title="lissa"></iframe>
   <dialog id="css-dialog">
-    <p>These rules restyle the app. Paste them at the end of the &lt;style&gt; block in <code>index.html</code>, together with the contents of <code>mockups/themes/base.css</code>, which they rely on.</p>
+    <p>These rules restyle the app. In <code>index.html</code>, replace the theme values at the end of the &lt;style&gt; block with them (the token layer above them stays).</p>
     <pre id="css-out"></pre>
     <div class="actions"><button type="button" id="copy">Copy again</button><button type="button" id="close">Close</button></div>
   </dialog>
@@ -129,7 +129,7 @@
     });
     dirty.forEach((n, sm) => { sm.querySelector('.dirty').textContent = n ? n + ' changed' : ''; });
     const n = Object.keys(state).length;
-    $('status').textContent = n ? n + ' change' + (n > 1 ? 's' : '') + ' from the app' : 'defaults: the app as it ships, minus the box lines';
+    $('status').textContent = n ? n + ' change' + (n > 1 ? 's' : '') + ' from the app' : 'defaults: the app as it ships';
   }
   function render() {
     const win = frame.contentWindow;
