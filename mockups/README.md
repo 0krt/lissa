@@ -7,8 +7,8 @@ preset, shortcut and MIDI mapping works as it does in the app.
 Open `mockups/index.html` (served, e.g. `python3 -m http.server`, or on the
 Pages site at `/mockups/`).
 
-The defaults are the app as it ships, except that the parameter boxes (the
-X axis / Y axis groups and similar) have no left line.
+The defaults are the app as it ships (the teal and Atkinson Hyperlegible
+theme), so changes are measured from what users see today.
 
 ## Controls
 
@@ -29,8 +29,9 @@ Changed controls are marked, with a count per group. Settings are remembered in
 this browser. **Copy CSS** puts the generated rules on the clipboard and shows
 them; **Reset all** returns to the defaults.
 
-To adopt a look in the app, paste `themes/base.css` and then the copied CSS at
-the end of the `<style>` block in `index.html`.
+To adopt a look in the app, replace the theme values at the end of the
+`<style>` block in `index.html` with the copied CSS. The token layer from
+`themes/base.css` is already there.
 
 ## How it is put together
 

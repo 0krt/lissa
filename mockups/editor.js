@@ -3,8 +3,8 @@
    radii onto variables), then one generated <style> built from the controls
    below, and sets the figure's own colour inputs the way a user would.
 
-   Every default equals the shipping design except the left line on the
-   parameter boxes, which is off. */
+   Every default equals the shipping design, so the editor opens on the app as
+   it is. */
 (function (root) {
   // Faces offered by the font selectors: family → [Google Fonts axis spec, generic fallback].
   const FONTS = {
@@ -36,61 +36,61 @@
   // The controls, grouped as the panel shows them. type: color | font | select | range | toggle.
   const GROUPS = [
     { title: 'Highlights', items: [
-      { key: 'accent',  label: 'Highlight 1', type: 'color', def: '#c8f060', hint: 'active switches, values, sliders, titles' },
-      { key: 'accent2', label: 'Highlight 2', type: 'color', def: '#60b0f0', hint: 'group labels, modulation, help' },
+      { key: 'accent',  label: 'Highlight 1', type: 'color', def: '#3a9c9b', hint: 'active switches, values, sliders, titles' },
+      { key: 'accent2', label: 'Highlight 2', type: 'color', def: '#3264a4', hint: 'group labels, modulation, help' },
       { key: 'figFollow', label: 'Figure uses highlight 1', type: 'toggle', def: true },
     ] },
     { title: 'Backgrounds', items: [
       { key: 'figBg',   label: 'Figure',         type: 'color', def: '#0c0c0e' },
-      { key: 'panel',   label: 'Panels',         type: 'color', def: '#111115' },
-      { key: 'card',    label: 'Sections',       type: 'color', def: '#15151b' },
-      { key: 'inset',   label: 'Fields & tracks', type: 'color', def: '#0c0c0e' },
+      { key: 'panel',   label: 'Panels',         type: 'color', def: '#121215' },
+      { key: 'card',    label: 'Sections',       type: 'color', def: '#121616' },
+      { key: 'inset',   label: 'Fields & tracks', type: 'color', def: '#151519' },
     ] },
     { title: 'Text & lines', items: [
       { key: 'text',    label: 'Text',           type: 'color', def: '#d4d4d8' },
-      { key: 'label',   label: 'Labels',         type: 'color', def: '#a1a1aa' },
+      { key: 'label',   label: 'Labels',         type: 'color', def: '#8787a1' },
       { key: 'muted',   label: 'Muted',          type: 'color', def: '#8b8b98' },
-      { key: 'line',    label: 'Dividers',       type: 'color', def: '#2a2a32' },
-      { key: 'outline', label: 'Control outlines', type: 'color', def: '#6a6a7b' },
+      { key: 'line',    label: 'Dividers',       type: 'color', def: '#2b2b36' },
+      { key: 'outline', label: 'Control outlines', type: 'color', def: '#525260' },
     ] },
     { title: 'Fonts', items: [
-      { key: 'fontUi',    label: 'Text',    type: 'font', def: 'IBM Plex Mono' },
-      { key: 'fontTitle', label: 'Titles',  type: 'font', def: 'IBM Plex Mono' },
-      { key: 'fontNum',   label: 'Numbers', type: 'font', def: 'IBM Plex Mono' },
+      { key: 'fontUi',    label: 'Text',    type: 'font', def: 'Atkinson Hyperlegible' },
+      { key: 'fontTitle', label: 'Titles',  type: 'font', def: 'Atkinson Hyperlegible' },
+      { key: 'fontNum',   label: 'Numbers', type: 'font', def: 'Atkinson Hyperlegible' },
     ] },
     { title: 'Sections', items: [
       { key: 'secRadius', label: 'Corner radius', type: 'range', min: 0, max: 20, step: 1, unit: 'px', def: 7 },
       { key: 'secBorder', label: 'Outline', type: 'toggle', def: true },
       { key: 'secHeadTint', label: 'Tinted title bar', type: 'toggle', def: true },
       { key: 'titleCase', label: 'Title case', type: 'select', options: [['upper', 'UPPERCASE'], ['sentence', 'Sentence case']], def: 'upper' },
-      { key: 'titleSize', label: 'Title size', type: 'range', min: 11, max: 20, step: 0.5, unit: 'px', def: 13.5 },
+      { key: 'titleSize', label: 'Title size', type: 'range', min: 11, max: 20, step: 0.5, unit: 'px', def: 13 },
     ] },
     { title: 'Parameter boxes', items: [
       { key: 'groupLine', label: 'Left line', type: 'toggle', def: false },
-      { key: 'groupFill', label: 'Fill', type: 'range', min: 0, max: 10, step: 0.5, unit: '%', def: 2.5 },
-      { key: 'groupRadius', label: 'Corner radius', type: 'range', min: 0, max: 14, step: 1, unit: 'px', def: 3 },
+      { key: 'groupFill', label: 'Fill', type: 'range', min: 0, max: 10, step: 0.5, unit: '%', def: 3 },
+      { key: 'groupRadius', label: 'Corner radius', type: 'range', min: 0, max: 14, step: 1, unit: 'px', def: 4 },
       { key: 'groupLabel', label: 'Box label colour', type: 'select', options: [['accent2', 'Highlight 2'], ['accent', 'Highlight 1'], ['muted', 'Muted']], def: 'accent2' },
     ] },
     { title: 'Labels & values', items: [
       { key: 'labelSize', label: 'Label size', type: 'range', min: 10, max: 15, step: 0.5, unit: 'px', def: 11.5 },
       { key: 'valueColor', label: 'Value colour', type: 'select', options: [['accent', 'Highlight 1'], ['accent2', 'Highlight 2'], ['text', 'Text']], def: 'accent' },
-      { key: 'quietIcons', label: 'Fade pin/lock until hover', type: 'toggle', def: false },
+      { key: 'quietIcons', label: 'Fade pin/lock until hover', type: 'toggle', def: true },
     ] },
     { title: 'Sliders', items: [
       { key: 'thumbShape', label: 'Handle', type: 'select', options: [['round', 'Round'], ['square', 'Square'], ['bar', 'Bar']], def: 'round' },
-      { key: 'thumbSize', label: 'Handle size', type: 'range', min: 10, max: 22, step: 1, unit: 'px', def: 16 },
-      { key: 'trackH', label: 'Track height', type: 'range', min: 2, max: 10, step: 1, unit: 'px', def: 6 },
+      { key: 'thumbSize', label: 'Handle size', type: 'range', min: 10, max: 22, step: 1, unit: 'px', def: 15 },
+      { key: 'trackH', label: 'Track height', type: 'range', min: 2, max: 10, step: 1, unit: 'px', def: 4 },
       { key: 'track', label: 'Track colour', type: 'color', def: '#3f3f4c' },
     ] },
     { title: 'Buttons & switches', items: [
-      { key: 'btnRadius', label: 'Corner radius', type: 'range', min: 0, max: 16, step: 1, unit: 'px', def: 4 },
-      { key: 'activeStyle', label: 'Active state', type: 'select', options: [['fill', 'Filled'], ['outline', 'Outlined'], ['tint', 'Tinted']], def: 'fill' },
+      { key: 'btnRadius', label: 'Corner radius', type: 'range', min: 0, max: 16, step: 1, unit: 'px', def: 5 },
+      { key: 'activeStyle', label: 'Active state', type: 'select', options: [['fill', 'Filled'], ['outline', 'Outlined'], ['tint', 'Tinted']], def: 'outline' },
     ] },
     { title: 'Tabs & layout', items: [
       { key: 'tabIcons', label: 'Tab icons', type: 'toggle', def: true },
       { key: 'tabCase', label: 'Tab case', type: 'select', options: [['upper', 'UPPERCASE'], ['sentence', 'Sentence case']], def: 'upper' },
-      { key: 'density', label: 'Spacing', type: 'select', options: [['compact', 'Compact'], ['normal', 'Normal'], ['roomy', 'Roomy']], def: 'normal' },
-      { key: 'sidebarW', label: 'Sidebar width', type: 'range', min: 240, max: 380, step: 10, unit: 'px', def: 280 },
+      { key: 'density', label: 'Spacing', type: 'select', options: [['compact', 'Compact'], ['normal', 'Normal'], ['roomy', 'Roomy']], def: 'compact' },
+      { key: 'sidebarW', label: 'Sidebar width', type: 'range', min: 240, max: 380, step: 10, unit: 'px', def: 270 },
     ] },
   ];
   const DEFAULTS = Object.fromEntries(GROUPS.flatMap(g => g.items.map(i => [i.key, i.def])));

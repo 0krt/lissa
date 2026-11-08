@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>lissa</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1684,6 +1684,180 @@
   .intro-card .ic-actions .map-add-btn { margin-top: 0; }
   @media (max-width: 860px) { .intro-card { top: 6px; left: 8px; padding: 8px 10px 10px; } }
   @media (prefers-reduced-motion: reduce) { .intro-card .ic-meter i { transition: none; } }
+
+  /* ── Theme ──────────────────────────────────────────────────────────────
+     Built in the style editor (mockups/). First a token layer that maps the
+     colours, fonts and radii hard-coded above onto variables, then the
+     theme's values and per-element rules. */
+:root {
+  --font-ui: 'IBM Plex Mono', monospace;
+  --font-display: var(--font-ui);
+  --font-num: var(--font-ui);
+
+  --card: #15151b;
+  --card-border: #2a2a32;
+  --card-radius: 7px;
+  --card-shadow: 0 1px 2px rgba(0,0,0,0.35);
+  --head-wash: rgba(200,240,96,0.04);
+  --head-text: var(--accent);
+  --sub-text: var(--accent2);
+
+  --on-accent: #0c0c0e;
+  --a1-soft: rgba(200,240,96,0.07);
+  --a1-mid: rgba(200,240,96,0.12);
+  --a2-soft: rgba(96,176,240,0.12);
+  --a2-mid: rgba(96,176,240,0.15);
+  --a2-strong: rgba(96,176,240,0.28);
+  --wash: rgba(255,255,255,0.025);
+  --wash-2: rgba(255,255,255,0.04);
+  --hover-wash: rgba(255,255,255,0.06);
+
+  --overlay: rgba(12,12,14,0.72);
+  --popover: #15151b;
+  --popover-sel: #1b1b21;
+  --dock: rgba(17,17,21,0.86);
+  --scrim: rgba(6,6,8,0.55);
+  --pop-shadow: 0 20px 50px rgba(0,0,0,0.6);
+
+  --ctl-radius: 2px;
+  --pill-radius: 12px;
+  --btn-radius: var(--radius);
+  --track-h: 6px;
+  --track-radius: 3px;
+  --thumb-w: 16px;
+  --thumb-h: 16px;
+  --thumb-radius: 50%;
+  --thumb-ring: #0c0c0e;
+  --thumb-shadow: 0 0 0 1px var(--accent);
+  --label-case: none;
+  --label-spacing: 0.08em;
+  --mod-edge: 2px;
+  --panel-edge: 1px;
+}
+
+body, body * { font-family: var(--font-ui) !important; }
+header h1, .section-label, .subsection-label, .tab-btn, .intro-card .ic-title,
+.preset-sidebar-head .section-label { font-family: var(--font-display) !important; }
+.param-header .val, .ps-val, .pin-dock .dk-v, .status, .synth-readout,
+.synth-readout *, #interval-label { font-family: var(--font-num) !important; }
+
+/* Chrome */
+header h1 { color: var(--head-text); }
+header, .bottom-bar, .sidebar, .preset-sidebar, .tab-bar { background: var(--panel); }
+header { border-bottom-width: var(--panel-edge); }
+.sidebar { border-right-width: var(--panel-edge); }
+.preset-sidebar { border-left-width: var(--panel-edge); }
+.bottom-bar { border-top-width: var(--panel-edge); }
+
+/* Cards */
+.section {
+  background: var(--card); border-color: var(--card-border);
+  border-radius: var(--card-radius); box-shadow: var(--card-shadow);
+}
+.section.collapsed:hover { border-color: var(--control-border); }
+.section > .section-label {
+  background: var(--head-wash); border-bottom-color: var(--card-border);
+  border-radius: var(--card-radius) var(--card-radius) 0 0; color: var(--head-text);
+}
+.section.collapsed > .section-label { border-radius: var(--card-radius); }
+.section-label { color: var(--head-text); }
+.section-label:hover { color: var(--accent-hi); }
+.subsection-label { color: var(--sub-text); }
+.param-header label, .checkbox-row label, .color-row label { text-transform: var(--label-case); letter-spacing: var(--label-spacing); }
+
+.mod-group { background: var(--wash); border-left-width: var(--mod-edge); }
+.map-row { background: var(--wash); }
+.lfo-panel { background: var(--wash); }
+.pbar { background: var(--wash-2); }
+.mod-group-label, .vel-label { color: var(--sub-text); }
+
+/* Switches and buttons */
+.wave-toggle { border-radius: var(--btn-radius); }
+.wave-btn { border-radius: var(--ctl-radius); }
+.wave-btn:not(.active):hover { background: var(--hover-wash); }
+.wave-btn.active, .wave-btn.active:hover { color: var(--on-accent); }
+.btn-primary { color: var(--on-accent); }
+.btn-primary:hover { background: var(--accent-hi); }
+.pin-dock .dk-tg.on { color: var(--on-accent); }
+.lfo-wave-btn, .mod-wave-btn, .mod-axis-btn, .retrig-btn, .map-cc-btn,
+.preset-btn, .number-input input[type=number], .midi-ch-select, .map-target,
+.lfo-cc-row input[type=number], .map-cc-num, .map-range input { border-radius: var(--ctl-radius); }
+.lfo-wave-btn.active, .mod-wave-btn.active, .mod-axis-btn.active { background: var(--a2-mid); }
+.lfo-wave-btn.active:hover, .mod-wave-btn.active:hover, .mod-axis-btn.active:hover { background: var(--a2-strong); }
+.retrig-btn.active, .map-cc-btn.learning, .sec-help[aria-expanded="true"],
+.info-btn[aria-expanded="true"] { background: var(--a2-soft); }
+.preset-btn.active { background: var(--a1-soft); }
+.preset-btn.active:hover { background: var(--a1-mid); }
+.synth-readout .ro-row:hover, .synth-readout .ro-row.open { background: var(--a1-mid); }
+.sidebar-toggle, .grid-toggle, .search-toggle, .btn, .midi-select { border-radius: var(--btn-radius); }
+.info-btn, .sec-help { border-radius: var(--pill-radius); }
+.info-text { background: var(--a2-soft); }
+.grid-pad { border-radius: var(--ctl-radius); }
+
+/* Sliders */
+input[type=range] { height: var(--track-h); border-radius: var(--track-radius); }
+input[type=range]::-webkit-slider-thumb {
+  width: var(--thumb-w); height: var(--thumb-h); border-radius: var(--thumb-radius);
+  border-color: var(--thumb-ring); box-shadow: var(--thumb-shadow);
+}
+input[type=range]::-moz-range-thumb {
+  width: var(--thumb-w); height: var(--thumb-h); border-radius: var(--thumb-radius);
+  border-color: var(--thumb-ring); box-shadow: var(--thumb-shadow);
+}
+input[type=range]::-webkit-slider-thumb:hover { box-shadow: var(--thumb-shadow); }
+
+/* Floating surfaces */
+.view-tg, .synth-readout { background: var(--overlay); }
+.view-tg { border-radius: var(--ctl-radius); }
+.ps-box, .ro-pop { background: var(--popover); box-shadow: var(--pop-shadow); border-radius: var(--card-radius); }
+.ps-row.sel { background: var(--popover-sel); }
+.param-search { background: var(--scrim); }
+.pin-dock, .intro-card { background: var(--dock); border-radius: var(--card-radius); }
+.ain-meter { background: var(--bg); }
+.midi-dot.error, .rec-dot { background: var(--danger); }
+
+:root {
+  --accent: #3a9c9b; --accent-hi: color-mix(in srgb, #3a9c9b 80%, white); --on-accent: #ffffff;
+  --accent2: #3264a4; --focus: #d4d4d8;
+  --a1-soft: color-mix(in srgb, #3a9c9b 7%, transparent); --a1-mid: color-mix(in srgb, #3a9c9b 12%, transparent);
+  --a2-soft: color-mix(in srgb, #3264a4 12%, transparent); --a2-mid: color-mix(in srgb, #3264a4 15%, transparent); --a2-strong: color-mix(in srgb, #3264a4 28%, transparent);
+  --panel: #121215; --card: #121616; --bg: #151519;
+  --overlay: color-mix(in srgb, #121215 86%, transparent); --popover: #121616; --dock: color-mix(in srgb, #121215 90%, transparent);
+  --text: #d4d4d8; --label: #8787a1; --muted: #8b8b98;
+  --border: #2b2b36; --card-border: #2b2b36; --control-border: #525260;
+  --track: #3f3f4c;
+  --font-ui: 'Atkinson Hyperlegible', sans-serif; --font-display: 'Atkinson Hyperlegible', sans-serif; --font-num: 'Atkinson Hyperlegible', sans-serif;
+  --card-radius: 7px; --head-wash: color-mix(in srgb, #3a9c9b 4%, transparent);
+  --mod-edge: 0px; --wash: color-mix(in srgb, #d4d4d8 3%, transparent);
+  --thumb-w: 15px; --thumb-h: 15px; --thumb-radius: 50%; --thumb-ring: #151519;
+  --track-h: 4px; --track-radius: 2px;
+  --radius: 5px; --ctl-radius: 3px; --btn-radius: 5px;
+}
+.mod-group, .map-row { border-left-width: var(--mod-edge); border-radius: 4px; }
+.vel-label, .mod-group-label { color: var(--accent2); }
+.section-label, .subsection-label, .preset-sidebar-head .section-label, .vel-label, .mod-group-label {
+  text-transform: uppercase; letter-spacing: 0.14em;
+}
+.section-label { font-size: 13px; }
+.subsection-label { font-size: 10.5px; }
+.param-header label, .checkbox-row label, .color-row label, .number-input label { font-size: 11.5px; }
+.param-header .val { color: var(--accent); font-size: 11px; }
+.param-row .pin-btn, .param-row .lock-btn { opacity: 0.3; transition: opacity 0.12s; }
+.param-row:hover .pin-btn, .param-row:hover .lock-btn, .param-row:focus-within .pin-btn, .param-row:focus-within .lock-btn,
+.pin-btn[aria-pressed="true"], .lock-btn[aria-pressed="true"] { opacity: 1; }
+@media (hover: none) { .param-row .pin-btn, .param-row .lock-btn { opacity: 1; } }
+.wave-btn.active, .wave-btn.active:hover, .preset-btn.active, .preset-btn.active:hover {
+  background: transparent; color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.lfo-wave-btn.active, .mod-wave-btn.active, .mod-axis-btn.active { background: transparent; }
+.tab-btn { text-transform: uppercase; letter-spacing: 0.12em; }
+.param-row { margin-bottom: 6px; }
+input[type=range] { margin: 0; }
+/* Pin and lock follow Muted rather than the track colour. */
+.pin-btn, .lock-btn { color: color-mix(in srgb, var(--muted) 45%, var(--card)); }
+.pin-btn:hover, .lock-btn:hover { color: var(--label); }
+.pin-btn[aria-pressed="true"] { color: var(--accent); }
+.lock-btn[aria-pressed="true"] { color: var(--accent2); }
+.sidebar { gap: 10px; width: 270px; min-width: 270px; }
 </style>
 </head>
 <body>
@@ -2056,7 +2230,7 @@
         </div>
 
         <div class="subsection-label">Colour</div>
-        <div class="color-row"><label>Stroke</label><input type="color" id="stroke-color" value="#c8f060"></div>
+        <div class="color-row"><label>Stroke</label><input type="color" id="stroke-color" value="#3a9c9b"></div>
         <div class="param-row hsl-row">
           <div class="param-header"><label>Hue</label><span class="val" id="hsl-h-val">79</span></div>
           <input type="range" id="hsl-h" min="0" max="360" step="1" value="79">
@@ -2801,7 +2975,7 @@ let params = {
   geometry: 0,    // 0 = lateral, 1 = rotary concurrent, 2 = rotary counter-current, 3 = rose, 4 = torus knot, 5 = waves
   morphX: 0,      // X wave position along SIN→TRI→SAW→SQR (0..3, whole = exact shape)
   morphY: 0,      // Y wave position along SIN→TRI→SAW→SQR (0..3, whole = exact shape)
-  strokeColor: '#c8f060',
+  strokeColor: '#3a9c9b',
   bgColor: '#0c0c0e',
   lineWidth: 1.5,
   resolution: 2000,
@@ -3874,7 +4048,7 @@ function frameCurve(n, fn) {
 function frameDepthK(z) { return Math.max(0.3, Math.min(1.35, 1 - 0.45 * z)); }
 function frameColors() {
   const m = Math.round(params.frameColorMode || 0);
-  if (m === 1) { const c = params.strokeColor || '#c8f060'; return { x: c, y: c, z: c, grid: c }; }
+  if (m === 1) { const c = params.strokeColor || '#3a9c9b'; return { x: c, y: c, z: c, grid: c }; }
   if (m === 2) return { x: '#8ab4ff', y: '#7ee7d0', z: '#c5a3ff', grid: '#7c8694' };
   if (m === 3) return { x: params.frameColX || '#e5484d', y: params.frameColY || '#4cc38a',
                         z: params.frameColZ || '#5b8def', grid: params.frameColGrid || '#8b909a' };
@@ -4945,7 +5119,10 @@ function drawWavePreview() {
   if (waveCanvas.width !== cssW)  waveCanvas.width = cssW;
   if (waveCanvas.height !== cssH) waveCanvas.height = cssH;
   const w = waveCanvas.width, h = waveCanvas.height;
-  waveCtx.fillStyle = '#0c0c0e';
+  // Colours come from the theme, so the preview follows the stylesheet.
+  const css = getComputedStyle(document.documentElement);
+  const themed = (name, fallback) => css.getPropertyValue(name).trim() || fallback;
+  waveCtx.fillStyle = themed('--bg', '#0c0c0e');
   waveCtx.fillRect(0, 0, w, h);
   const CYC = Math.max(2, lapDiv());     // preview shows 2 cycles (a whole sub cycle)
   // Build, filter (same waveform stage as the figure), then plot each axis.
@@ -4964,8 +5141,8 @@ function drawWavePreview() {
     }
     waveCtx.strokeStyle = color; waveCtx.lineWidth = lw; waveCtx.stroke();
   };
-  drawAxis(waveTypeY, 'y', '#60b0f0', 1);    // Y dimmer, behind
-  drawAxis(waveTypeX, 'x', '#c8f060', 1.5);  // X in front
+  drawAxis(waveTypeY, 'y', themed('--accent2', '#60b0f0'), 1);    // Y dimmer, behind
+  drawAxis(waveTypeX, 'x', themed('--accent', '#c8f060'), 1.5);   // X in front
 }
 
 // ── Utility ───────────────────────────────────────────────────────────────────
@@ -9862,7 +10039,7 @@ function renderGridPad(i) {
   pad.classList.toggle('filled', !!p);
   pad.classList.toggle('active', i === gridActiveIdx);
   if (p) {
-    const col = (p.params && p.params.strokeColor) || '#c8f060';
+    const col = (p.params && p.params.strokeColor) || '#3a9c9b';
     pad.style.background = col;
     pad.style.borderColor = col;
     // Pick black/white label for legibility against the patch colour.
