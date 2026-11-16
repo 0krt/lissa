@@ -315,11 +315,11 @@
   .pin-dock .dk-v { margin-left: auto; color: var(--accent); font-variant-numeric: tabular-nums; }
   .pin-dock .dk-x { background: none; border: 0; color: var(--muted); cursor: pointer; padding: 0 2px; font-size: 11px; opacity: 0; }
   .pin-dock .dk:hover .dk-x, .pin-dock .dk-x:focus-visible { opacity: 1; }
-  .pin-dock .dk-tg {
+  .dk-tg {
     font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em;
     background: none; border: 1px solid var(--border); border-radius: 3px; color: var(--label); padding: 3px 0; cursor: pointer;
   }
-  .pin-dock .dk-tg.on { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .dk-tg.on { background: var(--accent); border-color: var(--accent); color: var(--bg); }
   body.has-dock #interval-label { bottom: calc(var(--dock-h, 60px) + 18px) !important; }
   .synth-readout .ro-row {
     display: inline; font: inherit; color: inherit; background: none; border: 0; padding: 0 2px; margin: 0 -2px;
@@ -1778,7 +1778,7 @@ header { border-bottom-width: var(--panel-edge); }
 .wave-btn.active, .wave-btn.active:hover { color: var(--on-accent); }
 .btn-primary { color: var(--on-accent); }
 .btn-primary:hover { background: var(--accent-hi); }
-.pin-dock .dk-tg.on { color: var(--on-accent); }
+.dk-tg.on { color: var(--on-accent); }
 .lfo-wave-btn, .mod-wave-btn, .mod-axis-btn, .retrig-btn, .map-cc-btn,
 .preset-btn, .number-input input[type=number], .midi-ch-select, .map-target,
 .lfo-cc-row input[type=number], .map-cc-num, .map-range input { border-radius: var(--ctl-radius); }
@@ -1858,6 +1858,30 @@ input[type=range] { margin: 0; }
 .pin-btn[aria-pressed="true"] { color: var(--accent); }
 .lock-btn[aria-pressed="true"] { color: var(--accent2); }
 .sidebar { gap: 10px; width: 270px; min-width: 270px; }
+
+/* ── Accessibility ───────────────────────────────────────────────────────────
+   Highlight 2 is too dark to read as small text on the panels (2.9:1). Text
+   uses a lighter tint of it (5.4:1); fills, borders and indicators keep the
+   base colour. The tint follows --accent2, so the style editor still drives it. */
+:root { --accent2-text: color-mix(in srgb, var(--accent2) 70%, white); --sub-text: var(--accent2-text); }
+.vel-label, .mod-group-label, .lfo-num, .ps-where, .ro-pop .rp-t, .hsl-row .param-header .val,
+.vel-toggle input:checked + label, .map-cc-num, .info-text em,
+.lfo-wave-btn.active, .mod-wave-btn.active, .mod-axis-btn.active,
+.lfo-wave-btn.active:hover, .mod-wave-btn.active:hover, .mod-axis-btn.active:hover,
+.retrig-btn:hover, .retrig-btn.active, .lfo-targets label:has(input:checked),
+.map-cc-btn:hover, .map-cc-btn.learning, .map-cc-btn.bound, .map-add-btn:hover,
+.map-rangecc-btn:hover, .map-rangecc-btn.open,
+.sec-help:hover, .sec-help[aria-expanded="true"], .info-btn:hover, .info-btn[aria-expanded="true"],
+.lock-btn[aria-pressed="true"] { color: var(--accent2-text); }
+/* "Nothing below 10px" covers the axis switches too. */
+.mod-axis-btn { font-size: 10px; }
+/* 24px hit areas (WCAG 2.5.8) without moving the rows: the buttons grow, their margins give the height back. */
+.pin-btn, .lock-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 24px; min-height: 24px; padding: 0; margin-top: -7px; margin-bottom: -7px; margin-right: 0;
+}
+.sec-help { height: 24px; top: 6px; }
+.ps-ctl .dk-tg, .ro-pop .dk-tg { padding: 3px 14px; }
 </style>
 </head>
 <body>
@@ -1877,7 +1901,7 @@ input[type=range] { margin: 0; }
 </header>
 
 <div class="layout grid-hidden" id="layout">
-  <div class="sidebar" id="sidebar-panel">
+  <div class="sidebar" id="sidebar-panel" role="complementary" aria-label="Controls">
     <div class="tab-bar" role="tablist" aria-label="Control groups">
       <button class="tab-btn" type="button" role="tab" id="tabbtn-shape" data-tab="shape" aria-controls="tab-shape" aria-selected="false" title="Shape — the figure itself: geometry and ratio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12c2.2-6.5 6.8-6.5 9 0s6.8 6.5 9 0M3 12c2.2 6.5 6.8 6.5 9 0s6.8-6.5 9 0"/></svg><span>Shape</span></button>
       <button class="tab-btn" type="button" role="tab" id="tabbtn-sound" data-tab="sound" aria-controls="tab-sound" aria-selected="false" title="Sound — the waves and how they are processed"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12h3l2.5-7 4 14 3-10 2 3H22"/></svg><span>Sound</span></button>
@@ -2184,7 +2208,7 @@ input[type=range] { margin: 0; }
 
         <!-- External input controls (hidden when the internal generator is selected) -->
         <div id="ain-external-controls" style="display:none">
-          <select class="midi-select" id="audio-input-select"><option value="">— select device —</option></select>
+          <select class="midi-select" id="audio-input-select" aria-label="Audio input device"><option value="">— select device —</option></select>
           <button class="map-add-btn" id="ain-refresh" style="margin-top:6px">grant access &amp; list devices</button>
           <button class="map-add-btn" id="ain-reset" style="margin-top:6px">↻ reset audio engine</button>
           <div class="midi-status" style="margin-top:8px">
@@ -2652,7 +2676,7 @@ input[type=range] { margin: 0; }
         </div>
         <div id="x-note-panel" style="display:none">
           <div class="midi-ch-row" style="margin-bottom:5px">
-            <label>X MIDI ch</label>
+            <label for="note-x-ch">X MIDI ch</label>
             <select class="midi-ch-select" id="note-x-ch">
               <option value="1">1</option><option value="2">2</option><option value="3">3</option>
               <option value="4">4</option><option value="5">5</option><option value="6">6</option>
@@ -2660,13 +2684,13 @@ input[type=range] { margin: 0; }
             </select>
           </div>
           <div class="param-row">
-            <div class="param-header"><label>X note</label><span class="val" id="x-note-val" style="color:var(--accent2)">—</span></div>
+            <div class="param-header"><label>X note</label><span class="val" id="x-note-val" style="color:var(--accent2-text)">—</span></div>
             <input type="range" id="x-note-slider" min="0" max="11" step="1" value="0">
           </div>
         </div>
         <div id="y-note-panel" style="display:none">
           <div class="midi-ch-row" style="margin-bottom:5px">
-            <label>Y MIDI ch</label>
+            <label for="note-y-ch">Y MIDI ch</label>
             <select class="midi-ch-select" id="note-y-ch">
               <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option>
               <option value="4">4</option><option value="5">5</option><option value="6">6</option>
@@ -2674,7 +2698,7 @@ input[type=range] { margin: 0; }
             </select>
           </div>
           <div class="param-row">
-            <div class="param-header"><label>Y note</label><span class="val" id="y-note-val" style="color:var(--accent2)">C</span></div>
+            <div class="param-header"><label>Y note</label><span class="val" id="y-note-val" style="color:var(--accent2-text)">C</span></div>
             <input type="range" id="y-note-slider" min="0" max="11" step="1" value="0">
           </div>
         </div>
@@ -2703,7 +2727,7 @@ input[type=range] { margin: 0; }
           <span class="midi-status-text" id="midi-status-text">not connected</span>
         </div>
         <div style="font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Note / main input</div>
-        <select class="midi-select" id="midi-input-select"><option value="">— no input —</option></select>
+        <select class="midi-select" id="midi-input-select" aria-label="Note / main MIDI input"><option value="">— no input —</option></select>
         <div style="margin-top:8px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
             <span style="color:var(--label);font-size:11px">Base freq</span>
@@ -2716,7 +2740,7 @@ input[type=range] { margin: 0; }
           <div id="basefreq-midi-panel">
             <div style="display:flex;justify-content:space-between;align-items:center">
               <span style="color:var(--label);font-size:11px">Last note</span>
-              <span id="midi-note-name" style="color:var(--accent2);font-size:11px">—</span>
+              <span id="midi-note-name" style="color:var(--accent2-text);font-size:11px">—</span>
             </div>
             <div class="info-text" data-info-label="the MIDI note read-out">
               Follows notes on the X-axis channel set in Note Input.
@@ -2734,7 +2758,7 @@ input[type=range] { margin: 0; }
       <div class="section" id="section-midi-map">
         <div class="section-label">CC Mapping</div>
         <div style="font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Mapping input <span style="text-transform:none">(optional)</span></div>
-        <select class="midi-select" id="midi-map-input-select"><option value="">— same as main —</option></select>
+        <select class="midi-select" id="midi-map-input-select" aria-label="MIDI input for CC mapping"><option value="">— same as main —</option></select>
         <div class="param-row" style="margin-top:8px">
           <div class="param-header"><label>Smoothing</label><span class="val" id="map-slew-val">45ms</span></div>
           <input type="range" id="map-slew" min="0" max="1" step="0.005" value="0.045">
@@ -2752,7 +2776,7 @@ input[type=range] { margin: 0; }
         </div>
         <div id="wo-controls">
           <div style="font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Output</div>
-          <select class="midi-select" id="wo-port"><option value="">— no MIDI output —</option></select>
+          <select class="midi-select" id="wo-port" aria-label="MIDI output"><option value="">— no MIDI output —</option></select>
           <div class="midi-ch-row">
             <label for="wo-ch">Channel</label>
             <select class="midi-ch-select" id="wo-ch"></select>
@@ -2876,7 +2900,7 @@ input[type=range] { margin: 0; }
 
   </div>
 
-  <div class="canvas-area">
+  <div class="canvas-area" role="main">
     <div class="view-toggles" role="toolbar" aria-label="View toggles">
       <button class="view-tg" type="button" id="vt-geo" aria-pressed="false" title="Geometry — cycle lateral / 3D lateral / con-current / counter-current / rose / torus knot / waves"></button>
       <button class="view-tg" type="button" id="vt-frame" aria-pressed="false" title="Coordinate frame on / off"></button>
@@ -2902,11 +2926,11 @@ input[type=range] { margin: 0; }
     "></div>
   </div>
 
-  <div class="preset-sidebar" id="preset-sidebar">
+  <div class="preset-sidebar" id="preset-sidebar" role="complementary" aria-label="Session presets">
     <div class="preset-sidebar-head">
       <div class="section-label" style="cursor:default">Session Presets</div>
       <div class="grid-meta-row">
-        <label style="font-size:11px;letter-spacing:0.08em;color:var(--muted)">MIDI ch</label>
+        <label for="grid-channel" style="font-size:11px;letter-spacing:0.08em;color:var(--muted)">MIDI ch</label>
         <select class="midi-select" id="grid-channel" style="width:auto;flex:1"></select>
       </div>
       <div class="param-row" style="margin-top:6px">
@@ -2956,7 +2980,7 @@ input[type=range] { margin: 0; }
       <kbd>esc</kbd>
     </div>
     <div class="ps-results" id="ps-results" role="listbox" aria-label="Matching parameters"></div>
-    <div class="ps-foot">↑↓ choose · ↵ show in sidebar · ☆ pin to canvas</div>
+    <div class="ps-foot">↑↓ choose · ↵ show in sidebar · ☆ pin to canvas · type <kbd>intro</kbd> + ↵ for the guided intro</div>
   </div>
 </div>
 
@@ -6337,6 +6361,28 @@ document.getElementById('btn-export-png').addEventListener('click', () => {
 });
 
 // Reset every synthesis / figure / render parameter to its starting value.
+// Both reset buttons act at once, with no dialog. For a few seconds afterwards the
+// button that was pressed becomes Undo and puts back the patch it replaced.
+function armResetUndo(id, reset) {
+  const btn = document.getElementById(id), label = btn.textContent;
+  let snap = null, timer = 0;
+  const disarm = () => { snap = null; clearTimeout(timer); btn.textContent = label; };
+  btn.addEventListener('click', () => {
+    if (snap) {
+      const o = snap; disarm();
+      params.phase = o.phase;   // applyPresetDataRaw keeps the running phase
+      applyPresetDataRaw(o.patch);
+      animPhase = o.animPhase;
+      const vol = document.getElementById('audio-vol');
+      vol.value = o.volume; vol.dispatchEvent(new Event('input', { bubbles: true }));
+      return;
+    }
+    snap = { patch: serializePreset(), phase: params.phase, animPhase, volume: document.getElementById('audio-vol').value };
+    reset();
+    btn.textContent = '↶ Undo reset';
+    timer = setTimeout(disarm, 8000);
+  });
+}
 function resetAll() {
   Object.keys(PARAM_DEFAULTS).forEach(k => { params[k] = PARAM_DEFAULTS[k]; });
   waveTypeX = 'sine';
@@ -6353,7 +6399,7 @@ function resetAll() {
   refreshAllControls();
   updateSwapBtn();
 }
-document.getElementById('btn-reset').addEventListener('click', resetAll);
+armResetUndo('btn-reset', resetAll);
 
 // The canvas is the whole window; the FIGURE keeps the square it always had.
 // figBox is that square in window coordinates — resize() sizes the bitmap to the
@@ -7352,7 +7398,7 @@ async function refreshAudioInputs() {
     });
     if (prev) sel.value = prev;
     const diag = document.getElementById('ain-diag');
-    if (diag) diag.textContent = `${ins.length} input device(s)` + (unlabelled ? ` · ${unlabelled} unlabelled — click "grant access & list"` : '');
+    if (diag) diag.textContent = `${ins.length} input device${ins.length === 1 ? '' : 's'}` + (unlabelled ? ` · ${unlabelled} unnamed — click "grant access & list devices"` : '');
   } catch (e) {
     ainStatus('could not list devices: ' + (e.name || ''), 'error');
   }
@@ -7362,7 +7408,7 @@ async function refreshAudioInputs() {
 // Chrome exposes real labels + deviceIds (the cause of the "Input 1" placeholder).
 async function requestPermissionAndList() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    ainStatus('getUserMedia needs https:// or localhost (not file://)', 'error');
+    ainStatus('audio input needs https:// or http://localhost, not a local file', 'error');
     return;
   }
   let tmp = null;
@@ -7370,7 +7416,9 @@ async function requestPermissionAndList() {
     tmp = await navigator.mediaDevices.getUserMedia({ audio: true });
     ainStatus('access granted — pick a device', 'connected');
   } catch (e) {
-    ainStatus((e && e.name ? e.name : 'error') + (e && e.message ? ': ' + e.message.slice(0, 40) : ''), 'error');
+    if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) ainStatus('microphone blocked — allow it in the browser’s site settings', 'error');
+    else if (e && e.name === 'NotFoundError') ainStatus('no audio input device found', 'error');
+    else ainStatus((e && e.name ? e.name : 'error') + (e && e.message ? ': ' + e.message.slice(0, 40) : ''), 'error');
     return;
   }
   await refreshAudioInputs();              // enumerate while the stream is live
@@ -7406,7 +7454,7 @@ async function connectExternalInput(deviceId) {
     } catch (err) {
       // Stale/blank deviceId (common in Chrome before a labelled grant) → retry on default.
       if (err && (err.name === 'OverconstrainedError' || err.name === 'NotFoundError') && deviceId) {
-        ainStatus('device id stale — using default; click "grant access & list"', 'error');
+        ainStatus('that device is gone — using the default; click "grant access & list devices"', 'error');
         stream = await navigator.mediaDevices.getUserMedia({ audio: baseAudio });
       } else {
         throw err;
@@ -8365,10 +8413,10 @@ if (navigator.requestMIDIAccess) {
       checkMidiConnection();
     };
   }).catch(() => {
-    setMidiStatus('error', 'access denied');
+    setMidiStatus('error', 'MIDI blocked — allow it in the browser’s site settings, then reload');
   });
 } else {
-  setMidiStatus('error', 'not supported (use Chrome)');
+  setMidiStatus('error', 'no Web MIDI in this browser — use Chrome or Edge');
 }
 
 // ── Sidebar: task tabs + collapsible sections ─────────────────────────────────
@@ -8605,14 +8653,14 @@ const MAP_TARGETS = {
   lfo1Rate:  { label:'LFO 2 Rate',    min:0.01, max:6,              apply:v => { lfos[1].freq = v; const e=document.getElementById('lfo1-freq'); if(e)e.value=v; const d=document.getElementById('lfo1-freq-val'); if(d)d.textContent=v.toFixed(2)+' Hz'; } },
   lfo1Depth: { label:'LFO 2 Depth',   min:0,    max:1,              apply:v => { lfos[1].depth = v; const e=document.getElementById('lfo1-depth'); if(e)e.value=v; const d=document.getElementById('lfo1-depth-val'); if(d)d.textContent=Math.round(v*100)+'%'; } },
   hue:       { label:'Colour Hue',    min:0,    max:360,            apply:v => { strokeHSL.h = v; applyStrokeHSL(); } },
-  sat:       { label:'Colour Sat',    min:0,    max:100,            apply:v => { strokeHSL.s = v; applyStrokeHSL(); } },
-  light:     { label:'Colour Light',  min:0,    max:100,            apply:v => { strokeHSL.l = v; applyStrokeHSL(); } },
+  sat:       { label:'Colour Saturation', min:0,    max:100,            apply:v => { strokeHSL.s = v; applyStrokeHSL(); } },
+  light:     { label:'Colour Lightness', min:0,    max:100,            apply:v => { strokeHSL.l = v; applyStrokeHSL(); } },
   lineWidth: { label:'Line Width',    min:0.5,  max:8,              apply:v => { params.lineWidth = v; document.getElementById('line-width').value=v; document.getElementById('line-width-val').textContent=v.toFixed(1); } },
   phase:     { label:'Phase δ',       min:0,    max:2,              apply:v => { params.phase = v; animPhase = v; document.getElementById('phase').value=v; document.getElementById('phase-val').textContent=v.toFixed(2)+'π'; updateStatus(); } },
-  animSpeed: { label:'Anim Speed',    min:0.1,  max:5,              apply:v => { animSpeed = v; document.getElementById('anim-speed').value=v; document.getElementById('speed-val').textContent=v.toFixed(1)+'×'; } },
+  animSpeed: { label:'Animation Speed', min:0.1,  max:5,              apply:v => { animSpeed = v; document.getElementById('anim-speed').value=v; document.getElementById('speed-val').textContent=v.toFixed(1)+'×'; } },
   volume:    { label:'Volume',        min:0,    max:1,              apply:v => { document.getElementById('audio-vol').value=v; document.getElementById('vol-val').textContent=Math.round(v*100)+'%'; if (masterGain && audioCtx) masterGain.gain.setTargetAtTime(v, audioCtx.currentTime, 0.02); } },
   filterCutoff:{ label:'Filter Cutoff', min:0, max:1,              apply:v => { params.filterCutoff=v; const e=document.getElementById('filter-freq'); if(e)e.value=v; const d=document.getElementById('filter-freq-val'); if(d)d.textContent=fmtCutoff(v); drawWavePreview(); schedulePeriodicWaveUpdate(); } },
-  filterQ:   { label:'Filter Reso',   min:0.1,  max:20,             apply:v => { params.filterQ=v; const e=document.getElementById('filter-res'); if(e)e.value=v; const d=document.getElementById('filter-res-val'); if(d)d.textContent=v.toFixed(1); drawWavePreview(); schedulePeriodicWaveUpdate(); } },
+  filterQ:   { label:'Filter Resonance', min:0.1,  max:20,             apply:v => { params.filterQ=v; const e=document.getElementById('filter-res'); if(e)e.value=v; const d=document.getElementById('filter-res-val'); if(d)d.textContent=v.toFixed(1); drawWavePreview(); schedulePeriodicWaveUpdate(); } },
   dotsLine:  { label:'Dots ↔ Line',   min:0,    max:1,              apply:v => { params.dotsLine=v; const e=document.getElementById('dots-line'); if(e)e.value=v; const d=document.getElementById('dots-line-val'); if(d)d.textContent=fmtDotSpacing(v); } },
   preset:    { label:'Preset Scroll', min:0,    max:PRESETS.length-1, step:1, apply:v => { const p = PRESETS[Math.max(0,Math.min(PRESETS.length-1,Math.round(v)))]; if (p) applyPreset(p.fx, p.fy); } },
   columnView:       { label:'Column View',       toggle:true, apply:b => clickCheckbox('column-view', b) },
@@ -8631,11 +8679,11 @@ const MAP_TARGETS = {
   constructionView: { label:'Construction View', toggle:true, apply:b => clickCheckbox('construction-view', b) },
   animatePhase:     { label:'Animate Phase',     toggle:true, apply:b => { animating = b; document.getElementById('animate').checked=b; document.getElementById('anim-speed-row').classList.toggle('vis-off', !b); } },
   visualSwap:       { label:'Visual X/Y Swap',   toggle:true, apply:b => { visualSwap = b; updateSwapBtn(); } },
-  frameShow:   { label:'Coord Frame',     toggle:true, apply:b => { params.frameShow = b ? 1 : 0; const cb=document.getElementById('frame-show'); if (cb) cb.checked = b; updateFrameControls(); } },
+  frameShow:   { label:'Coordinate Frame', toggle:true, apply:b => { params.frameShow = b ? 1 : 0; const cb=document.getElementById('frame-show'); if (cb) cb.checked = b; updateFrameControls(); } },
   frameFollow: { label:'Frame Follows',   toggle:true, apply:b => { params.frameFollow = b ? 1 : 0; const cb=document.getElementById('frame-follow'); if (cb) cb.checked = b; } },
   frameOpacity:{ label:'Frame Opacity',   min:0,   max:1,             apply:v => setSliderParam('frameOpacity','frame-opacity','frame-opacity-val',x=>Math.round(x*100)+'%',v) },
   frameRadius: { label:'Frame Scale',     min:0.2, max:2,             apply:v => setSliderParam('frameRadius','frame-radius','frame-radius-val',x=>x.toFixed(2)+'\u00d7',v) },
-  frameAxisLen:{ label:'Frame Axis Len',  min:0.2, max:2,             apply:v => setSliderParam('frameAxisLen','frame-axis-len','frame-axis-len-val',x=>x.toFixed(2)+'\u00d7',v) },
+  frameAxisLen:{ label:'Frame Axis Length', min:0.2, max:2,             apply:v => setSliderParam('frameAxisLen','frame-axis-len','frame-axis-len-val',x=>x.toFixed(2)+'\u00d7',v) },
   frameOrbits: { label:'Frame Orbitals',  min:0,   max:2,   step:1,   apply:v => setFrameOpt('frameorbits', v) },
   frameAngles: { label:'Frame Angles',    min:0,   max:2,   step:1,   apply:v => setFrameOpt('frameangles', v) },
   framePlanes: { label:'Frame Planes',    min:0,   max:7,   step:1,   apply:v => { params.framePlanes = Math.round(v); FRAME_PLANE_BITS.forEach(([id, bit]) => { const el=document.getElementById(id); if (el) el.checked = !!(params.framePlanes & bit); }); } },
@@ -9434,7 +9482,7 @@ document.getElementById('preset-file').addEventListener('change', e => {
       const d = JSON.parse(r.result);
       applyPresetData(d);
       if (Array.isArray(d.pins)) setPins(d.pins);
-    } catch (err) { alert('Invalid preset file: ' + err.message); }
+    } catch (err) { alert('That file could not be imported. Choose a patch .json exported from Files › Patch.'); }
   };
   r.readAsText(f);
   e.target.value = '';
@@ -9991,7 +10039,7 @@ document.getElementById('evolve-all').addEventListener('click', () => setAllEvol
 document.getElementById('evolve-none').addEventListener('click', () => setAllEvolve(false));
 document.getElementById('evolve-rand3').addEventListener('click', () => selectRandomEvolve(3));
 document.getElementById('evolve-rand6').addEventListener('click', () => selectRandomEvolve(6));
-document.getElementById('evolve-reset').addEventListener('click', evolveReset);
+armResetUndo('evolve-reset', evolveReset);
 
 // ─── SESSION PRESET GRID (right sidebar) ──────────────────────────────────────
 // A 4×16 pad grid storing full patches for the running session. Each pad is
@@ -10236,7 +10284,7 @@ function exportGrid() {
 }
 
 function importGrid(obj) {
-  if (!obj || !Array.isArray(obj.presets)) { alert('Invalid grid file.'); return; }
+  if (!obj || !Array.isArray(obj.presets)) { alert('That file holds no preset pads. Choose a .json exported from Session Presets.'); return; }
   gridPresets = new Array(GRID_PADS).fill(null);
   obj.presets.slice(0, GRID_PADS).forEach((p, i) => { gridPresets[i] = p || null; });
   if (typeof obj.channel === 'number' && obj.channel >= 1 && obj.channel <= 16) {
@@ -10258,7 +10306,7 @@ document.getElementById('grid-import').addEventListener('click', () => document.
 document.getElementById('grid-file').addEventListener('change', e => {
   const f = e.target.files[0]; if (!f) return;
   const r = new FileReader();
-  r.onload = () => { try { importGrid(JSON.parse(r.result)); } catch (err) { alert('Invalid grid file: ' + err.message); } };
+  r.onload = () => { try { importGrid(JSON.parse(r.result)); } catch (err) { alert('That file could not be imported. Choose a .json exported from Session Presets.'); } };
   r.readAsText(f);
   e.target.value = '';
 });
@@ -11016,7 +11064,8 @@ function initControlLabels() {
     let p = group.previousElementSibling, name = '';
     while (p && !name) {
       if (p.classList && (p.classList.contains('param-header') || p.classList.contains('vel-row'))) {
-        name = (p.textContent || '').trim();
+        const l = p.querySelector('label, .vel-label');
+        name = ((l || p).textContent || '').trim();
       }
       p = p.previousElementSibling;
       if (name || (p && p.classList && p.classList.contains('param-row'))) break;
