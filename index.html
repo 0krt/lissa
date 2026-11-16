@@ -1882,6 +1882,36 @@ input[type=range] { margin: 0; }
 }
 .sec-help { height: 24px; top: 6px; }
 .ps-ctl .dk-tg, .ro-pop .dk-tg { padding: 3px 14px; }
+
+/* ── Interface hue ───────────────────────────────────────────────────────────
+   Double-click the title to turn every theme colour round the hue circle at
+   once (applyUiHue). Only the base colours are set from script; everything
+   tinted from them is derived here, so it follows. */
+:root {
+  --accent-hi: color-mix(in srgb, var(--accent) 80%, white);
+  --a1-soft: color-mix(in srgb, var(--accent) 7%, transparent); --a1-mid: color-mix(in srgb, var(--accent) 12%, transparent);
+  --a2-soft: color-mix(in srgb, var(--accent2) 12%, transparent); --a2-mid: color-mix(in srgb, var(--accent2) 15%, transparent);
+  --a2-strong: color-mix(in srgb, var(--accent2) 28%, transparent);
+  --overlay: color-mix(in srgb, var(--panel) 86%, transparent); --dock: color-mix(in srgb, var(--panel) 90%, transparent);
+  --head-wash: color-mix(in srgb, var(--accent) 4%, transparent); --wash: color-mix(in srgb, var(--text) 3%, transparent);
+  --popover-sel: color-mix(in srgb, var(--text) 5%, var(--popover));
+}
+.ps-row.sel { background: var(--popover-sel); }
+header h1 { cursor: default; user-select: none; }
+.theme-pop {
+  position: fixed; z-index: 60; width: 260px; padding: 12px 14px 12px;
+  background: var(--popover); border: 1px solid var(--card-border); border-radius: var(--card-radius);
+  box-shadow: var(--pop-shadow);
+}
+.theme-pop[hidden] { display: none; }
+.theme-pop .tp-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+.theme-pop .tp-title { color: var(--head-text); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; }
+.theme-pop .tp-val { color: var(--accent); font-size: 11px; font-variant-numeric: tabular-nums; }
+.theme-pop input[type=range] { display: block; width: 100%; height: 8px; border-radius: 4px; margin: 4px 0 12px; }
+.theme-pop .tp-row { display: flex; gap: 6px; }
+.theme-pop .tp-row .map-add-btn { flex: 1; margin-top: 0; }
+.theme-pop .tp-swatches { display: flex; gap: 4px; margin-bottom: 10px; }
+.theme-pop .tp-swatches i { flex: 1; height: 6px; border-radius: 2px; }
 </style>
 </head>
 <body>
@@ -1892,7 +1922,7 @@ input[type=range] { margin: 0; }
 <header>
   <button class="sidebar-toggle" id="sidebar-toggle" type="button" title="Collapse / expand sidebar"
           aria-label="Collapse or expand the controls sidebar" aria-expanded="true" aria-controls="sidebar-panel"><span aria-hidden="true">☰</span></button>
-  <h1>lissa</h1>
+  <h1 id="app-title" title="Double-click to change the interface colour">lissa</h1>
   <span>parametric figure generator</span>
   <button class="search-toggle" id="search-toggle" type="button" title="Find a parameter ( / )"
           aria-label="Find a parameter" aria-haspopup="dialog" aria-controls="param-search"><span aria-hidden="true">⌕</span> find <kbd>/</kbd></button>
@@ -2573,6 +2603,13 @@ input[type=range] { margin: 0; }
             <input type="range" id="col-height" min="0.5" max="5" step="0.1" value="2">
           </div>
           <div class="param-row">
+            <div class="param-header"><label>Taper</label><span class="val" id="col-taper-val">off</span></div>
+            <input type="range" id="col-taper" min="0" max="1" step="0.01" value="0">
+          </div>
+          <div class="info-text" data-info-label="the taper">
+            Shrinks the slices toward both ends, so the first and last are points. The value is how far in from each end the narrowing reaches: at 100% it runs all the way to the middle.
+          </div>
+          <div class="param-row">
             <div class="param-header"><label>Elevation</label><span class="val" id="col-elev-val">25°</span></div>
             <input type="range" id="col-elev" min="-89" max="89" step="1" value="25">
           </div>
@@ -2971,6 +3008,19 @@ input[type=range] { margin: 0; }
   </div>
 </div>
 
+<div class="theme-pop" id="theme-pop" role="dialog" aria-label="Interface colour" hidden>
+  <div class="tp-head"><span class="tp-title">Interface hue</span><span class="tp-val" id="theme-hue-val">0°</span></div>
+  <div class="tp-swatches" aria-hidden="true">
+    <i style="background:var(--accent)"></i><i style="background:var(--accent2)"></i><i style="background:var(--label)"></i>
+    <i style="background:var(--control-border)"></i>
+  </div>
+  <input type="range" id="theme-hue" min="0" max="359" step="1" value="0" aria-label="Interface hue shift" aria-valuetext="0 degrees">
+  <div class="tp-row">
+    <button type="button" class="map-add-btn" id="theme-match-fig" title="Set the figure's stroke colour to the interface highlight">figure to match</button>
+    <button type="button" class="map-add-btn" id="theme-reset">reset</button>
+  </div>
+</div>
+
 <div class="param-search" id="param-search" role="dialog" aria-modal="true" aria-label="Find a parameter" hidden>
   <div class="ps-box">
     <div class="ps-q">
@@ -3063,6 +3113,7 @@ let params = {
   colSlices: 48,      // column view: phase positions per column
   colTurns: 1,        // column view: full δ rotations from bottom to top
   colHeight: 2,       // column view: height in figure units (the figure spans -1..1)
+  colTaper: 0,        // column view: how far in from each end the slices shrink toward a point (0 off, 1 = to the middle)
   colElev: 25,        // column view: camera elevation, degrees (drag vertically)
   colYaw: 0,          // column view: yaw about the column axis, degrees (drag horizontally)
   colHide: 1,         // column view: fill each slice with the background (hidden lines)
@@ -4653,11 +4704,13 @@ function buildColumn(w, h, phase, zoom, rows, budget) {
   const cx = w / 2, cy = h / 2;
   const K = 0.45 * (params.az || 0) / fitR;   // perspective, from the 3D depth amount
   const turns = Math.max(0.05, params.colTurns ?? 1);
+  const taper = Math.max(0, Math.min(1, params.colTaper || 0));
 
   for (let r = 0; r < R; r++) {
     const v = R > 1 ? r * (n - 1) / (R - 1) : 0;
     const ph = phase + 2 * turns * (v / n);
     const hgt = (v / (n - 1) - 0.5) * H;
+    const sc = colTaperScale(v / (n - 1), taper);
     for (let i = 0; i <= res; i++) {
       const t = (i / res) * span;
       _colX[i] = processWave(fx * t + ph * Math.PI, fx * t, waveTypeX, 'x');
@@ -4674,6 +4727,7 @@ function buildColumn(w, h, phase, zoom, rows, budget) {
       else { px = _colX[i]; py = _colY[i]; }
       if (visualSwap) { const tmp = px; px = py; py = tmp; }
       if (!polar) { px *= ax; py *= ay; }
+      px *= sc; py *= sc;
       // py runs down the figure, i.e. toward the viewer once the plane is laid flat.
       const X = px * cyw - py * syw, Z = px * syw + py * cyw;
       let sx = X, sy = hgt * ce - Z * se;    // screen right, screen up
@@ -4692,6 +4746,17 @@ function buildColumn(w, h, phase, zoom, rows, budget) {
   // How far anything can be from the centre along the view direction (the depth range).
   const dHalf = (H / 2) * Math.abs(se) + rad * Math.abs(ce) + 1e-3;
   return { n, R, res, N, up: se >= 0, S, dHalf, axis: [axx, axy, se] };
+}
+
+// Taper: the size of the slice at u (0 bottom … 1 top). Within `taper` of an end
+// (as a share of the half column) the size eases in on a quarter sine, so it
+// starts as a point, opens out and meets the full size without a kink. The ends
+// keep a trace of size so the surface normals there stay defined.
+function colTaperScale(u, taper) {
+  if (taper <= 0) return 1;
+  const e = 1 - Math.abs(2 * u - 1);           // 0 at either end, 1 in the middle
+  if (e >= taper) return 1;
+  return Math.max(0.004, Math.sin((Math.PI / 2) * (e / taper)));
 }
 
 // Colours: the stroke colour, or with the gradient on, a blend toward the
@@ -8050,6 +8115,7 @@ const COLUMN_SLIDERS = [
   ['col-slices', 'colSlices', v => String(Math.round(v))],
   ['col-turns',  'colTurns',  v => v.toFixed(2)],
   ['col-height', 'colHeight', v => v.toFixed(1)],
+  ['col-taper',  'colTaper',  v => v > 0 ? fmtPct(v) : 'off'],
   ['col-elev',   'colElev',   fmtDeg],
   ['col-yaw',    'colYaw',    fmtDeg],
   ['col-shade',  'colShade',  fmtPct],
@@ -8667,6 +8733,7 @@ const MAP_TARGETS = {
   colSlices:  { label:'Column Slices',    min:4,    max:160,  step:1,   apply:v => setSliderParam('colSlices','col-slices','col-slices-val',x=>String(Math.round(x)),Math.round(v)) },
   colTurns:   { label:'Column Turns',     min:0.25, max:4,              apply:v => setSliderParam('colTurns','col-turns','col-turns-val',x=>x.toFixed(2),v) },
   colHeight:  { label:'Column Height',    min:0.5,  max:5,              apply:v => setSliderParam('colHeight','col-height','col-height-val',x=>x.toFixed(1),v) },
+  colTaper:   { label:'Column Taper',     min:0,    max:1,              apply:v => setSliderParam('colTaper','col-taper','col-taper-val',x=>x>0?fmtPct(x):'off',v) },
   colElev:    { label:'Column Elevation', min:-89,  max:89,             apply:v => setSliderParam('colElev','col-elev','col-elev-val',fmtDeg,v) },
   colYaw:     { label:'Column Yaw',       min:0,    max:359,            apply:v => setSliderParam('colYaw','col-yaw','col-yaw-val',fmtDeg,v) },
   colShade:   { label:'Column Shading',   min:0,    max:1,              apply:v => setSliderParam('colShade','col-shade','col-shade-val',fmtPct,v) },
@@ -8704,7 +8771,7 @@ const TARGET_CATEGORIES = [
   ['Figure',    ['hue', 'sat', 'light', 'gradOn', 'gradAngle', 'lineWidth', 'dotsLine', 'mirrorMode',
                  'trailMode', 'trailAmt', 'trailCount', 'trailSpacing',
                  'phase', 'animatePhase', 'animSpeed', 'constructionView', 'm4Rotate']],
-  ['Column',    ['columnView', 'colSlices', 'colTurns', 'colHeight', 'colElev', 'colYaw',
+  ['Column',    ['columnView', 'colSlices', 'colTurns', 'colHeight', 'colTaper', 'colElev', 'colYaw',
                  'colShade', 'colSurface', 'colHide', 'colCore', 'colAxis']],
   ['3D',        ['depthSrc', 'az', 'tiltAngle', 'depthShade', 'showShadow',
                  'frameShow', 'frameAxisLen', 'framePlanes', 'frameOrbits', 'frameAngles',
@@ -8773,7 +8840,7 @@ const MAP_DEFAULTS = {
   hue:79, sat:84, light:66, lineWidth:1.5, phase:0.5, animSpeed:1, volume:0.5,
   filterCutoff:1, filterQ:0.7, dotsLine:1,
   preset:0, constructionView:0, columnView:0, animatePhase:1, visualSwap:0,
-  colSlices:48, colTurns:1, colHeight:2, colElev:25, colYaw:0, colShade:0.7, colSurface:0, colHide:1, colCore:0,
+  colSlices:48, colTurns:1, colHeight:2, colTaper:0, colElev:25, colYaw:0, colShade:0.7, colSurface:0, colHide:1, colCore:0,
   colAxis:0, gradOn:0, gradAngle:90,
   frameShow:0, frameFollow:1, frameOpacity:0.55, frameRadius:1, frameAxisLen:1.15,
   frameOrbits:1, frameAngles:0, framePlanes:0,
@@ -10321,6 +10388,167 @@ document.getElementById('grid-toggle').addEventListener('click', () => {
   setTimeout(() => { resize(); updateRecOverlay(); }, 230);
 });
 
+// ─── Interface hue ────────────────────────────────────────────────────────────
+// One number turns the whole interface round the hue circle. Every theme colour
+// is rotated in OKLCH, which keeps perceived lightness, so the hierarchy and the
+// contrast between surfaces and text stay as designed: the panels stay dark and
+// faintly tinted, both highlights move together and keep their distance. Where
+// a hue cannot hold a colour's chroma in sRGB, the chroma gives way, not the
+// lightness. Text colours are then checked against the surfaces they sit on
+// and lightened until they read at least as well as in the shipping theme.
+// It is a preference of this browser, not part of a patch.
+const UI_HUE_KEY = 'lissa-ui-hue';
+const UI_BASE = {
+  accent: '#3a9c9b', accent2: '#3264a4',
+  panel: '#121215', card: '#121616', bg: '#151519',
+  text: '#d4d4d8', label: '#8787a1', muted: '#8b8b98',
+  border: '#2b2b36', controlBorder: '#525260', track: '#3f3f4c',
+};
+const _srgbToLin = c => c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+const _linToSrgb = c => c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
+function _hexToLin(hex) { const v = parseInt(hex.slice(1), 16); return [(v >> 16) & 255, (v >> 8) & 255, v & 255].map(c => _srgbToLin(c / 255)); }
+function _linToHex(rgb) {
+  return '#' + rgb.map(c => Math.round(Math.max(0, Math.min(1, _linToSrgb(c))) * 255).toString(16).padStart(2, '0')).join('');
+}
+function _linToOklch([r, g, b]) {
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  const L = 0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s;
+  const A = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s;
+  const B = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s;
+  return [L, Math.hypot(A, B), Math.atan2(B, A) * 180 / Math.PI];
+}
+function _oklchToLin(L, C, H) {
+  const A = C * Math.cos(H * Math.PI / 180), B = C * Math.sin(H * Math.PI / 180);
+  const l = (L + 0.3963377774 * A + 0.2158037573 * B) ** 3;
+  const m = (L - 0.1055613458 * A - 0.0638541728 * B) ** 3;
+  const s = (L - 0.0894841775 * A - 1.2914855480 * B) ** 3;
+  return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+          -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+          -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s];
+}
+// In gamut at this lightness: the largest chroma up to C that sRGB can show.
+function _oklchFit(L, C, H) {
+  const ok = c => _oklchToLin(L, c, H).every(v => v >= -1e-4 && v <= 1 + 1e-4);
+  if (ok(C)) return _oklchToLin(L, C, H);
+  let lo = 0, hi = C;
+  for (let i = 0; i < 18; i++) { const mid = (lo + hi) / 2; if (ok(mid)) lo = mid; else hi = mid; }
+  return _oklchToLin(L, lo, H);
+}
+const _lum = lin => 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2];
+const _contrast = (a, b) => { const x = _lum(a), y = _lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+const _mixLin = (a, b, t) => a.map((_, i) => {
+  // Mix in sRGB space, as color-mix(in srgb …) does.
+  const ea = _linToSrgb(a[i]), eb = _linToSrgb(b[i]);
+  return _srgbToLin(ea + (eb - ea) * t);
+});
+// Text sits on the panel, the cards and the tinted groups inside cards.
+function _textSurfaces(P) { return [P.panel, P.card, P.bg, _mixLin(P.card, P.text, 0.03)]; }
+function _minContrast(fg, bgs) { return Math.min(...bgs.map(b => _contrast(fg, b))); }
+
+function uiPalette(shift) {
+  const P = {};
+  for (const k in UI_BASE) {
+    const [L, C, H] = _linToOklch(_hexToLin(UI_BASE[k]));
+    P[k] = { L, C, H: H + shift, lin: _oklchFit(L, C, H + shift) };
+  }
+  const base = {};
+  for (const k in UI_BASE) base[k] = _hexToLin(UI_BASE[k]);
+  const surfaces = _textSurfaces(Object.fromEntries(Object.keys(P).map(k => [k, P[k].lin])));
+  const baseSurfaces = _textSurfaces(base);
+  // Raise lightness until the colour (as `look` sees it) reads as well as the original did.
+  const hold = (k, look = x => x, baseSurf = baseSurfaces, surf = surfaces) => {
+    const target = _minContrast(look(base[k]), baseSurf);
+    const c = P[k];
+    let guard = 0;
+    while (_minContrast(look(c.lin), surf) < target - 0.01 && c.L < 0.97 && guard++ < 200) {
+      c.L += 0.004; c.lin = _oklchFit(c.L, c.C, c.H);
+    }
+  };
+  ['accent', 'text', 'label', 'muted'].forEach(k => hold(k));
+  const white = [1, 1, 1];
+  hold('accent2', x => _mixLin(x, white, 0.3));           // --accent2-text
+  hold('controlBorder', x => x, [base.card], [P.card.lin]);
+  // The highlight keeps its lightness, so the white text on filled buttons keeps its contrast too.
+  const out = {};
+  for (const k in P) out[k] = _linToHex(P[k].lin);
+  return out;
+}
+
+let uiHue = 0;
+function applyUiHue(shift, save) {
+  uiHue = ((Math.round(shift) % 360) + 360) % 360;
+  const st = document.documentElement.style;
+  if (uiHue === 0) {
+    ['--accent', '--accent2', '--panel', '--card', '--popover', '--bg', '--thumb-ring', '--text', '--focus',
+     '--label', '--muted', '--border', '--card-border', '--control-border', '--track'].forEach(v => st.removeProperty(v));
+  } else {
+    const P = uiPalette(uiHue);
+    const set = (v, c) => st.setProperty(v, c);
+    set('--accent', P.accent); set('--accent2', P.accent2);
+    set('--panel', P.panel); set('--card', P.card); set('--popover', P.card);
+    set('--bg', P.bg); set('--thumb-ring', P.bg);
+    set('--text', P.text); set('--focus', P.text);
+    set('--label', P.label); set('--muted', P.muted);
+    set('--border', P.border); set('--card-border', P.border); set('--control-border', P.controlBorder);
+    set('--track', P.track);
+  }
+  const el = document.getElementById('theme-hue');
+  if (el && +el.value !== uiHue) el.value = uiHue;
+  const val = document.getElementById('theme-hue-val');
+  if (val) val.textContent = (uiHue > 180 ? uiHue - 360 : uiHue) + '°';
+  if (el) el.setAttribute('aria-valuetext', uiHue + ' degrees');
+  if (typeof drawWavePreview === 'function') drawWavePreview();
+  if (save) { try { localStorage.setItem(UI_HUE_KEY, String(uiHue)); } catch (e) {} }
+}
+(() => {
+  const pop = document.getElementById('theme-pop');
+  const title = document.getElementById('app-title');
+  const slider = document.getElementById('theme-hue');
+  // The track shows where each setting takes the main highlight.
+  const stops = [];
+  for (let h = 0; h <= 360; h += 30) stops.push(uiPalette(h % 360).accent + ' ' + (h / 360 * 100).toFixed(1) + '%');
+  slider.style.background = `linear-gradient(90deg, ${stops.join(', ')})`;
+  let returnFocus = null;
+  const place = () => {
+    const r = title.getBoundingClientRect();
+    pop.style.top = Math.round(r.bottom + 10) + 'px';
+    pop.style.left = Math.round(Math.max(8, Math.min(r.left - 6, innerWidth - pop.offsetWidth - 8))) + 'px';
+  };
+  const open = () => {
+    returnFocus = document.activeElement;
+    pop.hidden = false; place(); slider.focus();
+  };
+  const close = () => {
+    if (pop.hidden) return;
+    pop.hidden = true;
+    if (returnFocus && returnFocus.focus && document.contains(returnFocus)) try { returnFocus.focus(); } catch (e) {}
+  };
+  window.openThemePop = open;
+  title.addEventListener('dblclick', e => { e.preventDefault(); pop.hidden ? open() : close(); });
+  // Touch: some browsers send no dblclick for a double tap.
+  let lastTap = 0;
+  title.addEventListener('pointerup', e => {
+    if (e.pointerType !== 'touch') return;
+    const now = performance.now();
+    if (now - lastTap < 350) { lastTap = 0; pop.hidden ? open() : close(); } else lastTap = now;
+  });
+  slider.addEventListener('input', () => applyUiHue(+slider.value, true));
+  document.getElementById('theme-reset').addEventListener('click', () => applyUiHue(0, true));
+  document.getElementById('theme-match-fig').addEventListener('click', () => {
+    const c = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || UI_BASE.accent;
+    const inp = document.getElementById('stroke-color');
+    inp.value = c; inp.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  pop.addEventListener('keydown', e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } });
+  document.addEventListener('pointerdown', e => { if (!pop.hidden && !pop.contains(e.target) && e.target !== title) close(); });
+  addEventListener('resize', () => { if (!pop.hidden) place(); });
+  let saved = 0;
+  try { saved = parseInt(localStorage.getItem(UI_HUE_KEY), 10) || 0; } catch (e) {}
+  if (saved) applyUiHue(saved, false);
+})();
+
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 buildAxisToggles();
 buildBanks();
@@ -10573,7 +10801,7 @@ const TARGET_CONTROL = {
   mirrorMode: '[data-mirror]', trailMode: '[data-trailmode]', trailAmt: 'trail-amt',
   trailCount: 'trail-count', trailSpacing: 'trail-spacing', phase: 'phase', animatePhase: 'animate', animSpeed: 'anim-speed',
   constructionView: 'construction-view', m4Rotate: '[data-m4rot]', columnView: 'column-view',
-  colSlices: 'col-slices', colTurns: 'col-turns', colHeight: 'col-height', colElev: 'col-elev', colYaw: 'col-yaw',
+  colSlices: 'col-slices', colTurns: 'col-turns', colHeight: 'col-height', colTaper: 'col-taper', colElev: 'col-elev', colYaw: 'col-yaw',
   colShade: 'col-shade', colSurface: '[data-colsurf]', colHide: 'col-hide', colCore: 'col-core', colAxis: '[data-colaxis]',
   gradOn: 'grad-on', gradAngle: 'grad-angle',
   depthSrc: '[data-depthsrc]', az: 'az', tiltAngle: 'tilt-angle', depthShade: 'depth-shade', showShadow: 'show-shadow',
@@ -10765,6 +10993,7 @@ function closeSearch(restore) {
 }
 psInput.addEventListener('input', () => {
   if (!intro && psInput.value.trim().toLowerCase() === 'intro') { closeSearch(false); startIntro(); return; }
+  if (/^(theme|hue|interface colou?r)$/.test(psInput.value.trim().toLowerCase())) { closeSearch(false); openThemePop(); return; }
   psSel = 0; psRender();
 });
 psInput.addEventListener('keydown', e => {
