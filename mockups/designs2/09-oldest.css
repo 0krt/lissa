@@ -1,0 +1,34 @@
+/* 09 · Oldest — the first look in the repository (commit 113df5c, 2 Aug:
+   "lissajous (9) - audio-input.html"), applied to today's layout for
+   comparison. Kept as found, so it does not meet the contrast rules: its muted
+   text (#52525b) reads at about 2.2:1. Today's tabs, dock and other newer parts
+   simply take its colours. */
+:root {
+  --font-ui: 'IBM Plex Mono', monospace; --font-display: var(--font-ui); --font-num: var(--font-ui);
+  --bg: #0c0c0e; --panel: #111115; --card: #15151b; --popover: #15151b; --popover-sel: #1b1b21;
+  --border: #222228; --card-border: #2a2a32; --control-border: #3a3a44; --track: #2c2c34;
+  --accent: #c8f060; --accent-hi: #dbff7d; --accent2: #60b0f0; --accent2-text: #60b0f0; --sub-text: #60b0f0;
+  --on-accent: #0c0c0e; --focus: #d4d4d8;
+  --text: #d4d4d8; --label: #a1a1aa; --muted: #52525b;
+  --a1-soft: rgba(200,240,96,0.07); --a1-mid: rgba(200,240,96,0.12);
+  --a2-soft: rgba(96,176,240,0.12); --a2-mid: rgba(96,176,240,0.15); --a2-strong: rgba(96,176,240,0.28);
+  --head-wash: rgba(200,240,96,0.04); --card-radius: 7px; --card-shadow: 0 1px 2px rgba(0,0,0,0.35);
+  --wash: rgba(255,255,255,0.025); --mod-edge: 2px;
+  --radius: 4px; --ctl-radius: 2px; --btn-radius: 4px;
+  --track-h: 4px; --track-radius: 3px;
+  --thumb-w: 13px; --thumb-h: 13px; --thumb-radius: 50%; --thumb-ring: transparent;
+  --thumb-shadow: 0 0 0 3px rgba(200,240,96,0.15);
+}
+.sidebar { width: 280px; min-width: 280px; gap: 16px; }
+.mod-group, .map-row { border-left: 2px solid var(--border); border-radius: 3px; }
+.wave-btn.active, .wave-btn.active:hover { background: var(--accent); color: #0c0c0e; box-shadow: none; font-weight: 500; }
+.preset-btn.active, .preset-btn.active:hover { background: rgba(200,240,96,0.07); color: var(--accent); border-color: var(--accent); box-shadow: none; }
+.lfo-wave-btn.active, .mod-wave-btn.active, .mod-axis-btn.active { background: var(--a2-mid); }
+.section-label { font-size: 13px; }
+.subsection-label { font-size: 11px; letter-spacing: 0.16em; }
+.param-header label, .checkbox-row label, .color-row label, .number-input label { font-size: 11px; }
+.param-header .val { font-size: 11px; font-weight: 500; }
+.param-row { margin-bottom: 10px; }
+.param-row .pin-btn, .param-row .lock-btn { opacity: 1; }
+.pin-btn, .lock-btn { color: #52525b; }
+.mod-group-label, .vel-label { font-size: 9px; letter-spacing: 0.18em; color: var(--accent2); }

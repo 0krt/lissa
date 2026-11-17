@@ -1,0 +1,32 @@
+/* 01 · Pulse Coral — Coral and cyan.
+   Pulse family: dark and flat (no outlines or shadows), with the current
+   design's proportions (270px sidebar, inset cards and parameter boxes) and
+   type (Atkinson Hyperlegible, uppercase tracked titles). Nothing below 10px. */
+:root {
+  --font-ui: 'Atkinson Hyperlegible', sans-serif; --font-display: var(--font-ui); --font-num: var(--font-ui);
+  --panel: #0d0c10; --card: #141318; --bg: #1c1b21; --popover: #141318;
+  --text: #f2f2f4; --label: #bdbcc6; --muted: #a3a2ae; --focus: #f2f2f4;
+  --border: #2a2930; --card-border: transparent; --control-border: #7a7985; --track: #3a3942;
+  --accent: #ff8070; --accent2: #2ec8ff; --on-accent: #0b0b0d; --accent2-text: #2ec8ff;
+  --accent-hi: color-mix(in srgb, #ff8070 75%, white); --head-text: #ff8070;
+  --radius: 6px; --ctl-radius: 4px; --btn-radius: 6px; --pill-radius: 12px; --card-radius: 6px;
+  --card-shadow: none; --head-wash: transparent;
+  --track-h: 4px; --track-radius: 2px;
+  --thumb-w: 15px; --thumb-h: 15px; --thumb-radius: 50%; --thumb-ring: #141318;
+  --thumb-shadow: 0 0 0 3px #141318;
+  --mod-edge: 0px; --wash: color-mix(in srgb, #f2f2f4 4%, transparent); --panel-edge: 1px;
+  --pop-shadow: 0 16px 40px rgba(0,0,0,0.6);
+}
+.section > .section-label { border-bottom-color: transparent; }
+.mod-group, .map-row { border-radius: 6px; }
+.wave-toggle { background: var(--bg); border-color: transparent; }
+.wave-btn.active, .wave-btn.active:hover, .preset-btn.active, .preset-btn.active:hover {
+  background: var(--accent); color: var(--on-accent); box-shadow: none; }
+.preset-btn { background: var(--bg); border-color: transparent; color: var(--label); }
+.preset-btn:not(.active):hover { border-color: transparent; color: var(--accent); }
+#xy-swap-btn { border-color: transparent !important; background: var(--bg); }
+.tab-btn[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+.view-tg.active, .view-tg.active:hover { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+header h1 { font-weight: 700; }
+/* Legibility: the smallest labels go up to 10px. */
+.mod-group-label, .vel-label, .preset-btn, .tab-btn { font-size: 10px; }

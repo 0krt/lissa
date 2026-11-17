@@ -76,29 +76,28 @@ existing elements, so adopting one means appending it to the end of the
 for each are listed in `designs/designs.js`; set them in the Look tab. Text
 colours meet WCAG AA (4.5:1) and control outlines 3:1 on every surface.
 
-## Minimal designs
+## Pulse designs
 
-`designs2/` holds ten minimal looks, with the shipping design as entry 00 for
-comparison. They share one flat shape language: no card fills or shadows,
-sections divided by a hairline, text-only switches whose active state is a
-solid block of the highlight. One saturated highlight carries the titles,
-values, handles and every active state. Corner radius, handle shape and title
-case vary between them. Open `mockups/designs2/` (served) to switch between
-them; it works like `designs/`.
+`designs2/` holds variants of Pulse, between the shipping design (00) and the
+oldest look in the repository (09) for comparison. All are dark and flat (no
+outlines or shadows) and keep the shipping design's proportions (270px sidebar,
+inset cards and parameter boxes) and type (Atkinson Hyperlegible, uppercase
+tracked titles). The smallest labels are raised to 10px. Open
+`mockups/designs2/` (served) to switch between them; it works like `designs/`.
 
-| # | Name | Mode | Colours | Corners · handles |
-|---|------|------|---------|-------------------|
-| 00 | Current | dark | the app as it ships | — |
-| 01 | Signal | light | white, signal red, blue | 0px · square |
-| 02 | Cobalt | light | white, cobalt, orange | 4px · round |
-| 03 | Flare | dark | black, yellow, sky blue | 0px · bar |
-| 04 | Field | light | warm white, green, magenta | 6px · round |
-| 05 | Pulse | dark | black, hot pink, cyan | 6px · round |
-| 06 | Ember | light | paper white, orange, navy | 2px · bar |
-| 07 | Volt | dark | graphite, cyan, coral | 2px · square |
-| 08 | Ultra | light | white, ultraviolet, green | 8px · round |
-| 09 | Acid | dark | black, lime, pink | 0px · square |
-| 10 | Primary | light | white, red, blue, yellow rule | 0px · bar |
+| # | Name | Highlights |
+|---|------|------------|
+| 00 | Current | the app as it ships |
+| 01 | Pulse Coral | coral, cyan |
+| 02 | Pulse Tangerine | tangerine, cyan |
+| 03 | Pulse Amber | amber, cyan |
+| 04 | Pulse Lime | lime, cyan |
+| 05 | Pulse Violet | violet, cyan |
+| 06 | Pulse Orchid | orchid, cyan |
+| 07 | Pulse Mint | mint, violet (cyan sits too close to mint) |
+| 08 | Volt | cyan, coral on graphite, with round handles |
+| 09 | Oldest | lime, blue, IBM Plex Mono: the first commit (2 Aug), on today's layout |
 
-Text and highlights meet WCAG AA (4.5:1) and control outlines 3:1 on every
-surface.
+In 01–08, body text and both highlights reach WCAG AAA (7:1) on every surface,
+muted text AA (4.5:1, measured 6.6:1 or more), control outlines 3:1. 09 is kept as
+found and does not meet them: its muted text reads at about 2.2:1.
