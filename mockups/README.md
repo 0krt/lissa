@@ -48,29 +48,30 @@ To adopt a look in the app, replace the theme values at the end of the
 The site is built by Jekyll (GitHub Pages), which drops files and folders whose
 names start with `_`, so nothing in here may use that prefix.
 
-## Ten designs
+## Frost designs
 
-`designs/` holds ten complete looks for the app: the layout stays the same, and
-only the colours and the shapes of sections, boxes, switches, tabs and slider
-handles change. Open `mockups/designs/` (served, as above) to switch between
-them on the real app. Arrow keys step through them, and **Copy CSS** copies the
-current one.
+`designs/` holds the Frost family: ten looks that share one shape language
+(rounded borderless cards on soft shadows, sentence-case titles, pill switches
+and tabs, ringed round handles) and differ only in colour. Five are light and
+each has a dark counterpart. The layout is the app's own. Open
+`mockups/designs/` (served, as above) to switch between them on the real app.
+Arrow keys step through them, and **Copy CSS** copies the current one.
 
-| # | Name | Colours | Shapes |
-|---|------|---------|--------|
-| 01 | Paper | ink on cream, vermilion, indigo | open sections ruled by a heavy ink line, square corners, hairline tracks |
-| 02 | Brutal | white, black, electric blue, magenta, yellow | 2px outlines, hard offset shadows, yellow title strips, square handles |
-| 03 | Frost | white on blue-grey, deep teal, plum | rounded borderless cards on soft shadows, pills |
-| 04 | Phosphor | black, phosphor green, amber | dashed square frames, inverted title blocks, bar handles, glow |
-| 05 | Neon | deep violet, magenta, cyan | cut-corner cards and buttons, diamond handles, gradient title rules |
-| 06 | Clay | roasted brown, terracotta, sage | leaf corners, folder tabs, teardrop handles |
-| 07 | Swiss | white, black, signal red, blue | no outlines or radii, sections hang from thick black bars |
-| 08 | Abyss | navy gradients, aqua, coral | frosted rounded panes, pills everywhere, haloed handles |
-| 09 | Lilac | pale lavender, violet, deep teal | soft UI: raised cards, sunken switches and tracks |
-| 10 | Blueprint | cyanotype blue, white, yellow | dashed frames with corner ticks on a grid, hollow handles |
+| # | Name | Mode | Colours |
+|---|------|------|---------|
+| 01 | Frost | light | blue-grey, deep teal, plum |
+| 02 | Sage | light | green-grey, forest green, rust |
+| 03 | Blush | light | rose-grey, raspberry, slate blue |
+| 04 | Sand | light | warm stone, burnt orange, teal |
+| 05 | Iris | light | lavender-grey, indigo, plum |
+| 06 | Frost Night | dark | slate, ice blue, lilac |
+| 07 | Sage Night | dark | pine, mint, apricot |
+| 08 | Blush Night | dark | plum-brown, pink, periwinkle |
+| 09 | Sand Night | dark | espresso, amber, aqua |
+| 10 | Iris Night | dark | ink-violet, periwinkle, orchid |
 
-Each design is one CSS file that only sets the token layer's variables and
-restyles existing elements, so adopting one means appending it to the end of
-the `<style>` block in `index.html`. The figure's own background and stroke
-colours for each are listed in `designs/designs.js`; set them in the Look tab.
-Text colours meet WCAG AA (4.5:1) and control outlines 3:1 on every surface.
+Each design is one CSS file that sets the token layer's variables and restyles
+existing elements, so adopting one means appending it to the end of the
+`<style>` block in `index.html`. The figure's own background and stroke colours
+for each are listed in `designs/designs.js`; set them in the Look tab. Text
+colours meet WCAG AA (4.5:1) and control outlines 3:1 on every surface.

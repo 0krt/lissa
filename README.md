@@ -14,7 +14,7 @@ The controls are split into five tabs.
 - **Shape** — geometry (lateral, con-current, counter-current, rose, torus
   knot, raw waves), per-axis amplitude and frequency, damping and ratio
   presets.
-- **Sound** — waveforms, synthesis (FM/AM, sub oscillator, partial banks),
+- **Sound** — waveforms, synthesis (FM/AM, sub oscillator),
   audio output and input source.
 - **Look** — view, colour, stroke, symmetry, trail, 3D lift, construction view
   and column view.
