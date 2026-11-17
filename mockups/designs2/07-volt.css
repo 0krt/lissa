@@ -1,0 +1,39 @@
+/* 07 · Volt — Graphite, cyan, coral. Minimal family, dark.
+   Shapes (shared): flat, no card fills or shadows; sections divided by a
+   hairline; text-only switches whose active state is a solid block of the
+   highlight; corner radius 2px; square handles. */
+:root {
+  --panel: #101214; --card: #101214; --bg: #1a1d20; --popover: #101214;
+  --text: #f3f3f3; --label: #ababb0; --muted: #919197; --focus: #f3f3f3;
+  --border: #26262b; --card-border: transparent; --control-border: #6c6c75; --track: #303036;
+  --accent: #00c2ff; --accent2: #ff6a4a; --on-accent: #0b0b0b; --accent2-text: #ff6a4a;
+  --accent-hi: color-mix(in srgb, #00c2ff 85%, #f3f3f3);
+  --radius: 2px; --ctl-radius: 2px; --btn-radius: 2px; --pill-radius: 2px; --card-radius: 0px;
+  --card-shadow: none; --head-wash: transparent; --head-text: #00c2ff;
+  --track-h: 2px; --track-radius: 0px;
+  --thumb-w: 12px; --thumb-h: 12px; --thumb-radius: 0; --thumb-ring: transparent; --thumb-shadow: none;
+  --mod-edge: 0px; --wash: transparent; --panel-edge: 1px;
+  --pop-shadow: 0 12px 32px rgba(0,0,0,0.5);
+}
+.sidebar { gap: 0; }
+.section { background: transparent; border: 0; border-top: 1px solid var(--border); border-radius: 0; padding: 4px 0 18px; }
+.tab-bar + .section, .tab-bar ~ .section:first-of-type { border-top: 0; }
+.section > .section-label { margin: 0 0 8px; padding: 12px 0 4px; border-bottom: 0; background: none; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.14em; font-size: 13px; }
+.section.collapsed > .section-label { margin-bottom: 0; }
+.subsection-label { border-bottom: 0; }
+.mod-group, .map-row { background: transparent; border-left: 0; border-radius: 0; padding: 8px 0 2px; border-top: 1px solid var(--border); }
+.wave-toggle { background: transparent; border: 0; padding: 0; gap: 2px; }
+.wave-btn.active, .wave-btn.active:hover, .preset-btn.active, .preset-btn.active:hover,
+.lfo-wave-btn.active, .mod-wave-btn.active, .mod-axis-btn.active {
+  background: var(--accent); color: var(--on-accent); box-shadow: none; }
+.preset-btn { background: transparent; border-color: transparent; color: var(--label); }
+.preset-btn:not(.active):hover { border-color: transparent; color: var(--accent); }
+#xy-swap-btn { border: 1px solid var(--border) !important; background: transparent; }
+.tab-bar { border-bottom: 1px solid var(--border); }
+.tab-btn[aria-selected="true"] { color: var(--accent); border-bottom: 3px solid #00c2ff; }
+.sidebar-toggle, .search-toggle, .grid-toggle, .view-tg, .sec-help { border-color: var(--border); background: transparent; }
+.view-tg.active, .view-tg.active:hover { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+header { border-bottom-color: var(--border); }
+header h1 { color: var(--accent); font-weight: 700; }
+input[type=range]::-webkit-slider-thumb:hover { transform: none; }

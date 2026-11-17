@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>lissa Minimal</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+</head>
+<body data-app="../../index.html">
+<style>
+  /* Gallery chrome stays neutral graphite so it never competes with the design being shown. */
+  :root {
+    --g-bg: #0e0f12; --g-bar: #15161a; --g-line: #2a2c33; --g-text: #e4e4e8; --g-muted: #9a9ca6; --g-on: #ffffff;
+    --g-font: 'Atkinson Hyperlegible', system-ui, sans-serif;
+    color-scheme: dark;
+  }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--g-bg); color: var(--g-text); font: 13px/1.4 var(--g-font); display: flex; flex-direction: column; }
+  .bar { display: flex; align-items: center; gap: 12px; padding-block: 8px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); background: var(--g-bar); border-bottom: 1px solid var(--g-line); }
+  .bar h1 { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap; }
+  .chips { display: flex; gap: 6px; overflow-x: auto; flex: 1; min-width: 0; scrollbar-width: thin; padding: 2px; }
+  .chip { display: inline-flex; align-items: center; gap: 7px; flex: none; padding: 5px 10px 5px 6px; background: transparent; color: var(--g-muted); border: 1px solid var(--g-line); border-radius: 6px; font: inherit; cursor: pointer; }
+  .chip:hover { color: var(--g-text); border-color: var(--g-muted); }
+  .chip[aria-pressed="true"] { color: var(--g-text); border-color: var(--g-text); background: #22242b; }
+  .chip:focus-visible, .ctl:focus-visible { outline: 2px solid var(--g-text); outline-offset: 2px; }
+  .sw { display: inline-flex; border-radius: 3px; overflow: hidden; box-shadow: 0 0 0 1px rgba(255,255,255,0.18); }
+  .sw i { width: 9px; height: 18px; }
+  .ctl { background: transparent; color: var(--g-text); border: 1px solid var(--g-line); border-radius: 6px; font: inherit; padding: 5px 10px; cursor: pointer; white-space: nowrap; }
+  .ctl:hover { border-color: var(--g-muted); }
+  .ctl.primary { background: var(--g-text); color: var(--g-bg); border-color: var(--g-text); }
+  .sub { display: flex; align-items: baseline; gap: 12px; padding-block: 6px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); border-bottom: 1px solid var(--g-line); color: var(--g-muted); }
+  .sub #num { font-variant-numeric: tabular-nums; color: var(--g-text); }
+  .sub #note { min-width: 0; flex: 1; }
+  iframe { flex: 1; width: 100%; border: 0; display: block; background: var(--g-bg); }
+  @media (max-width: 640px) { .bar { flex-wrap: wrap; } .chips { order: 3; flex-basis: 100%; } .bar h1 { margin-right: auto; } }
+</style>
+<header class="bar">
+  <h1>lissa · Minimal</h1>
+  <nav class="chips" id="chips" aria-label="Designs"></nav>
+  <button type="button" class="ctl" id="prev" aria-label="Previous design">←</button>
+  <button type="button" class="ctl" id="next" aria-label="Next design">→</button>
+  <button type="button" class="ctl primary" id="copy">Copy CSS</button>
+</header>
+<div class="sub"><span id="num">01 / 10</span><span id="note" aria-live="polite">Loading the app…</span></div>
+<iframe id="app" title="lissa with the selected design"></iframe>
+<script src="designs.js"></script>
+<script src="gallery.js"></script>
+</body>
+</html>

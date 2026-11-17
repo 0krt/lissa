@@ -75,3 +75,30 @@ existing elements, so adopting one means appending it to the end of the
 `<style>` block in `index.html`. The figure's own background and stroke colours
 for each are listed in `designs/designs.js`; set them in the Look tab. Text
 colours meet WCAG AA (4.5:1) and control outlines 3:1 on every surface.
+
+## Minimal designs
+
+`designs2/` holds ten minimal looks, with the shipping design as entry 00 for
+comparison. They share one flat shape language: no card fills or shadows,
+sections divided by a hairline, text-only switches whose active state is a
+solid block of the highlight. One saturated highlight carries the titles,
+values, handles and every active state. Corner radius, handle shape and title
+case vary between them. Open `mockups/designs2/` (served) to switch between
+them; it works like `designs/`.
+
+| # | Name | Mode | Colours | Corners · handles |
+|---|------|------|---------|-------------------|
+| 00 | Current | dark | the app as it ships | — |
+| 01 | Signal | light | white, signal red, blue | 0px · square |
+| 02 | Cobalt | light | white, cobalt, orange | 4px · round |
+| 03 | Flare | dark | black, yellow, sky blue | 0px · bar |
+| 04 | Field | light | warm white, green, magenta | 6px · round |
+| 05 | Pulse | dark | black, hot pink, cyan | 6px · round |
+| 06 | Ember | light | paper white, orange, navy | 2px · bar |
+| 07 | Volt | dark | graphite, cyan, coral | 2px · square |
+| 08 | Ultra | light | white, ultraviolet, green | 8px · round |
+| 09 | Acid | dark | black, lime, pink | 0px · square |
+| 10 | Primary | light | white, red, blue, yellow rule | 0px · bar |
+
+Text and highlights meet WCAG AA (4.5:1) and control outlines 3:1 on every
+surface.
