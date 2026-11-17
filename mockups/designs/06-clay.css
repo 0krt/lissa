@@ -1,0 +1,30 @@
+/* 06 · Clay — warm earth dark. Terracotta and sage on roasted brown.
+   Shapes: leaf corners (two round, two tight) on cards, boxes and switches;
+   folder tabs; teardrop handles. */
+:root {
+  --panel: #1d1814; --card: #28211b; --bg: #18130f; --popover: #28211b;
+  --text: #f1e7db; --label: #c0af99; --muted: #a99880; --focus: #f1e7db;
+  --border: #3b3128; --card-border: #3b3128; --control-border: #807058; --track: #45392e;
+  --accent: #e8875a; --accent2: #9fbd86; --on-accent: #22130a; --accent2-text: #a9c690;
+  --radius: 12px 3px; --ctl-radius: 8px 2px; --btn-radius: 12px 3px; --pill-radius: 12px 3px; --card-radius: 20px 4px;
+  --card-shadow: 0 2px 0 #120e0b; --head-wash: color-mix(in srgb, #e8875a 7%, transparent);
+  --track-h: 5px; --track-radius: 3px;
+  --thumb-w: 16px; --thumb-h: 16px; --thumb-radius: 50% 0 50% 50%; --thumb-ring: transparent;
+  --thumb-shadow: 0 0 0 3px #28211b;
+  --mod-edge: 0px; --wash: color-mix(in srgb, #9fbd86 6%, transparent);
+}
+.section { border-radius: 20px 4px; }
+.section > .section-label { border-radius: 20px 4px 0 0; text-transform: none; letter-spacing: 0.03em; font-size: 14px; }
+.section.collapsed > .section-label { border-radius: 20px 4px; }
+.mod-group, .map-row { border-radius: 14px 2px; }
+.wave-toggle { border-radius: 14px 3px; }
+.wave-btn { border-radius: 10px 2px; }
+.wave-btn.active, .wave-btn.active:hover, .preset-btn.active, .preset-btn.active:hover {
+  background: var(--accent); color: var(--on-accent); box-shadow: none; }
+.preset-btn { border-radius: 8px 2px; }
+.tab-bar { gap: 3px; }
+.tab-btn { border-radius: 12px 12px 0 0; border-bottom: 0; margin-top: 2px; }
+.tab-btn[aria-selected="true"] { background: var(--card); border-bottom: 0; box-shadow: inset 0 2px 0 var(--accent); }
+.view-tg { border-radius: 10px 2px; }
+input[type=range]::-webkit-slider-thumb { transform: rotate(-45deg); }
+input[type=range]::-webkit-slider-thumb:hover { transform: rotate(-45deg) scale(1.2); }
