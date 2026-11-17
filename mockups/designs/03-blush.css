@@ -1,0 +1,36 @@
+/* 03 · Blush — Rose-grey, raspberry and slate blue. Light member of the Frost family.
+   Shapes (shared by every Frost variant): rounded borderless cards floating on a
+   soft shadow; titles in sentence case; pill switches and pill tabs; round
+   handles with a ring in the card colour. */
+:root {
+  --panel: #f1e8ea; --card: #ffffff; --bg: #f6eff1; --popover: #ffffff;
+  --text: #2a1a1f; --label: #5e4950; --muted: #6e5860; --focus: #2a1a1f;
+  --border: #e5d6da; --card-border: transparent; --control-border: #8a7279; --track: #e0cfd4;
+  --accent: #b0305a; --accent2: #3d5a99; --on-accent: #ffffff; --accent2-text: #3d5a99;
+  --radius: 999px; --ctl-radius: 999px; --btn-radius: 999px; --pill-radius: 999px; --card-radius: 16px;
+  --card-shadow: 0 1px 2px rgba(70,30,45,0.08), 0 8px 20px rgba(70,30,45,0.07); --head-wash: transparent;
+  --track-h: 6px; --track-radius: 3px;
+  --thumb-w: 18px; --thumb-h: 18px; --thumb-radius: 50%; --thumb-ring: #ffffff;
+  --thumb-shadow: 0 0 0 3px #ffffff, 0 1px 4px rgba(70,30,45,0.35);
+  --mod-edge: 0px; --wash: #f6eff1;
+  --panel-edge: 0px; --pop-shadow: 0 16px 40px rgba(70,30,45,0.18);
+}
+header { background: var(--card); box-shadow: 0 1px 0 var(--border); }
+.bottom-bar { background: var(--card); }
+.sidebar { gap: 14px; }
+.section { padding: 14px 15px 16px; }
+.section > .section-label { margin: -14px -15px 10px; padding: 14px 15px 6px; border-bottom: 0; text-transform: none; letter-spacing: 0.01em; font-size: 15px; font-weight: 700; }
+.section-label { color: var(--text); }
+.mod-group, .map-row { border-radius: 12px; padding: 9px 11px 6px; }
+.wave-toggle { background: var(--bg); border: 0; padding: 4px; }
+.wave-btn.active, .wave-btn.active:hover, .preset-btn.active, .preset-btn.active:hover {
+  background: var(--accent); color: var(--on-accent); box-shadow: none; }
+.preset-btn { border-radius: 999px; padding: 3px 8px; background: var(--bg); border-color: transparent; color: var(--label); }
+.tab-bar { gap: 4px; padding-bottom: 8px; border-bottom: 0; }
+.tab-btn { border-radius: 12px; border-bottom: 0; }
+.tab-btn[aria-selected="true"] { background: var(--card); border-bottom: 0; box-shadow: 0 1px 3px rgba(70,30,45,0.12); }
+.view-tg { border-radius: 10px; background: var(--card); }
+#xy-swap-btn { border-color: transparent !important; background: var(--bg); }
+input[type=range] { margin: 1px 0; }
+/* Light sections: the app paints the waveform preview light-on-black, so invert it onto the card. */
+.wave-preview { filter: invert(1) grayscale(1) contrast(1.4); mix-blend-mode: multiply; }

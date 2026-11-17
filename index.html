@@ -273,21 +273,6 @@
   .lock-btn:hover { color: var(--label); }
   .lock-btn[aria-pressed="true"] { color: var(--accent2); }
   .checkbox-row .lock-btn { margin-right: 0; }
-  /* Additive partial banks (Operator-style): 16 vertical bars per axis. */
-  .pbank-head { display: flex; align-items: center; gap: 6px; margin: 6px 0 4px; }
-  .pbank-head label { color: var(--label); font-size: 11px; letter-spacing: 0.08em; }
-  .pbank-fill { display: flex; gap: 3px; margin-left: auto; }
-  .pbank-fill .mod-axis-btn { flex: 0 0 auto; padding: 2px 6px; font-size: 9px; }
-  .pbank-head .lock-btn { margin-left: 4px; margin-right: 0; }
-  .pbank {
-    display: grid; grid-template-columns: repeat(16, 1fr); gap: 2px; height: 74px;
-    padding: 3px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
-    touch-action: none; cursor: ns-resize; user-select: none; -webkit-user-select: none; margin-bottom: 4px;
-  }
-  .pbar { position: relative; background: rgba(255,255,255,0.04); border-radius: 1px; outline: none; }
-  .pbar:focus-visible { box-shadow: 0 0 0 1px var(--accent2); }
-  .pbar-fill { position: absolute; left: 0; right: 0; bottom: 0; background: var(--accent2); opacity: 0.85; border-radius: 1px; }
-  .pbar-n { position: absolute; left: 0; right: 0; bottom: 1px; text-align: center; font-size: 7px; color: rgba(255,255,255,0.35); pointer-events: none; }
   /* Labels and headers above sliders are not text to select: a drag that starts
      a hair too high used to select them instead of moving the slider. */
   .sidebar .param-header, .sidebar .vel-row, .sidebar .subsection-label,
@@ -1768,7 +1753,6 @@ header { border-bottom-width: var(--panel-edge); }
 .mod-group { background: var(--wash); border-left-width: var(--mod-edge); }
 .map-row { background: var(--wash); }
 .lfo-panel { background: var(--wash); }
-.pbar { background: var(--wash-2); }
 .mod-group-label, .vel-label { color: var(--sub-text); }
 
 /* Switches and buttons */
@@ -2158,27 +2142,6 @@ header h1 { cursor: default; user-select: none; }
           </div>
           <div style="display:flex;gap:16px;margin-top:2px">
             <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--label);cursor:pointer"><input type="checkbox" id="sync-hard" checked style="accent-color:var(--accent2);cursor:pointer">hard sync</label>
-          </div>
-        </div>
-
-        <div class="mod-group" data-axis="partAxis">
-          <div class="vel-row"><span class="vel-label">Partials</span></div>
-          <div class="pbank-head" id="pbank-head-x"><label>X</label><span class="pbank-fill">
-            <button type="button" class="mod-axis-btn" data-pfill="x:sine" title="Fundamental only">SIN</button>
-            <button type="button" class="mod-axis-btn" data-pfill="x:saw" title="Every partial at 1/n">SAW</button>
-            <button type="button" class="mod-axis-btn" data-pfill="x:square" title="Odd partials at 1/n">SQR</button>
-            <button type="button" class="mod-axis-btn" data-pfill="x:clear" title="All partials off — paint your own">CLR</button>
-          </span></div>
-          <div class="pbank" id="pbank-x" data-axis="x" role="group" aria-label="X partials 1 to 16"></div>
-          <div class="pbank-head" id="pbank-head-y"><label>Y</label><span class="pbank-fill">
-            <button type="button" class="mod-axis-btn" data-pfill="y:sine" title="Fundamental only">SIN</button>
-            <button type="button" class="mod-axis-btn" data-pfill="y:saw" title="Every partial at 1/n">SAW</button>
-            <button type="button" class="mod-axis-btn" data-pfill="y:square" title="Odd partials at 1/n">SQR</button>
-            <button type="button" class="mod-axis-btn" data-pfill="y:clear" title="All partials off — paint your own">CLR</button>
-          </span></div>
-          <div class="pbank" id="pbank-y" data-axis="y" role="group" aria-label="Y partials 1 to 16"></div>
-          <div class="info-text" data-info-label="partials">
-            Each axis's wave built from its first 16 harmonics: bar n is the level of n × that axis's frequency (bar 1 is the fundamental). Drag across the bars to draw; double-click a bank to reset it. Added before waveshape, fold and AM, so those act on the sum.
           </div>
         </div>
 
@@ -3065,7 +3028,6 @@ let params = {
   noiseAxis: 0,
   filterAxis: 0,
   syncAxis: 0,
-  partAxis: 0,
   warp: 0,        // phase bend (Ableton Wavetable "Warp"): -1 = late, +1 = early
   shapeAmt: 0,    // waveshaping (tanh) drive
   syncAmt: 1,     // sync ratio (1 = off), range 0.1..2.0
@@ -3083,11 +3045,6 @@ let params = {
   foldBias: 0,    // asymmetric fold: DC offset into the folder (-1..1)
   unisonDetune: 0, // unison pair detune in cents (audio) / ghost drift rate (visual)
   unisonMix: 0,    // unison pair level 0..1 (0 = off)
-  // Additive partial banks: the level of harmonics 1..16 of each axis's own
-  // frequency. [1, 0, …] is the plain base wave. Edited by replacing the array,
-  // never in place, so presets and defaults can share them safely.
-  partsX: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  partsY: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   fmRef: 0,        // FM modulator frequency: 0 = ratio × each axis's own, 1 = × X's, 2 = × Y's
   amRef: 0,        // the same for AM
   damp: 0,         // harmonograph damping 0..1 (visual only): figure spirals inward
@@ -3157,7 +3114,7 @@ const PARAM_DEFAULTS = JSON.parse(JSON.stringify(params));
 // ── Parameter locks ──────────────────────────────────────────────────────────
 // A locked parameter keeps its value when a preset, a grid pad or a preset glide
 // is applied, and Evolve leaves it alone. CC, LFOs and your own edits still move
-// it. Keys are MAP_TARGETS keys, plus 'partsX' / 'partsY' for the partial banks.
+// it. Keys are MAP_TARGETS keys.
 // Kept per browser, never in presets, so loading a patch can't unlock anything.
 const LOCK_STORE = 'lissa.locks';
 let lockedKeys = new Set();
@@ -3173,18 +3130,15 @@ function lockedParamKey(paramKey) {
 function lockSnapshot() {
   const m = {};
   lockedKeys.forEach(k => {
-    if (k === 'partsX' || k === 'partsY') m[k] = params[k];
-    else if (typeof MAP_TARGETS !== 'undefined' && MAP_TARGETS[k]) m[k] = readTarget(k);
+    if (typeof MAP_TARGETS !== 'undefined' && MAP_TARGETS[k]) m[k] = readTarget(k);
   });
   return m;
 }
 function lockRestore(m) {
   Object.keys(m).forEach(k => {
-    if (k === 'partsX' || k === 'partsY') { params[k] = m[k]; return; }
     const t = MAP_TARGETS[k];
     if (t) t.apply(t.toggle ? !!m[k] : m[k]);
   });
-  if (m.partsX || m.partsY) { renderBanks(); schedulePeriodicWaveUpdate(); }
 }
 
 let visualSwap = false; // swaps X/Y in the visual presentation only
@@ -3355,7 +3309,6 @@ const AXIS_GROUPS = [
   ['noiseAxis',  'Noise'],
   ['filterAxis', 'Filter'],
   ['syncAxis',   'Sync'],
-  ['partAxis',   'Partials'],
 ];
 
 // A modulator's speed in cycles per cycle of the axis it modulates: its ratio,
@@ -3387,18 +3340,6 @@ function lapDiv() {
   return Math.min(8, d);
 }
 
-const PART_N = 16;
-// The plain base wave: the fundamental alone (or nothing at all, which also falls
-// back to the plain wave rather than silence).
-function bankPlain(b) {
-  for (let k = 1; k < PART_N; k++) if (b[k] > 0.0005) return false;
-  return true;
-}
-function bankComplexity(b) {
-  let c = 0;
-  if (b) for (let k = 1; k < PART_N; k++) c += (b[k] || 0) * (k + 1) * 0.02;
-  return c;
-}
 function processWave(carrierArg, freqT, type, axis) {
   type = type || waveTypeX;
   axis = axis || 'x';
@@ -3465,23 +3406,6 @@ function processWave(carrierArg, freqT, type, axis) {
     s = morphWaveFn(ph + fb * s, mrp);
     s = morphWaveFn(ph + fb * s, mrp);
   }
-  // Partials: the axis's wave built additively from harmonics 1..16 of its own
-  // frequency (Y at 3 with bars 1 and 3 up sounds 3 and 9), normalised by the
-  // total level. It joins before the shaping stages, so waveshape, fold and AM act
-  // on the sum; whole multiples keep every period. The crossfader blends between
-  // the plain wave and the bank.
-  const bank = axis === 'y' ? params.partsY : params.partsX;
-  const wP = axisW('partAxis', axis);
-  if (wP > 0.0005 && bank && !bankPlain(bank)) {
-    let sum = 0, tot = 0;
-    for (let k = 0; k < PART_N; k++) {
-      const a = bank[k];
-      if (!(a > 0.0005)) continue;
-      sum += a * (k === 0 ? s : morphWaveFn((k + 1) * ph, mrp));   // the fundamental keeps its feedback
-      tot += a;
-    }
-    if (tot > 1e-6) s += (sum / tot - s) * wP;
-  }
   // Waveshaping (tanh saturation), normalised. k rises from 0, where the transfer
   // curve IS the identity, so leaving zero is a fade-in rather than a step.
   const shp = params.shapeAmt * axisW('shapeAxis', axis);
@@ -3527,8 +3451,7 @@ function modComplexity() {
     + params.ringAmt * 1.0
     + params.fbAmt * 1.5
     + Math.abs(params.warp || 0) * 2.5
-    + params.crushRate * 0.5
-    + bankComplexity(params.partsX) + bankComplexity(params.partsY);
+    + params.crushRate * 0.5;
 }
 
 // The figure's paint: the stroke colour, or with the gradient on, a linear
@@ -6156,107 +6079,10 @@ function buildAxisToggles() {
     if (prose) group.insertBefore(row, prose); else group.appendChild(row);
   });
 }
-// ── Partial banks (Operator-style bar editor) ────────────────────────────────
-function bankTag(b) {
-  if (!b || bankPlain(b)) return 'sine';
-  const on = []; b.forEach((v, k) => { if (v > 0.0005) on.push(k + 1); });
-  return on.length <= 4 ? on.join('+') : on.length + ' partials';
-}
-const BANK_FILLS = {
-  sine:   k => (k === 0 ? 1 : 0),
-  saw:    k => 1 / (k + 1),
-  square: k => (k % 2 === 0 ? 1 / (k + 1) : 0),
-  clear:  () => 0,
-};
-function bankKey(ax) { return ax === 'y' ? 'partsY' : 'partsX'; }
-function setBank(ax, arr) {
-  params[bankKey(ax)] = arr;
-  renderBanks();
-  drawWavePreview();
-  schedulePeriodicWaveUpdate();
-}
-function renderBanks() {
-  ['x', 'y'].forEach(ax => {
-    const el = document.getElementById('pbank-' + ax), b = params[bankKey(ax)];
-    if (!el || !b) return;
-    [...el.children].forEach((bar, k) => {
-      const v = b[k] || 0;
-      bar.firstChild.style.height = (v * 100).toFixed(1) + '%';
-      bar.setAttribute('aria-valuenow', Math.round(v * 100));
-    });
-  });
-}
-function buildBanks() {
-  ['x', 'y'].forEach(ax => {
-    const el = document.getElementById('pbank-' + ax);
-    if (!el || el.children.length) return;
-    for (let k = 0; k < PART_N; k++) {
-      const bar = document.createElement('div');
-      bar.className = 'pbar';
-      bar.tabIndex = 0;
-      bar.setAttribute('role', 'slider');
-      bar.setAttribute('aria-label', `${ax.toUpperCase()} partial ${k + 1}`);
-      bar.setAttribute('aria-valuemin', '0'); bar.setAttribute('aria-valuemax', '100');
-      bar.innerHTML = `<div class="pbar-fill"></div><div class="pbar-n">${k + 1}</div>`;
-      bar.addEventListener('keydown', e => {
-        const step = { ArrowUp: 0.05, ArrowRight: 0.05, ArrowDown: -0.05, ArrowLeft: -0.05, PageUp: 0.25, PageDown: -0.25 }[e.key];
-        const b = params[bankKey(ax)].slice();
-        if (step !== undefined) b[k] = Math.max(0, Math.min(1, b[k] + step));
-        else if (e.key === 'Home') b[k] = 1;
-        else if (e.key === 'End') b[k] = 0;
-        else return;
-        e.preventDefault();
-        setBank(ax, b);
-      });
-      el.appendChild(bar);
-    }
-    // Drag across the bars to draw levels; the stroke is interpolated so a fast
-    // sweep doesn't skip bars.
-    let drag = null;
-    const at = e => {
-      const first = el.children[0].getBoundingClientRect(), last = el.children[PART_N - 1].getBoundingClientRect();
-      const k = Math.max(0, Math.min(PART_N - 1, Math.floor((e.clientX - first.left) / (last.right - first.left) * PART_N)));
-      let v = 1 - (e.clientY - first.top) / Math.max(1, first.height);
-      v = Math.max(0, Math.min(1, v));
-      if (v < 0.03) v = 0;
-      return [k, v];
-    };
-    const paint = e => {
-      const [k, v] = at(e), b = params[bankKey(ax)].slice();
-      const [k0, v0] = drag.last || [k, v];
-      const n = Math.abs(k - k0);
-      for (let i = 0; i <= n; i++) {
-        const kk = k0 + Math.sign(k - k0) * i;
-        b[kk] = n ? v0 + (v - v0) * (i / n) : v;
-      }
-      drag.last = [k, v];
-      setBank(ax, b);
-    };
-    el.addEventListener('pointerdown', e => {
-      if (e.button !== 0) return;
-      e.preventDefault();
-      el.setPointerCapture(e.pointerId);
-      drag = { id: e.pointerId, last: null };
-      paint(e);
-    });
-    el.addEventListener('pointermove', e => { if (drag && e.pointerId === drag.id) paint(e); });
-    const end = e => { if (drag && e.pointerId === drag.id) drag = null; };
-    el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
-    el.addEventListener('dblclick', () => setBank(ax, Array.from({ length: PART_N }, (_, k) => BANK_FILLS.sine(k))));
-  });
-  document.querySelectorAll('[data-pfill]').forEach(btn => btn.addEventListener('click', () => {
-    const [ax, kind] = btn.dataset.pfill.split(':');
-    setBank(ax, Array.from({ length: PART_N }, (_, k) => BANK_FILLS[kind](k)));
-  }));
-  renderBanks();
-}
-
 // ── Lock buttons ─────────────────────────────────────────────────────────────
 const LOCK_SVG_ON  = '<svg viewBox="0 0 10 11" aria-hidden="true"><rect x="1.2" y="4.8" width="7.6" height="5.4" rx="1"/><path d="M2.9 4.8V3.3a2.1 2.1 0 0 1 4.2 0v1.5"/></svg>';
 const LOCK_SVG_OFF = '<svg viewBox="0 0 10 11" aria-hidden="true"><rect x="1.2" y="4.8" width="7.6" height="5.4" rx="1"/><path d="M2.9 4.8V3.3a2.1 2.1 0 0 1 4.1-.6"/></svg>';
 function lockLabel(key) {
-  if (key === 'partsX') return 'X partials';
-  if (key === 'partsY') return 'Y partials';
   return (MAP_TARGETS[key] && MAP_TARGETS[key].label) || key;
 }
 function makeLockButton(key) {
@@ -8765,7 +8591,7 @@ const TARGET_CATEGORIES = [
                  'crossFm', 'ringAmt', 'crossAxis', 'shapeAmt', 'shapeAxis', 'fbAmt', 'fbAxis',
                  'warp', 'foldDrive', 'foldBias', 'warpAxis', 'crushBits', 'crushRate', 'crushAxis',
                  'noiseAmt', 'noiseAxis', 'filterCutoff', 'filterQ', 'filterAxis',
-                 'syncAmt', 'syncAxis', 'partAxis', 'unisonDetune', 'unisonMix']],
+                 'syncAmt', 'syncAxis', 'unisonDetune', 'unisonMix']],
   ['Frequency', ['geometry', 'ax', 'fx', 'ay', 'fy', 'visualSwap', 'damp', 'preset']],
   ['Audio',     ['volume']],
   ['Figure',    ['hue', 'sat', 'light', 'gradOn', 'gradAngle', 'lineWidth', 'dotsLine', 'mirrorMode',
@@ -9267,9 +9093,7 @@ function applyPeriodicWave() {
     const morphDiffers = Math.abs((params.morphX || 0) - (params.morphY || 0)) > 0.0005;
     // Any stage aimed at one axis makes the two genuinely different waves.
     const aimed = AXIS_GROUPS.some(([k]) => Math.abs(+params[k] || 0) > 0.0005);
-    // Partials are set per axis, so differing ones make different waves too.
-    const partsDiffer = params.partsX.some((v, k) => Math.abs(v - params.partsY[k]) > 0.0005);
-    const axisDiffers = syncDiffers || fmDiffers || amDiffers || morphDiffers || aimed || partsDiffer;
+    const axisDiffers = syncDiffers || fmDiffers || amDiffers || morphDiffers || aimed;
     const pwY = (waveTypeY === waveTypeX && !axisDiffers) ? pwX : buildPeriodicWave(waveTypeY, 'y');
     if (pwY) oscY.setPeriodicWave(pwY);
     if (pwX && oscX2) oscX2.setPeriodicWave(pwX);
@@ -9369,7 +9193,6 @@ function refreshAllControls() {
   setModWave('am', params.amWave || 'sine');
   refreshAxisToggles();
   setModRef('fm', params.fmRef | 0); setModRef('am', params.amRef | 0);
-  renderBanks();
   document.getElementById('animate').checked = animating;
   setS('anim-speed', animSpeed, 'speed-val', v => v.toFixed(1) + '×');
   document.getElementById('anim-speed-row').classList.toggle('vis-off', !animating);
@@ -9439,18 +9262,6 @@ function migratePreset(d) {
     }
     d._geoMigrated = true;
   }
-  // Format 7 replaced the single added partial (partX/partXMix …) with banks.
-  if (!(d.version >= 7) && !d._bankMigrated && p) {
-    [['X', 'partsX'], ['Y', 'partsY']].forEach(([a, key]) => {
-      const mix = +p['part' + a + 'Mix'] || 0, n = Math.round(+p['part' + a] || 2);
-      if (!Array.isArray(p[key])) {
-        const b = Array(16).fill(0); b[0] = 1;
-        if (mix > 0.001 && n >= 1 && n <= 16) b[n - 1] = Math.min(1, b[n - 1] + mix);
-        p[key] = b;
-      }
-    });
-    d._bankMigrated = true;
-  }
   if (!(d.version >= 6) && !d._axisMigrated) {
     if (p) AXIS_GROUPS.forEach(([k]) => { const v = p[k] | 0; if (p[k] !== undefined) p[k] = v === 1 ? -1 : v === 2 ? 1 : 0; });
     if (p && p.subAxis !== undefined) delete p.subAxis;
@@ -9475,11 +9286,6 @@ function applyPresetDataRaw(d) {
   // Keys absent from the preset (e.g. patches saved before a parameter existed)
   // fall back to their defaults so old patches don't inherit the current state.
   if (d.params) Object.keys(params).forEach(k => { params[k] = d.params[k] !== undefined ? d.params[k] : PARAM_DEFAULTS[k]; });
-  // The partial banks: own copies, always 16 levels in 0..1.
-  ['partsX', 'partsY'].forEach(k => {
-    const v = params[k];
-    params[k] = Array.isArray(v) ? Array.from({ length: PART_N }, (_, i) => Math.max(0, Math.min(1, +v[i] || 0))) : PARAM_DEFAULTS[k].slice();
-  });
   params.phase = keepPhase;
   if (d.waveTypeX) waveTypeX = d.waveTypeX;
   if (d.waveTypeY) waveTypeY = d.waveTypeY;
@@ -10261,18 +10067,16 @@ function startPresetMorph(data) {
   // we are, so nothing else moves yet.
   if (morphStepMode === 'start') applyPresetData(mergeDiscrete(cur, data));
   const to = data.params || {};
-  const from = {}, keys = [], arrKeys = [];
+  const from = {}, keys = [];
   Object.keys(params).forEach(k => {
     if (lockedParamKey(k)) return;   // a locked value stays where it is
     const tv = to[k] !== undefined ? to[k] : PARAM_DEFAULTS[k];
     if (typeof params[k] === 'number' && typeof tv === 'number' && !MORPH_DISCRETE.has(k)) {
       from[k] = params[k]; keys.push(k);
-    } else if (Array.isArray(params[k]) && Array.isArray(tv) && tv.length === params[k].length) {
-      from[k] = params[k].slice(); arrKeys.push(k);   // the partial banks glide bar by bar
     }
   });
   _morph = {
-    t0: performance.now(), dur: presetMorphSec * 1000, from, to, keys, arrKeys, data,
+    t0: performance.now(), dur: presetMorphSec * 1000, from, to, keys, data,
     fromHSL: { ...strokeHSL },
     toHSL: data.strokeHSL ? { ...data.strokeHSL } : (to.strokeColor ? hexToHsl(to.strokeColor) : { ...strokeHSL }),
     fromBg: params.bgColor, toBg: to.bgColor || params.bgColor,
@@ -10288,11 +10092,6 @@ function tickPresetMorph(now) {
     const tv = _morph.to[k] !== undefined ? _morph.to[k] : PARAM_DEFAULTS[k];
     params[k] = _morph.from[k] + (tv - _morph.from[k]) * u;
   });
-  _morph.arrKeys.forEach(k => {
-    const tv = _morph.to[k] !== undefined ? _morph.to[k] : PARAM_DEFAULTS[k], fv = _morph.from[k];
-    params[k] = fv.map((v, i) => v + ((+tv[i] || 0) - v) * u);
-  });
-  if (_morph.arrKeys.length) renderBanks();
   // Colours glide too — hue takes the short way around the wheel.
   const dh = ((((_morph.toHSL.h - _morph.fromHSL.h) % 360) + 540) % 360) - 180;
   if (!lockedKeys.has('hue'))   strokeHSL.h = _morph.fromHSL.h + dh * u;
@@ -10551,7 +10350,6 @@ function applyUiHue(shift, save) {
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 buildAxisToggles();
-buildBanks();
 buildGrid();
 setMorphStepMode(morphStepMode);
 updateConstructionControls();
@@ -10682,7 +10480,6 @@ function buildSynthReadout() {
     ['noise', `${P.noiseAmt.toFixed(3)} ${ax('noiseAxis')}`, P.noiseAmt > 0],
     ['filt',  `${FILTER_TAG[filterType] || filterType} ${fmtCutoff(P.filterCutoff)} Q${P.filterQ.toFixed(1)} ${ax('filterAxis')}`, filterIsOn()],
     ['sync',  `${P.syncAmt.toFixed(2)} ${syncHard ? 'hard' : 'soft'} ${ax('syncAxis')}`, Math.abs(P.syncAmt - 1) > 1e-3],
-    ['part',  `X ${bankTag(P.partsX)} Y ${bankTag(P.partsY)} ${ax('partAxis')}`, !bankPlain(P.partsX) || !bankPlain(P.partsY)],
     ['uni',   `${P.unisonDetune.toFixed(1)}¢ mix ${Math.round(P.unisonMix * 100)}%`, P.unisonMix > 0],
     ['damp',  `${fmtDamp(P.damp || 0)} (visual)`, (P.damp || 0) > 0.0005],
   ];
@@ -11104,7 +10901,7 @@ const READOUT_KEYS = {
   am: ['amAmt', 'amRatio', 'amRef', 'amAxis'], fm: ['fmAmount', 'fmRatio', 'fmRef', 'fmAxis'], cross: ['crossFm', 'ringAmt', 'crossAxis'],
   shape: ['shapeAmt', 'shapeAxis'], fb: ['fbAmt', 'fbAxis'], warp: ['warp', 'foldDrive', 'foldBias', 'warpAxis'],
   crush: ['crushBits', 'crushRate', 'crushAxis'], noise: ['noiseAmt', 'noiseAxis'], filt: ['filterCutoff', 'filterQ', 'filterAxis'],
-  sync: ['syncAmt', 'syncAxis'], part: ['partAxis'], damp: ['damp'], uni: ['unisonDetune', 'unisonMix'], lfo1: ['lfo0Rate', 'lfo0Depth'], lfo2: ['lfo1Rate', 'lfo1Depth'],
+  sync: ['syncAmt', 'syncAxis'], damp: ['damp'], uni: ['unisonDetune', 'unisonMix'], lfo1: ['lfo0Rate', 'lfo0Depth'], lfo2: ['lfo1Rate', 'lfo1Depth'],
 };
 let roOpen = null;
 const roPop = document.getElementById('ro-pop');
@@ -11166,10 +10963,6 @@ function syncLiveControls() {
   if (roOpen && document.getElementById('synth-readout').hidden) closeReadoutEditor();
 }
 addPinButtons();
-['x', 'y'].forEach(ax => {
-  const h = document.getElementById('pbank-head-' + ax);
-  if (h && !h.querySelector('.lock-btn')) h.appendChild(makeLockButton(bankKey(ax)));
-});
 renderDock();
 // The LFO panels are rebuilt on every patch load; give their sliders stars again.
 {
@@ -11541,14 +11334,6 @@ const INTRO_LEVELS = [
     reveal: () => [introGroup('syncAxis')],
     snap: ['syncAmt', 'syncAxis'],
     check: () => Math.min(1, Math.abs((params.syncAmt ?? 1) - 1) / 0.4) },
-  { id: 'partials', title: 'Partials',
-    text: 'A wave can also be painted from its first 16 harmonics: bar n is n × the frequency. Drag across X’s bars.',
-    reveal: () => [introGroup('partAxis')],
-    snap: ['partsX', 'partsY', 'partAxis'],
-    check: () => {
-      const b = params.partsX || [], d = PARAM_DEFAULTS.partsX;
-      return Math.min(1, b.reduce((a, v, i) => a + Math.abs(v - d[i]), 0) / 0.6);
-    } },
   { id: 'unison', title: 'Unison',
     text: 'Unison adds a slightly detuned copy: the figure opens, closes and slowly turns. Mix past 0.4, then some Detune.',
     reveal: () => [introRow('#unison-mix').closest('.mod-group')],

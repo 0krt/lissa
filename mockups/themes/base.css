@@ -86,7 +86,6 @@ header { border-bottom-width: var(--panel-edge); }
 .mod-group { background: var(--wash); border-left-width: var(--mod-edge); }
 .map-row { background: var(--wash); }
 .lfo-panel { background: var(--wash); }
-.pbar { background: var(--wash-2); }
 .mod-group-label, .vel-label { color: var(--sub-text); }
 
 /* Switches and buttons */
