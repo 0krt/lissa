@@ -1,0 +1,36 @@
+/* 07 · Swiss — international style. White, black, signal red, one blue.
+   Shapes: no outlines or radii; each section hangs from a thick black bar;
+   grey fields; thin black tracks with tall bar handles. */
+:root {
+  --panel: #ffffff; --card: #ffffff; --bg: #f0f0f0; --popover: #ffffff;
+  --text: #111111; --label: #3d3d3d; --muted: #595959; --focus: #111111;
+  --border: #dcdcdc; --card-border: transparent; --control-border: #7a7a7a; --track: #111111;
+  --accent: #d0021b; --accent2: #0041b8; --on-accent: #ffffff; --accent2-text: #0041b8;
+  --radius: 0px; --ctl-radius: 0px; --btn-radius: 0px; --pill-radius: 0px; --card-radius: 0px;
+  --card-shadow: none; --head-wash: transparent; --head-text: #111111;
+  --track-h: 2px; --track-radius: 0px;
+  --thumb-w: 5px; --thumb-h: 16px; --thumb-radius: 0; --thumb-ring: transparent;
+  --thumb-shadow: none;
+  --mod-edge: 0px; --wash: #f0f0f0;
+}
+.sidebar { gap: 26px; }
+.section { border: 0; border-top: 6px solid #111; padding: 0 0 4px; }
+.section > .section-label { margin: 0 0 12px; padding: 8px 0 0; border-bottom: 0; font-weight: 700; text-transform: none; letter-spacing: -0.01em; font-size: 18px; }
+.section.collapsed > .section-label { margin-bottom: 0; }
+.subsection-label { border-bottom: 0; color: var(--accent); }
+.mod-group, .map-row { border-radius: 0; padding: 8px 10px 6px; }
+.wave-toggle { border: 0; padding: 0; gap: 2px; background: transparent; }
+.wave-btn { background: #f0f0f0; }
+.wave-btn.active, .wave-btn.active:hover, .preset-btn.active, .preset-btn.active:hover {
+  background: var(--accent); color: #fff; box-shadow: none; }
+.preset-btn { border: 0; background: #f0f0f0; color: #111; }
+#xy-swap-btn { border: 0 !important; background: #111; color: #fff; }
+.sidebar-toggle, .search-toggle, .grid-toggle, .view-tg { border-color: #111; color: #111; background: #fff; }
+input[type=range]::-webkit-slider-thumb { background: #111; }
+input[type=range]::-moz-range-thumb { background: #111; }
+input[type=range]::-webkit-slider-thumb:hover { transform: none; background: var(--accent); }
+.tab-btn[aria-selected="true"] { color: #111; border-bottom: 4px solid var(--accent); }
+header { border-bottom: 6px solid #111; }
+header h1 { color: #111; font-weight: 700; }
+.wave-preview { filter: invert(1) grayscale(1) contrast(1.4); mix-blend-mode: multiply; }
+input[type=range] { margin: 4px 0; }

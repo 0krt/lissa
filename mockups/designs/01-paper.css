@@ -1,0 +1,36 @@
+/* 01 · Paper — warm editorial light. Ink on cream, vermilion and indigo.
+   Shapes: no boxes. Sections are open, ruled by a heavy ink line on top; square
+   corners everywhere; hairline tracks with small square handles. */
+:root {
+  --panel: #efe9dd; --card: #f7f3ea; --bg: #e7e0d1; --popover: #f7f3ea;
+  --text: #1f1c17; --label: #4f4839; --muted: #625a4b; --focus: #1f1c17;
+  --border: #d2c8b4; --card-border: transparent; --control-border: #857a64; --track: #c9bea8;
+  --accent: #b3341c; --accent2: #2c4884; --on-accent: #ffffff;
+  --accent2-text: #2c4884;
+  --radius: 0px; --ctl-radius: 0px; --btn-radius: 0px; --pill-radius: 0px; --card-radius: 0px;
+  --card-shadow: none; --head-wash: transparent;
+  --track-h: 2px; --track-radius: 0px;
+  --thumb-w: 11px; --thumb-h: 11px; --thumb-radius: 0; --thumb-ring: transparent;
+  --thumb-shadow: none;
+  --mod-edge: 1px;
+  --wash: transparent;
+  --pop-shadow: 0 10px 30px rgba(60,40,10,0.18);
+}
+.sidebar { gap: 22px; }
+.section { background: transparent; border: 0; border-top: 3px solid var(--text); padding: 4px 2px 6px; }
+.section > .section-label { margin: 0 -2px 10px; padding: 10px 2px 8px; border-bottom: 1px solid var(--text); background: none; }
+.section.collapsed > .section-label { margin-bottom: 0; }
+.section-label { color: var(--text); }
+.mod-group, .map-row { background: transparent; border-left: 1px solid var(--text); border-radius: 0; padding-left: 10px; }
+.wave-toggle { background: transparent; border: 1px solid var(--text); padding: 0; gap: 0; }
+.wave-btn + .wave-btn { box-shadow: inset 1px 0 0 var(--border); }
+.wave-btn.active, .wave-btn.active:hover, .preset-btn.active, .preset-btn.active:hover {
+  background: var(--text); color: var(--panel); box-shadow: none; }
+.preset-btn { background: transparent; border-color: var(--control-border); }
+.view-tg { background: var(--panel); border-color: var(--text); }
+input[type=range]::-webkit-slider-thumb { background: var(--text); }
+input[type=range]::-moz-range-thumb { background: var(--text); }
+input[type=range]::-webkit-slider-thumb:hover { transform: none; }
+.tab-btn[aria-selected="true"] { color: var(--text); border-bottom: 3px solid var(--accent); }
+header { border-bottom: 3px double var(--text); }
+.wave-preview { filter: invert(1) grayscale(1) contrast(1.4); mix-blend-mode: multiply; }

@@ -1,0 +1,35 @@
+/* 02 · Brutal — neo-brutalist. White slabs, 2px black outlines, hard offset
+   shadows, a yellow title strip, electric blue and magenta.
+   Shapes: square slabs; buttons and handles throw solid shadows. */
+:root {
+  --panel: #efede4; --card: #ffffff; --bg: #ffffff; --popover: #ffffff;
+  --text: #0a0a0a; --label: #262626; --muted: #4a4a4a; --focus: #0a0a0a;
+  --border: #0a0a0a; --card-border: #0a0a0a; --control-border: #0a0a0a; --track: #0a0a0a;
+  --accent: #2433ff; --accent2: #c8005f; --on-accent: #ffffff; --accent2-text: #c8005f;
+  --radius: 0px; --ctl-radius: 0px; --btn-radius: 0px; --pill-radius: 0px; --card-radius: 0px;
+  --card-shadow: 5px 5px 0 #0a0a0a; --head-wash: #ffde21; --head-text: #0a0a0a;
+  --track-h: 4px; --track-radius: 0px;
+  --thumb-w: 16px; --thumb-h: 16px; --thumb-radius: 0; --thumb-ring: #0a0a0a;
+  --thumb-shadow: 2px 2px 0 #0a0a0a;
+  --mod-edge: 0px; --wash: transparent;
+  --panel-edge: 2px; --pop-shadow: 8px 8px 0 #0a0a0a;
+}
+.sidebar { gap: 18px; padding-right: 20px; }
+.section { border-width: 2px; }
+.section > .section-label { border-bottom: 2px solid #0a0a0a; font-weight: 700; }
+.section-label:hover { color: #0a0a0a; }
+.mod-group, .map-row { border: 2px solid #0a0a0a; border-radius: 0; background: #f3f1ff; }
+.wave-toggle { border: 2px solid #0a0a0a; background: #fff; }
+.wave-btn.active, .wave-btn.active:hover, .preset-btn.active, .preset-btn.active:hover {
+  background: var(--accent); color: #fff; box-shadow: none; }
+.preset-btn { border: 2px solid #0a0a0a; color: #0a0a0a; box-shadow: 2px 2px 0 #0a0a0a; }
+.sidebar-toggle, .search-toggle, .grid-toggle, .btn-outline, .view-tg { border: 2px solid #0a0a0a; color: #0a0a0a; box-shadow: 2px 2px 0 #0a0a0a; background: #fff; }
+.sec-help { border: 2px solid #0a0a0a; background: #fff; color: #0a0a0a; }
+#xy-swap-btn { border: 2px solid #0a0a0a !important; box-shadow: 3px 3px 0 #0a0a0a; background: #fff; }
+input[type=range]::-webkit-slider-thumb { background: #ffde21; border: 2px solid #0a0a0a; }
+input[type=range]::-moz-range-thumb { background: #ffde21; border: 2px solid #0a0a0a; }
+input[type=range]::-webkit-slider-thumb:hover { transform: none; }
+.tab-btn { color: #262626; }
+.tab-btn[aria-selected="true"] { color: #0a0a0a; background: #ffde21; border-bottom: 3px solid #0a0a0a; }
+header h1 { color: #0a0a0a; font-weight: 700; }
+.wave-preview { filter: invert(1) grayscale(1) contrast(1.4); mix-blend-mode: multiply; }

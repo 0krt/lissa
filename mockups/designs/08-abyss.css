@@ -1,0 +1,33 @@
+/* 08 · Abyss — deep-sea glass. Navy gradients, aqua and coral.
+   Shapes: frosted rounded panes with a lit top edge; everything pill-shaped;
+   tabs sit in one pill track; large white handles with an aqua halo. */
+:root {
+  --panel: #0a1828; --card: #0f2236; --bg: #081422; --popover: #0f2236;
+  --text: #e4f1fa; --label: #9db7cd; --muted: #8aa5bc; --focus: #e4f1fa;
+  --border: #1c3550; --card-border: rgba(160,210,255,0.10); --control-border: #5a7d9e; --track: #1f3a57;
+  --accent: #34e3c4; --accent2: #ff8f73; --on-accent: #032620; --accent2-text: #ff9e86;
+  --radius: 999px; --ctl-radius: 999px; --btn-radius: 999px; --pill-radius: 999px; --card-radius: 22px;
+  --card-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 12px 30px rgba(0,0,0,0.35); --head-wash: transparent;
+  --track-h: 4px; --track-radius: 2px;
+  --thumb-w: 18px; --thumb-h: 18px; --thumb-radius: 50%; --thumb-ring: transparent;
+  --thumb-shadow: 0 0 0 5px rgba(52,227,196,0.25);
+  --mod-edge: 0px; --wash: rgba(160,210,255,0.05);
+  --panel-edge: 0px;
+}
+.sidebar { background: linear-gradient(180deg, #0d2238 0%, #08131f 100%); gap: 14px; }
+header { background: linear-gradient(90deg, #0d2238, #08131f); }
+.section { background: linear-gradient(180deg, rgba(160,210,255,0.08), rgba(160,210,255,0.03)); backdrop-filter: blur(10px); padding: 14px 15px 16px; }
+.section > .section-label { margin: -14px -15px 10px; padding: 14px 15px 8px; border-bottom: 0; }
+.mod-group, .map-row { border-radius: 16px; padding: 9px 12px 6px; }
+.wave-toggle { background: rgba(0,0,0,0.25); border: 1px solid rgba(160,210,255,0.10); }
+.wave-btn.active, .wave-btn.active:hover, .preset-btn.active, .preset-btn.active:hover {
+  background: var(--accent); color: var(--on-accent); box-shadow: 0 0 14px rgba(52,227,196,0.35); }
+.preset-btn { border-radius: 999px; padding: 3px 8px; background: rgba(0,0,0,0.25); border-color: rgba(160,210,255,0.12); }
+.tab-bar { background: transparent; border-bottom: 0; padding-bottom: 6px; }
+.tab-bar { margin-bottom: 4px; }
+.tab-btn { border-radius: 14px; border-bottom: 0; }
+.tab-btn[aria-selected="true"] { background: rgba(52,227,196,0.14); border-bottom: 0; }
+.view-tg { border-radius: 50%; background: rgba(15,34,54,0.8); }
+input[type=range]::-webkit-slider-thumb { background: #ffffff; }
+input[type=range]::-moz-range-thumb { background: #ffffff; }
+input[type=range] { margin: 1px 0; }
