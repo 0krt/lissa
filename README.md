@@ -28,12 +28,13 @@ randomizing leaves them alone, and pinned (☆) for quick access.
 Typing `intro` in the search starts a guided introduction that unlocks the app
 one synthesis stage at a time; progress is kept per browser.
 
-## Style editor
+## Interface colour
 
-`mockups/` holds a live style editor that loads the unmodified app and lets
-you change its colours and fonts. See [`mockups/README.md`](mockups/README.md).
+Click the **lissa** title to cycle the interface highlight: Lime (the
+default), Tangerine and Orchid. A figure still drawn in the old highlight
+follows it. The choice is kept per browser.
 
 ## Storage
 
-UI state, locks, the readout toggle and intro progress are kept in
+UI state, locks, the readout toggle, the interface colour and intro progress are kept in
 `localStorage`. Nothing leaves the browser.

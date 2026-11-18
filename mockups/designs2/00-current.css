@@ -1,6 +1,0 @@
-/* 00 · Current — the app as it ships, for comparison. These are the values
-   index.html already uses, so loading this file changes nothing. */
-:root {
-  --panel: #121215; --card: #121616; --bg: #151519;
-  --accent: #3a9c9b; --accent2: #3264a4;
-}
