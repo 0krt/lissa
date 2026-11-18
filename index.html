@@ -1671,9 +1671,8 @@
   @media (prefers-reduced-motion: reduce) { .intro-card .ic-meter i { transition: none; } }
 
   /* ── Theme ──────────────────────────────────────────────────────────────
-     Built in the style editor (mockups/). First a token layer that maps the
-     colours, fonts and radii hard-coded above onto variables, then the
-     theme's values and per-element rules. */
+     First a token layer that maps the colours, fonts and radii hard-coded
+     above onto variables, then the theme's values and per-element rules. */
 :root {
   --font-ui: 'IBM Plex Mono', monospace;
   --font-display: var(--font-ui);
@@ -1801,23 +1800,20 @@ input[type=range]::-webkit-slider-thumb:hover { box-shadow: var(--thumb-shadow);
 .midi-dot.error, .rec-dot { background: var(--danger); }
 
 :root {
-  --accent: #3a9c9b; --accent-hi: color-mix(in srgb, #3a9c9b 80%, white); --on-accent: #ffffff;
-  --accent2: #3264a4; --focus: #d4d4d8;
-  --a1-soft: color-mix(in srgb, #3a9c9b 7%, transparent); --a1-mid: color-mix(in srgb, #3a9c9b 12%, transparent);
-  --a2-soft: color-mix(in srgb, #3264a4 12%, transparent); --a2-mid: color-mix(in srgb, #3264a4 15%, transparent); --a2-strong: color-mix(in srgb, #3264a4 28%, transparent);
-  --panel: #121215; --card: #121616; --bg: #151519;
-  --overlay: color-mix(in srgb, #121215 86%, transparent); --popover: #121616; --dock: color-mix(in srgb, #121215 90%, transparent);
-  --text: #d4d4d8; --label: #8787a1; --muted: #8b8b98;
-  --border: #2b2b36; --card-border: #2b2b36; --control-border: #525260;
-  --track: #3f3f4c;
+  --accent: #b9f04f; --accent2: #2ec8ff; --on-accent: #0b0b0d; --focus: #f2f2f4; --head-text: var(--accent);
+  --panel: #0d0c10; --card: #141318; --bg: #1c1b21; --popover: #141318;
+  --text: #f2f2f4; --label: #bdbcc6; --muted: #a3a2ae;
+  --border: #2a2930; --card-border: transparent; --control-border: #7a7985;
+  --track: #3a3942;
   --font-ui: 'Atkinson Hyperlegible', sans-serif; --font-display: 'Atkinson Hyperlegible', sans-serif; --font-num: 'Atkinson Hyperlegible', sans-serif;
-  --card-radius: 7px; --head-wash: color-mix(in srgb, #3a9c9b 4%, transparent);
-  --mod-edge: 0px; --wash: color-mix(in srgb, #d4d4d8 3%, transparent);
-  --thumb-w: 15px; --thumb-h: 15px; --thumb-radius: 50%; --thumb-ring: #151519;
+  --card-radius: 6px; --card-shadow: none;
+  --mod-edge: 0px;
+  --thumb-w: 15px; --thumb-h: 15px; --thumb-radius: 50%; --thumb-ring: var(--card); --thumb-shadow: 0 0 0 3px var(--card);
   --track-h: 4px; --track-radius: 2px;
-  --radius: 5px; --ctl-radius: 3px; --btn-radius: 5px;
+  --radius: 6px; --ctl-radius: 4px; --btn-radius: 6px;
+  --pop-shadow: 0 16px 40px rgba(0,0,0,0.6);
 }
-.mod-group, .map-row { border-left-width: var(--mod-edge); border-radius: 4px; }
+.mod-group, .map-row { border-left-width: var(--mod-edge); border-radius: 6px; }
 .vel-label, .mod-group-label { color: var(--accent2); }
 .section-label, .subsection-label, .preset-sidebar-head .section-label, .vel-label, .mod-group-label {
   text-transform: uppercase; letter-spacing: 0.14em;
@@ -1830,10 +1826,21 @@ input[type=range]::-webkit-slider-thumb:hover { box-shadow: var(--thumb-shadow);
 .param-row:hover .pin-btn, .param-row:hover .lock-btn, .param-row:focus-within .pin-btn, .param-row:focus-within .lock-btn,
 .pin-btn[aria-pressed="true"], .lock-btn[aria-pressed="true"] { opacity: 1; }
 @media (hover: none) { .param-row .pin-btn, .param-row .lock-btn { opacity: 1; } }
-.wave-btn.active, .wave-btn.active:hover, .preset-btn.active, .preset-btn.active:hover {
-  background: transparent; color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
 .lfo-wave-btn.active, .mod-wave-btn.active, .mod-axis-btn.active { background: transparent; }
 .tab-btn { text-transform: uppercase; letter-spacing: 0.12em; }
+/* Flat: no outlines on cards or switch groups; the active state is a solid block of the highlight. */
+.section > .section-label { border-bottom-color: transparent; }
+.wave-toggle { background: var(--bg); border-color: transparent; }
+.wave-btn.active, .wave-btn.active:hover, .preset-btn.active, .preset-btn.active:hover {
+  background: var(--accent); color: var(--on-accent); box-shadow: none; }
+.preset-btn { background: var(--bg); border-color: transparent; color: var(--label); }
+.preset-btn:not(.active):hover { border-color: transparent; color: var(--accent); }
+#xy-swap-btn { border-color: transparent !important; background: var(--bg); }
+.tab-btn[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+.view-tg.active, .view-tg.active:hover { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+header h1 { font-weight: 700; }
+/* Legibility: nothing below 10px. */
+.mod-group-label, .vel-label, .preset-btn, .tab-btn { font-size: 10px; }
 .param-row { margin-bottom: 6px; }
 input[type=range] { margin: 0; }
 /* Pin and lock follow Muted rather than the track colour. */
@@ -1844,9 +1851,9 @@ input[type=range] { margin: 0; }
 .sidebar { gap: 10px; width: 270px; min-width: 270px; }
 
 /* ── Accessibility ───────────────────────────────────────────────────────────
-   Highlight 2 is too dark to read as small text on the panels (2.9:1). Text
-   uses a lighter tint of it (5.4:1); fills, borders and indicators keep the
-   base colour. The tint follows --accent2, so the style editor still drives it. */
+   Small text in Highlight 2 uses a lighter tint of it; fills, borders and
+   indicators keep the base colour. Every text colour reads at 6.8:1 or more on
+   every surface, the highlights and body text at 7:1 or more (WCAG AAA). */
 :root { --accent2-text: color-mix(in srgb, var(--accent2) 70%, white); --sub-text: var(--accent2-text); }
 .vel-label, .mod-group-label, .lfo-num, .ps-where, .ro-pop .rp-t, .hsl-row .param-header .val,
 .vel-toggle input:checked + label, .map-cc-num, .info-text em,
@@ -1867,35 +1874,24 @@ input[type=range] { margin: 0; }
 .sec-help { height: 24px; top: 6px; }
 .ps-ctl .dk-tg, .ro-pop .dk-tg { padding: 3px 14px; }
 
-/* ── Interface hue ───────────────────────────────────────────────────────────
-   Double-click the title to turn every theme colour round the hue circle at
-   once (applyUiHue). Only the base colours are set from script; everything
-   tinted from them is derived here, so it follows. */
+/* ── Interface themes ────────────────────────────────────────────────────────
+   Click the title to cycle Lime → Tangerine → Orchid (cycleUiTheme). A theme
+   only changes the main highlight; everything tinted from it is derived here,
+   so it follows. All three read at 7:1 or more on every surface. */
+:root[data-ui-theme="tangerine"] { --accent: #ff9d45; }
+:root[data-ui-theme="orchid"] { --accent: #e993ff; }
 :root {
-  --accent-hi: color-mix(in srgb, var(--accent) 80%, white);
+  --accent-hi: color-mix(in srgb, var(--accent) 75%, white);
   --a1-soft: color-mix(in srgb, var(--accent) 7%, transparent); --a1-mid: color-mix(in srgb, var(--accent) 12%, transparent);
   --a2-soft: color-mix(in srgb, var(--accent2) 12%, transparent); --a2-mid: color-mix(in srgb, var(--accent2) 15%, transparent);
   --a2-strong: color-mix(in srgb, var(--accent2) 28%, transparent);
   --overlay: color-mix(in srgb, var(--panel) 86%, transparent); --dock: color-mix(in srgb, var(--panel) 90%, transparent);
-  --head-wash: color-mix(in srgb, var(--accent) 4%, transparent); --wash: color-mix(in srgb, var(--text) 3%, transparent);
+  --head-wash: transparent; --wash: color-mix(in srgb, var(--text) 4%, transparent);
   --popover-sel: color-mix(in srgb, var(--text) 5%, var(--popover));
 }
 .ps-row.sel { background: var(--popover-sel); }
-header h1 { cursor: default; user-select: none; }
-.theme-pop {
-  position: fixed; z-index: 60; width: 260px; padding: 12px 14px 12px;
-  background: var(--popover); border: 1px solid var(--card-border); border-radius: var(--card-radius);
-  box-shadow: var(--pop-shadow);
-}
-.theme-pop[hidden] { display: none; }
-.theme-pop .tp-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
-.theme-pop .tp-title { color: var(--head-text); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; }
-.theme-pop .tp-val { color: var(--accent); font-size: 11px; font-variant-numeric: tabular-nums; }
-.theme-pop input[type=range] { display: block; width: 100%; height: 8px; border-radius: 4px; margin: 4px 0 12px; }
-.theme-pop .tp-row { display: flex; gap: 6px; }
-.theme-pop .tp-row .map-add-btn { flex: 1; margin-top: 0; }
-.theme-pop .tp-swatches { display: flex; gap: 4px; margin-bottom: 10px; }
-.theme-pop .tp-swatches i { flex: 1; height: 6px; border-radius: 2px; }
+header h1 { cursor: pointer; user-select: none; }
+header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 2px; }
 </style>
 </head>
 <body>
@@ -1906,7 +1902,7 @@ header h1 { cursor: default; user-select: none; }
 <header>
   <button class="sidebar-toggle" id="sidebar-toggle" type="button" title="Collapse / expand sidebar"
           aria-label="Collapse or expand the controls sidebar" aria-expanded="true" aria-controls="sidebar-panel"><span aria-hidden="true">☰</span></button>
-  <h1 id="app-title" title="Double-click to change the interface colour">lissa</h1>
+  <h1 id="app-title" role="button" tabindex="0" title="Click to change the interface colour" aria-label="lissa: change the interface colour">lissa</h1>
   <span>parametric figure generator</span>
   <button class="search-toggle" id="search-toggle" type="button" title="Find a parameter ( / )"
           aria-label="Find a parameter" aria-haspopup="dialog" aria-controls="param-search"><span aria-hidden="true">⌕</span> find <kbd>/</kbd></button>
@@ -2247,7 +2243,7 @@ header h1 { cursor: default; user-select: none; }
         </div>
 
         <div class="subsection-label">Colour</div>
-        <div class="color-row"><label>Stroke</label><input type="color" id="stroke-color" value="#3a9c9b"></div>
+        <div class="color-row"><label>Stroke</label><input type="color" id="stroke-color" value="#b9f04f"></div>
         <div class="param-row hsl-row">
           <div class="param-header"><label>Hue</label><span class="val" id="hsl-h-val">79</span></div>
           <input type="range" id="hsl-h" min="0" max="360" step="1" value="79">
@@ -2271,7 +2267,7 @@ header h1 { cursor: default; user-select: none; }
             <input type="range" id="grad-angle" min="0" max="359" step="1" value="90">
           </div>
         </div>
-        <div class="color-row"><label>Background</label><input type="color" id="bg-color" value="#0c0c0e"></div>
+        <div class="color-row"><label>Background</label><input type="color" id="bg-color" value="#08080a"></div>
 
         <div class="subsection-label">Stroke</div>
         <div class="param-row">
@@ -2971,19 +2967,6 @@ header h1 { cursor: default; user-select: none; }
   </div>
 </div>
 
-<div class="theme-pop" id="theme-pop" role="dialog" aria-label="Interface colour" hidden>
-  <div class="tp-head"><span class="tp-title">Interface hue</span><span class="tp-val" id="theme-hue-val">0°</span></div>
-  <div class="tp-swatches" aria-hidden="true">
-    <i style="background:var(--accent)"></i><i style="background:var(--accent2)"></i><i style="background:var(--label)"></i>
-    <i style="background:var(--control-border)"></i>
-  </div>
-  <input type="range" id="theme-hue" min="0" max="359" step="1" value="0" aria-label="Interface hue shift" aria-valuetext="0 degrees">
-  <div class="tp-row">
-    <button type="button" class="map-add-btn" id="theme-match-fig" title="Set the figure's stroke colour to the interface highlight">figure to match</button>
-    <button type="button" class="map-add-btn" id="theme-reset">reset</button>
-  </div>
-</div>
-
 <div class="param-search" id="param-search" role="dialog" aria-modal="true" aria-label="Find a parameter" hidden>
   <div class="ps-box">
     <div class="ps-q">
@@ -3012,8 +2995,8 @@ let params = {
   geometry: 0,    // 0 = lateral, 1 = rotary concurrent, 2 = rotary counter-current, 3 = rose, 4 = torus knot, 5 = waves
   morphX: 0,      // X wave position along SIN→TRI→SAW→SQR (0..3, whole = exact shape)
   morphY: 0,      // Y wave position along SIN→TRI→SAW→SQR (0..3, whole = exact shape)
-  strokeColor: '#3a9c9b',
-  bgColor: '#0c0c0e',
+  strokeColor: '#b9f04f',
+  bgColor: '#08080a',
   lineWidth: 1.5,
   resolution: 2000,
   fmAmount: 0,    // frequency modulation depth
@@ -4046,7 +4029,7 @@ function frameCurve(n, fn) {
 function frameDepthK(z) { return Math.max(0.3, Math.min(1.35, 1 - 0.45 * z)); }
 function frameColors() {
   const m = Math.round(params.frameColorMode || 0);
-  if (m === 1) { const c = params.strokeColor || '#3a9c9b'; return { x: c, y: c, z: c, grid: c }; }
+  if (m === 1) { const c = params.strokeColor || '#b9f04f'; return { x: c, y: c, z: c, grid: c }; }
   if (m === 2) return { x: '#8ab4ff', y: '#7ee7d0', z: '#c5a3ff', grid: '#7c8694' };
   if (m === 3) return { x: params.frameColX || '#e5484d', y: params.frameColY || '#4cc38a',
                         z: params.frameColZ || '#5b8def', grid: params.frameColGrid || '#8b909a' };
@@ -4956,9 +4939,10 @@ function colSupersample(pw, ph) {
   return Math.max(1, Math.min(2, Math.floor(lim / Math.max(pw, ph))));
 }
 // Draws the GL column (surface or core) into g's w × h box; false if no GL.
-function drawColumnGL(g, w, h, phase, zoom) {
+// detail (0..1] scales the vertex budget; the live view lowers it while busy.
+function drawColumnGL(g, w, h, phase, zoom, detail) {
   if (!colGL()) return false;
-  const C = buildColumnMemo(w, h, phase, zoom, colSurfaceRows(), COL_SURF_BUDGET);
+  const C = buildColumnMemo(w, h, phase, zoom, colSurfaceRows(), Math.round(COL_SURF_BUDGET * (detail || 1)));
   const sc = Math.abs(g.getTransform ? g.getTransform().a : 1) || 1;
   const pw = Math.max(1, Math.round(w * sc)), ph = Math.max(1, Math.round(h * sc));
   const ss = colSupersample(pw, ph);
@@ -4970,16 +4954,102 @@ function drawColumnGL(g, w, h, phase, zoom) {
   g.imageSmoothingQuality = q;
   return true;
 }
-function drawColumn(g, w, h, phase, zoom) {
+const COL_SLICE_BUDGET = 240000;   // samples per frame across all slices, at full detail
+function drawColumnDirect(g, w, h, phase, zoom, detail) {
   const { strokeColor, lineWidth } = params;
   g.setLineDash([]);
   g.lineJoin = 'round';
   g.lineCap = 'round';
-  const done = colUsesGL() && drawColumnGL(g, w, h, phase, zoom);
-  if (!done) drawColumnSlices(g, buildColumnMemo(w, h, phase, zoom));
+  const done = colUsesGL() && drawColumnGL(g, w, h, phase, zoom, detail);
+  if (!done) drawColumnSlices(g, buildColumnMemo(w, h, phase, zoom, 0, Math.round(COL_SLICE_BUDGET * (detail || 1))));
   g.lineWidth = lineWidth;
   g.strokeStyle = strokeColor;
   g.fillStyle = strokeColor;
+}
+
+// ── The live column's own layer ───────────────────────────────────────────────
+// A dense column costs far more to draw than to compute: every slice is a whole
+// figure, stroked (and filled, for hidden lines) over most of the same area. The
+// live view therefore draws it into an offscreen layer and copies that onto the
+// screen:
+//  • nothing changed since the last frame (paused, nothing moving): the layer is
+//    copied as it is and nothing is drawn at all;
+//  • while it changes, the layer's resolution and the sample budget step down
+//    when frames run slow and back up when there is room, so the frame rate
+//    holds at any slice count or ratio;
+//  • once it holds still for a moment, it is drawn once more at full detail
+//    (or the best detail that has been seen to draw in reasonable time).
+// The cost is judged by the frame time (_frameAvg), not by timing the calls:
+// canvas drawing is deferred, so a call returns long before its pixels exist.
+// Recordings and exports draw directly at full detail and never use the layer.
+const COL_STEPS = [
+  { scale: 1, detail: 1 },
+  { scale: 0.75, detail: 0.6 },
+  { scale: 0.5, detail: 0.4 },
+  { scale: 0.4, detail: 0.25 },
+];
+const COL_SETTLE_MS = 220;    // still for this long → redraw at full detail
+const COL_SLOW_MS = 24;       // frames slower than this step the detail down
+const COL_ROOM_MS = 18;       // frames faster than this let it step back up
+const COL_SETTLE_MAX_MS = 400;   // a settled redraw may take this long, once
+const _colL = { cv: null, g: null, key: '', step: 0, drawnStep: -1, changedAt: 0, cw: 0, ch: 0,
+                hold: 0, cost: [], blockUp: [] };
+// Everything the column picture depends on, as one string.
+function columnStateKey(w, h, phase, zoom, sc) {
+  // Visual noise is random on every frame, so a noisy column never repeats.
+  if ((params.noiseAmt || 0) > 0.001) return 'noise' + Math.random();
+  return [w, h, phase, zoom, sc, waveTypeX, waveTypeY, filterType, syncHard ? 1 : 0, visualSwap ? 1 : 0,
+          phaseModulators ? 1 : 0, JSON.stringify(params)].join('|');
+}
+function renderColumnLayer(w, h, phase, zoom, sc, step) {
+  const L = _colL, st = COL_STEPS[step];
+  const k = sc * st.scale;
+  const cw = Math.max(1, Math.ceil(w * k)), ch = Math.max(1, Math.ceil(h * k));
+  if (!L.cv) { L.cv = document.createElement('canvas'); L.g = L.cv.getContext('2d'); }
+  if (L.cv.width < cw || L.cv.height < ch) {
+    L.cv.width = Math.max(L.cv.width, cw); L.cv.height = Math.max(L.cv.height, ch);
+  }
+  L.g.setTransform(1, 0, 0, 1, 0, 0);
+  L.g.clearRect(0, 0, L.cv.width, L.cv.height);
+  L.g.setTransform(k, 0, 0, k, 0, 0);
+  drawColumnDirect(L.g, w, h, phase, zoom, st.detail);
+  L.cw = cw; L.ch = ch; L.drawnStep = step;
+}
+function drawColumn(g, w, h, phase, zoom) {
+  if (g !== ctx || _eraseMode) { drawColumnDirect(g, w, h, phase, zoom, 1); return; }
+  const L = _colL, m = g.getTransform();
+  const sc = Math.hypot(m.a, m.b) || 1;
+  const key = columnStateKey(w, h, phase, zoom, sc);
+  const now = performance.now();
+  if (key !== L.key) {
+    L.key = key; L.changedAt = now;
+    // Judge the step just used by the frames it produced, then pick the next one.
+    // After a change, wait a few frames for the average to reflect it. A step
+    // that proved too slow is not retried for a few seconds, so it can't flicker.
+    if (L.hold > 0) L.hold--;
+    else {
+      L.cost[L.step] = _frameAvg;
+      if (_frameAvg > COL_SLOW_MS && L.step < COL_STEPS.length - 1) {
+        L.blockUp[L.step] = now + 3000; L.step++; L.hold = 6;
+      } else if (_frameAvg < COL_ROOM_MS && L.step > 0 && !(L.blockUp[L.step - 1] > now)) {
+        L.step--; L.hold = 6;
+      }
+    }
+    renderColumnLayer(w, h, phase, zoom, sc, L.step);
+  } else if (now - L.changedAt > COL_SETTLE_MS) {
+    let best = 0;
+    while (best < L.step && L.cost[best] > COL_SETTLE_MAX_MS) best++;
+    if (L.drawnStep > best) renderColumnLayer(w, h, phase, zoom, sc, best);
+  }
+  // Plain bilinear: 'high' quality resampling can cost more than it is worth for
+  // a layer that is only scaled while it moves. At full detail the copy is 1:1.
+  const q = g.imageSmoothingQuality;
+  g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'low';
+  g.drawImage(L.cv, 0, 0, L.cw, L.ch, 0, 0, w, h);
+  g.imageSmoothingQuality = q;
+  g.lineWidth = params.lineWidth;
+  g.strokeStyle = params.strokeColor;
+  g.fillStyle = params.strokeColor;
 }
 
 // The same column for the SVG export, in drawing order. Slices are true vector
@@ -9960,7 +10030,7 @@ function renderGridPad(i) {
   pad.classList.toggle('filled', !!p);
   pad.classList.toggle('active', i === gridActiveIdx);
   if (p) {
-    const col = (p.params && p.params.strokeColor) || '#3a9c9b';
+    const col = (p.params && p.params.strokeColor) || '#b9f04f';
     pad.style.background = col;
     pad.style.borderColor = col;
     // Pick black/white label for legibility against the patch colour.
@@ -10187,165 +10257,47 @@ document.getElementById('grid-toggle').addEventListener('click', () => {
   setTimeout(() => { resize(); updateRecOverlay(); }, 230);
 });
 
-// ─── Interface hue ────────────────────────────────────────────────────────────
-// One number turns the whole interface round the hue circle. Every theme colour
-// is rotated in OKLCH, which keeps perceived lightness, so the hierarchy and the
-// contrast between surfaces and text stay as designed: the panels stay dark and
-// faintly tinted, both highlights move together and keep their distance. Where
-// a hue cannot hold a colour's chroma in sRGB, the chroma gives way, not the
-// lightness. Text colours are then checked against the surfaces they sit on
-// and lightened until they read at least as well as in the shipping theme.
+// ─── Interface themes ─────────────────────────────────────────────────────────
+// Clicking the title cycles the interface highlight: Lime → Tangerine → Orchid.
+// The colours live in the stylesheet (data-ui-theme on <html>). A figure still
+// drawn in the old highlight follows it; a colour you chose yourself stays.
 // It is a preference of this browser, not part of a patch.
-const UI_HUE_KEY = 'lissa-ui-hue';
-const UI_BASE = {
-  accent: '#3a9c9b', accent2: '#3264a4',
-  panel: '#121215', card: '#121616', bg: '#151519',
-  text: '#d4d4d8', label: '#8787a1', muted: '#8b8b98',
-  border: '#2b2b36', controlBorder: '#525260', track: '#3f3f4c',
-};
-const _srgbToLin = c => c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-const _linToSrgb = c => c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
-function _hexToLin(hex) { const v = parseInt(hex.slice(1), 16); return [(v >> 16) & 255, (v >> 8) & 255, v & 255].map(c => _srgbToLin(c / 255)); }
-function _linToHex(rgb) {
-  return '#' + rgb.map(c => Math.round(Math.max(0, Math.min(1, _linToSrgb(c))) * 255).toString(16).padStart(2, '0')).join('');
-}
-function _linToOklch([r, g, b]) {
-  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
-  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
-  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
-  const L = 0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s;
-  const A = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s;
-  const B = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s;
-  return [L, Math.hypot(A, B), Math.atan2(B, A) * 180 / Math.PI];
-}
-function _oklchToLin(L, C, H) {
-  const A = C * Math.cos(H * Math.PI / 180), B = C * Math.sin(H * Math.PI / 180);
-  const l = (L + 0.3963377774 * A + 0.2158037573 * B) ** 3;
-  const m = (L - 0.1055613458 * A - 0.0638541728 * B) ** 3;
-  const s = (L - 0.0894841775 * A - 1.2914855480 * B) ** 3;
-  return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
-          -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
-          -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s];
-}
-// In gamut at this lightness: the largest chroma up to C that sRGB can show.
-function _oklchFit(L, C, H) {
-  const ok = c => _oklchToLin(L, c, H).every(v => v >= -1e-4 && v <= 1 + 1e-4);
-  if (ok(C)) return _oklchToLin(L, C, H);
-  let lo = 0, hi = C;
-  for (let i = 0; i < 18; i++) { const mid = (lo + hi) / 2; if (ok(mid)) lo = mid; else hi = mid; }
-  return _oklchToLin(L, lo, H);
-}
-const _lum = lin => 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2];
-const _contrast = (a, b) => { const x = _lum(a), y = _lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
-const _mixLin = (a, b, t) => a.map((_, i) => {
-  // Mix in sRGB space, as color-mix(in srgb …) does.
-  const ea = _linToSrgb(a[i]), eb = _linToSrgb(b[i]);
-  return _srgbToLin(ea + (eb - ea) * t);
-});
-// Text sits on the panel, the cards and the tinted groups inside cards.
-function _textSurfaces(P) { return [P.panel, P.card, P.bg, _mixLin(P.card, P.text, 0.03)]; }
-function _minContrast(fg, bgs) { return Math.min(...bgs.map(b => _contrast(fg, b))); }
-
-function uiPalette(shift) {
-  const P = {};
-  for (const k in UI_BASE) {
-    const [L, C, H] = _linToOklch(_hexToLin(UI_BASE[k]));
-    P[k] = { L, C, H: H + shift, lin: _oklchFit(L, C, H + shift) };
+const UI_THEME_KEY = 'lissa-ui-theme';
+const UI_THEMES = [
+  { id: 'lime', name: 'Lime', accent: '#b9f04f' },
+  { id: 'tangerine', name: 'Tangerine', accent: '#ff9d45' },
+  { id: 'orchid', name: 'Orchid', accent: '#e993ff' },
+];
+let uiTheme = 0;
+function applyUiTheme(i, save) {
+  const prev = UI_THEMES[uiTheme];
+  uiTheme = ((i % UI_THEMES.length) + UI_THEMES.length) % UI_THEMES.length;
+  const t = UI_THEMES[uiTheme];
+  if (t.id === 'lime') delete document.documentElement.dataset.uiTheme;
+  else document.documentElement.dataset.uiTheme = t.id;
+  const inp = document.getElementById('stroke-color');
+  if (save && inp && inp.value.toLowerCase() === prev.accent && prev !== t) {
+    inp.value = t.accent; inp.dispatchEvent(new Event('input', { bubbles: true }));
   }
-  const base = {};
-  for (const k in UI_BASE) base[k] = _hexToLin(UI_BASE[k]);
-  const surfaces = _textSurfaces(Object.fromEntries(Object.keys(P).map(k => [k, P[k].lin])));
-  const baseSurfaces = _textSurfaces(base);
-  // Raise lightness until the colour (as `look` sees it) reads as well as the original did.
-  const hold = (k, look = x => x, baseSurf = baseSurfaces, surf = surfaces) => {
-    const target = _minContrast(look(base[k]), baseSurf);
-    const c = P[k];
-    let guard = 0;
-    while (_minContrast(look(c.lin), surf) < target - 0.01 && c.L < 0.97 && guard++ < 200) {
-      c.L += 0.004; c.lin = _oklchFit(c.L, c.C, c.H);
-    }
-  };
-  ['accent', 'text', 'label', 'muted'].forEach(k => hold(k));
-  const white = [1, 1, 1];
-  hold('accent2', x => _mixLin(x, white, 0.3));           // --accent2-text
-  hold('controlBorder', x => x, [base.card], [P.card.lin]);
-  // The highlight keeps its lightness, so the white text on filled buttons keeps its contrast too.
-  const out = {};
-  for (const k in P) out[k] = _linToHex(P[k].lin);
-  return out;
-}
-
-let uiHue = 0;
-function applyUiHue(shift, save) {
-  uiHue = ((Math.round(shift) % 360) + 360) % 360;
-  const st = document.documentElement.style;
-  if (uiHue === 0) {
-    ['--accent', '--accent2', '--panel', '--card', '--popover', '--bg', '--thumb-ring', '--text', '--focus',
-     '--label', '--muted', '--border', '--card-border', '--control-border', '--track'].forEach(v => st.removeProperty(v));
-  } else {
-    const P = uiPalette(uiHue);
-    const set = (v, c) => st.setProperty(v, c);
-    set('--accent', P.accent); set('--accent2', P.accent2);
-    set('--panel', P.panel); set('--card', P.card); set('--popover', P.card);
-    set('--bg', P.bg); set('--thumb-ring', P.bg);
-    set('--text', P.text); set('--focus', P.text);
-    set('--label', P.label); set('--muted', P.muted);
-    set('--border', P.border); set('--card-border', P.border); set('--control-border', P.controlBorder);
-    set('--track', P.track);
-  }
-  const el = document.getElementById('theme-hue');
-  if (el && +el.value !== uiHue) el.value = uiHue;
-  const val = document.getElementById('theme-hue-val');
-  if (val) val.textContent = (uiHue > 180 ? uiHue - 360 : uiHue) + '°';
-  if (el) el.setAttribute('aria-valuetext', uiHue + ' degrees');
-  if (typeof drawWavePreview === 'function') drawWavePreview();
-  if (save) { try { localStorage.setItem(UI_HUE_KEY, String(uiHue)); } catch (e) {} }
-}
-(() => {
-  const pop = document.getElementById('theme-pop');
   const title = document.getElementById('app-title');
-  const slider = document.getElementById('theme-hue');
-  // The track shows where each setting takes the main highlight.
-  const stops = [];
-  for (let h = 0; h <= 360; h += 30) stops.push(uiPalette(h % 360).accent + ' ' + (h / 360 * 100).toFixed(1) + '%');
-  slider.style.background = `linear-gradient(90deg, ${stops.join(', ')})`;
-  let returnFocus = null;
-  const place = () => {
-    const r = title.getBoundingClientRect();
-    pop.style.top = Math.round(r.bottom + 10) + 'px';
-    pop.style.left = Math.round(Math.max(8, Math.min(r.left - 6, innerWidth - pop.offsetWidth - 8))) + 'px';
-  };
-  const open = () => {
-    returnFocus = document.activeElement;
-    pop.hidden = false; place(); slider.focus();
-  };
-  const close = () => {
-    if (pop.hidden) return;
-    pop.hidden = true;
-    if (returnFocus && returnFocus.focus && document.contains(returnFocus)) try { returnFocus.focus(); } catch (e) {}
-  };
-  window.openThemePop = open;
-  title.addEventListener('dblclick', e => { e.preventDefault(); pop.hidden ? open() : close(); });
-  // Touch: some browsers send no dblclick for a double tap.
-  let lastTap = 0;
-  title.addEventListener('pointerup', e => {
-    if (e.pointerType !== 'touch') return;
-    const now = performance.now();
-    if (now - lastTap < 350) { lastTap = 0; pop.hidden ? open() : close(); } else lastTap = now;
-  });
-  slider.addEventListener('input', () => applyUiHue(+slider.value, true));
-  document.getElementById('theme-reset').addEventListener('click', () => applyUiHue(0, true));
-  document.getElementById('theme-match-fig').addEventListener('click', () => {
-    const c = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || UI_BASE.accent;
-    const inp = document.getElementById('stroke-color');
-    inp.value = c; inp.dispatchEvent(new Event('input', { bubbles: true }));
-  });
-  pop.addEventListener('keydown', e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } });
-  document.addEventListener('pointerdown', e => { if (!pop.hidden && !pop.contains(e.target) && e.target !== title) close(); });
-  addEventListener('resize', () => { if (!pop.hidden) place(); });
-  let saved = 0;
-  try { saved = parseInt(localStorage.getItem(UI_HUE_KEY), 10) || 0; } catch (e) {}
-  if (saved) applyUiHue(saved, false);
+  if (title) title.title = `Interface colour: ${t.name}. Click for ${UI_THEMES[(uiTheme + 1) % UI_THEMES.length].name}`;
+  if (typeof drawWavePreview === 'function') drawWavePreview();
+  if (save) { try { localStorage.setItem(UI_THEME_KEY, t.id); } catch (e) {} }
+}
+function cycleUiTheme() { applyUiTheme(uiTheme + 1, true); }
+(() => {
+  const title = document.getElementById('app-title');
+  title.addEventListener('click', cycleUiTheme);
+  title.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleUiTheme(); } });
+  let saved = -1;
+  try { saved = UI_THEMES.findIndex(t => t.id === localStorage.getItem(UI_THEME_KEY)); } catch (e) {}
+  try { localStorage.removeItem('lissa-ui-hue'); } catch (e) {}   // the old hue setting has no meaning any more
+  applyUiTheme(Math.max(0, saved), false);
+  // The figure starts in Lime; with another theme saved, it starts in that one.
+  const inp = document.getElementById('stroke-color');
+  if (uiTheme > 0 && inp.value.toLowerCase() === UI_THEMES[0].accent) {
+    inp.value = UI_THEMES[uiTheme].accent; inp.dispatchEvent(new Event('input', { bubbles: true }));
+  }
 })();
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
@@ -10790,7 +10742,7 @@ function closeSearch(restore) {
 }
 psInput.addEventListener('input', () => {
   if (!intro && psInput.value.trim().toLowerCase() === 'intro') { closeSearch(false); startIntro(); return; }
-  if (/^(theme|hue|interface colou?r)$/.test(psInput.value.trim().toLowerCase())) { closeSearch(false); openThemePop(); return; }
+  if (/^(theme|hue|interface colou?r)$/.test(psInput.value.trim().toLowerCase())) { closeSearch(false); cycleUiTheme(); return; }
   psSel = 0; psRender();
 });
 psInput.addEventListener('keydown', e => {
