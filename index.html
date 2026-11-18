@@ -2059,9 +2059,20 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
 
         <div class="mod-group" data-axis="shapeAxis">
           <div class="vel-row"><span class="vel-label">Waveshape</span></div>
+          <div class="wave-toggle" style="margin-bottom:6px;display:grid;grid-template-columns:repeat(3,1fr)" role="group" aria-label="Waveshape curve">
+            <button class="wave-btn active" data-shapemode="0" title="Soft saturation toward a square">TANH</button>
+            <button class="wave-btn" data-shapemode="1" title="Hard clip: flat tops">CLIP</button>
+            <button class="wave-btn" data-shapemode="2" title="Power curve: narrow peaks, flat middle">POW</button>
+            <button class="wave-btn" data-shapemode="3" title="Asymmetric: even harmonics, unequal halves">ASYM</button>
+            <button class="wave-btn" data-shapemode="4" title="Full-wave rectify: doubles the frequency">RECT</button>
+            <button class="wave-btn" data-shapemode="5" title="Chebyshev T3: adds the 3rd harmonic">CHEB</button>
+          </div>
           <div class="param-row">
             <div class="param-header"><label>Drive</label><span class="val" id="shape-amt-val">0.00</span></div>
             <input type="range" id="shape-amt" min="0" max="1" step="0.01" value="0">
+          </div>
+          <div class="info-text" data-info-label="waveshape">
+            <strong>Tanh</strong> rounds toward a square, <strong>Clip</strong> cuts the tops flat, <strong>Pow</strong> narrows the peaks, <strong>Asym</strong> makes the halves unequal, <strong>Rect</strong> flips the lower half up and <strong>Cheb</strong> adds the third harmonic. Drive sets how far.
           </div>
         </div>
 
@@ -2075,9 +2086,17 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
 
         <div class="mod-group" data-axis="warpAxis">
           <div class="vel-row"><span class="vel-label">Warp &amp; Fold</span></div>
+          <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="Warp curve">
+            <button class="wave-btn active" data-warpmode="0" title="Smooth bend of the cycle's timing">BEND</button>
+            <button class="wave-btn" data-warpmode="1" title="Phase distortion with a sharp knee">KNEE</button>
+          </div>
           <div class="param-row">
             <div class="param-header"><label>Warp</label><span class="val" id="warp-val">0.0 %</span></div>
             <input type="range" id="warp" min="-1" max="1" step="0.01" value="0">
+          </div>
+          <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="Fold mode">
+            <button class="wave-btn active" data-foldmode="0" title="Reflect the wave back at ±1">REFLECT</button>
+            <button class="wave-btn" data-foldmode="1" title="Wrap the wave round to the other side">WRAP</button>
           </div>
           <div class="param-row">
             <div class="param-header"><label>Fold</label><span class="val" id="fold-drive-val">0 %</span></div>
@@ -2088,7 +2107,7 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
             <input type="range" id="fold-bias" min="-1" max="1" step="0.01" value="0">
           </div>
           <div class="info-text" data-info-label="warp and fold">
-            <strong>Warp</strong> bends the timing inside each cycle, squeezing it toward the start (+) or the end (−). <strong>Fold</strong> reflects the wave back at ±1 instead of clipping, adding lobes as drive rises. <strong>Bias</strong> folds the two halves unevenly.
+            <strong>Warp</strong> bends the timing inside each cycle, squeezing it toward the start (+) or the end (−); <strong>Knee</strong> does it in two straight runs, like a CZ synth. <strong>Fold</strong> reflects the wave back at ±1 instead of clipping, adding lobes as drive rises; <strong>Wrap</strong> brings it in from the other side instead. <strong>Bias</strong> folds the two halves unevenly.
           </div>
         </div>
 
@@ -3026,6 +3045,9 @@ let params = {
   crushBits: 16,  // amplitude bit depth (1..16, ≥15.5 = off)
   crushRate: 0,   // decimate / sample-hold of the cycle (0 = off .. 1 = coarse steps)
   foldBias: 0,    // asymmetric fold: DC offset into the folder (-1..1)
+  shapeMode: 0,   // waveshape curve: 0 tanh, 1 clip, 2 power, 3 asym, 4 rectify, 5 Chebyshev T3
+  warpMode: 0,    // warp curve: 0 power bend, 1 knee (CZ-style phase distortion)
+  foldMode: 0,    // fold: 0 reflect at ±1, 1 wrap around
   unisonDetune: 0, // unison pair detune in cents (audio) / ghost drift rate (visual)
   unisonMix: 0,    // unison pair level 0..1 (0 = off)
   fmRef: 0,        // FM modulator frequency: 0 = ratio × each axis's own, 1 = × X's, 2 = × Y's
@@ -3252,6 +3274,20 @@ function warpPhase(ph, w) {
   return (cyc + Math.pow(p, Math.pow(WARP_K, -w))) * TWO_PI;
 }
 
+// Knee — the phase distortion of the Casio CZ. The first half of the cycle runs
+// in a straight line up to the knee k, the second half from k to the end, so a
+// sine turns into a ramp with rounded corners. w = 0 puts the knee mid-cycle,
+// which is the identity; +w moves it toward the start, −w toward the end, the
+// same direction the power bend squeezes.
+function kneePhase(ph, w) {
+  if (!(Math.abs(w) > 0.001)) return ph;
+  const cyc = Math.floor(ph / TWO_PI);
+  const p = ph / TWO_PI - cyc;
+  const k = 0.5 * (1 - 0.97 * Math.max(-1, Math.min(1, w)));
+  const q = p < k ? 0.5 * p / k : 0.5 + 0.5 * (p - k) / (1 - k);
+  return (cyc + q) * TWO_PI;
+}
+
 // Wavefold: reflect signal at ±1 with triangle-wave mapping
 function foldValue(x) {
   x = x % 4;
@@ -3259,6 +3295,26 @@ function foldValue(x) {
   if (x < 1) return x;
   if (x < 3) return 2 - x;
   return x - 4;
+}
+// Wrap: past ±1 the signal comes back in from the other side instead of being
+// reflected — a hard edge each time it crosses.
+function wrapValue(x) {
+  x = ((x + 1) % 2 + 2) % 2;
+  return x - 1;
+}
+
+// Waveshaper curves. Every curve is the identity at amount 0 and keeps the
+// output inside ±1. `a` is the axis-weighted amount, 0..1.
+const SHAPE_MODES = ['TANH', 'CLIP', 'POW', 'ASYM', 'RECT', 'CHEB'];
+function shapeValue(s, a, mode) {
+  switch (mode) {
+    case 1: { const v = s * (1 + 7 * a); return v > 1 ? 1 : v < -1 ? -1 : v; }   // hard clip
+    case 2: return Math.sign(s) * Math.pow(Math.abs(s), 1 + 5 * a);                  // power: peakier
+    case 3: return (s + a * s * s - a / 2) / (1 + a / 2);                           // s + a·s², DC removed
+    case 4: return s + (2 * Math.abs(s) - 1 - s) * a;                               // full-wave rectify
+    case 5: return s + (4 * s * s * s - 3 * s - s) * a;                             // Chebyshev T3
+    default: { const k = a * 7; return Math.tanh(s * k) / Math.tanh(k); }          // tanh
+  }
 }
 
 const TWO_PI = Math.PI * 2;
@@ -3376,7 +3432,7 @@ function processWave(carrierArg, freqT, type, axis) {
   }
   // Warp — bend the cycle's own clock before the shape is read from it.
   const wWarp = axisW('warpAxis', axis);
-  if (params.warp && wWarp > 0.0005) ph = warpPhase(ph, params.warp * wWarp);
+  if (params.warp && wWarp > 0.0005) ph = (params.warpMode === 1 ? kneePhase : warpPhase)(ph, params.warp * wWarp);
   // Base wave — morphed towards the next shape in the cycle, with optional phase
   // feedback (the output nudges its own phase, classic FM-operator feedback
   // growl). Two refinement passes approximate the recursion statelessly, so every
@@ -3389,13 +3445,14 @@ function processWave(carrierArg, freqT, type, axis) {
     s = morphWaveFn(ph + fb * s, mrp);
     s = morphWaveFn(ph + fb * s, mrp);
   }
-  // Waveshaping (tanh saturation), normalised. k rises from 0, where the transfer
-  // curve IS the identity, so leaving zero is a fade-in rather than a step.
+  // Waveshaping, on the curve shapeMode picks (tanh by default). Every curve is
+  // the identity at amount 0, so leaving zero is a fade-in rather than a step.
   const shp = params.shapeAmt * axisW('shapeAxis', axis);
-  if (shp > 0.0002) { const k = shp * 7; s = Math.tanh(s * k) / Math.tanh(k); }
-  // Fold — the bias offsets the input into the folder, breaking its symmetry
+  if (shp > 0.0002) s = shapeValue(s, shp, params.shapeMode | 0);
+  // Fold — the bias offsets the input into the folder, breaking its symmetry.
+  // foldMode 1 wraps instead of reflecting.
   const fDrive = 1 + (params.foldDrive - 1) * wWarp, fBias = params.foldBias * wWarp;
-  if (fDrive > 1.001 || Math.abs(fBias) > 0.001) s = foldValue(s * fDrive + fBias);
+  if (fDrive > 1.001 || Math.abs(fBias) > 0.001) s = (params.foldMode === 1 ? wrapValue : foldValue)(s * fDrive + fBias);
   // AM (normalized)
   const amA = params.amAmt * axisW('amAxis', axis);
   if (amA > 0.001) {
@@ -3427,8 +3484,8 @@ function modComplexity() {
   return 1
     + params.fmAmount * params.fmRatio * 0.12
     + (params.syncAmt - 1) * 0.5
-    + params.shapeAmt * 1.0
-    + (params.foldDrive - 1) * 0.25
+    + params.shapeAmt * (params.shapeMode === 1 || params.shapeMode === 5 ? 2.0 : 1.0)
+    + (params.foldDrive - 1) * (params.foldMode === 1 ? 0.5 : 0.25)
     + params.amAmt * params.amRatio * 0.08
     + params.crossFm * 0.8
     + params.ringAmt * 1.0
@@ -7781,6 +7838,24 @@ document.querySelectorAll('.wave-btn[data-mirror]').forEach(btn => {
   btn.addEventListener('click', () => setMirrorMode(parseInt(btn.dataset.mirror)));
 });
 
+// Curve selectors of the synthesis stages: a stepped param shown as a row of
+// buttons whose data-<attr> holds the mode number.
+function setStageMode(key, attr, max, m) {
+  m = Math.max(0, Math.min(max, Math.round(+m || 0)));
+  params[key] = m;
+  document.querySelectorAll(`.wave-btn[data-${attr}]`).forEach(b => {
+    const on = parseInt(b.dataset[attr]) === m;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+}
+const setShapeMode = m => setStageMode('shapeMode', 'shapemode', SHAPE_MODES.length - 1, m);
+const setWarpMode  = m => setStageMode('warpMode',  'warpmode',  1, m);
+const setFoldMode  = m => setStageMode('foldMode',  'foldmode',  1, m);
+[['shapemode', setShapeMode], ['warpmode', setWarpMode], ['foldmode', setFoldMode]].forEach(([attr, set]) =>
+  document.querySelectorAll(`.wave-btn[data-${attr}]`).forEach(btn =>
+    btn.addEventListener('click', () => set(parseInt(btn.dataset[attr])))));
+
 function setTrailMode(m) {
   m = Math.max(0, Math.min(1, Math.round(m)));
   if (m !== params.trailMode) clearTrail();
@@ -8588,6 +8663,9 @@ const MAP_TARGETS = {
   ringAmt:   { label:'Ring Mod',      min:0,    max:1,              apply:_synthApply('ringAmt','ring-amt','ring-amt-val',x=>x.toFixed(2)) },
   fbAmt:     { label:'Feedback',      min:0,    max:1,              apply:_synthApply('fbAmt','fb-amt','fb-amt-val',x=>x.toFixed(2)) },
   foldBias:  { label:'Fold Bias',     min:-1,   max:1,              apply:_synthApply('foldBias','fold-bias','fold-bias-val',x=>x.toFixed(2)) },
+  shapeMode: { label:'Waveshape Curve', min:0,  max:5,   step:1,    apply:v => setShapeMode(v) },
+  warpMode:  { label:'Warp Curve',    min:0,    max:1,   step:1,    apply:v => setWarpMode(v) },
+  foldMode:  { label:'Fold Mode',     min:0,    max:1,   step:1,    apply:v => setFoldMode(v) },
   crushBits: { label:'Crush Bits',    min:1,    max:16,             apply:_synthApply('crushBits','crush-bits','crush-bits-val',fmtBits) },
   crushRate: { label:'Decimate',      min:0,    max:1,              apply:_synthApply('crushRate','crush-rate','crush-rate-val',fmtDecimate) },
   unisonDetune: { label:'Unison Detune', min:0, max:50,             apply:v => { setSliderParam('unisonDetune','unison-detune','unison-detune-val',x=>x.toFixed(1)+'¢',v); applyUnisonAudio(); } },
@@ -8658,8 +8736,8 @@ const MAP_TARGETS = {
 const TARGET_CATEGORIES = [
   ['Synthesis', ['waveX', 'waveY',
                  'amAmt', 'amRatio', 'amRef', 'amAxis', 'fmAmount', 'fmRatio', 'fmRef', 'fmAxis',
-                 'crossFm', 'ringAmt', 'crossAxis', 'shapeAmt', 'shapeAxis', 'fbAmt', 'fbAxis',
-                 'warp', 'foldDrive', 'foldBias', 'warpAxis', 'crushBits', 'crushRate', 'crushAxis',
+                 'crossFm', 'ringAmt', 'crossAxis', 'shapeMode', 'shapeAmt', 'shapeAxis', 'fbAmt', 'fbAxis',
+                 'warpMode', 'warp', 'foldMode', 'foldDrive', 'foldBias', 'warpAxis', 'crushBits', 'crushRate', 'crushAxis',
                  'noiseAmt', 'noiseAxis', 'filterCutoff', 'filterQ', 'filterAxis',
                  'syncAmt', 'syncAxis', 'unisonDetune', 'unisonMix']],
   ['Frequency', ['geometry', 'ax', 'fx', 'ay', 'fy', 'visualSwap', 'damp', 'preset']],
@@ -8730,6 +8808,7 @@ const MAP_DEFAULTS = {
   ...Object.fromEntries(AXIS_GROUPS.map(([k]) => [k, 0])),
   syncAmt:1, foldDrive:1, amAmt:0, amRatio:2, noiseAmt:0, waveX:0, waveY:0,
   crossFm:0, ringAmt:0, fbAmt:0, foldBias:0, crushBits:16, crushRate:0,
+  shapeMode:0, warpMode:0, foldMode:0,
   unisonDetune:0, unisonMix:0, fmRef:0, amRef:0, damp:0,
   geometry:0, trailAmt:0, trailMode:0, trailCount:4, trailSpacing:0.08, mirrorMode:0, m4Rotate:1, az:0,
   lfo0Rate:0.5, lfo0Depth:0.5, lfo1Rate:1.0, lfo1Depth:0.5,
@@ -9290,6 +9369,9 @@ function refreshAllControls() {
   UNISON_SLIDERS.forEach(([id, key, fmt]) => setS(id, params[key] ?? 0, id + '-val', fmt));
   setGeometry(params.geometry ?? 0);
   setMirrorMode(params.mirrorMode ?? 0);
+  setShapeMode(params.shapeMode ?? 0);
+  setWarpMode(params.warpMode ?? 0);
+  setFoldMode(params.foldMode ?? 0);
   setTrailMode(params.trailMode ?? 0);
   setTrailQuality(trailQuality);
   document.getElementById('eq-loudness').checked = eqLoudness;
@@ -10101,7 +10183,7 @@ function setMorphStepMode(m) {
 // wave types are derived from them — so they belong with the stepped set, or a
 // recall would slide the timbre through two other shapes on its way and IGNORE
 // would stop protecting the waveform it promises to leave alone.
-const MORPH_DISCRETE = new Set(['fmRef', 'amRef', 'fx', 'fy', 'geometry', 'mirrorMode', 'trailMode', 'trailCount', 'm4Rotate', 'phase',
+const MORPH_DISCRETE = new Set(['fmRef', 'amRef', 'fx', 'fy', 'geometry', 'mirrorMode', 'shapeMode', 'warpMode', 'foldMode','trailMode', 'trailCount', 'm4Rotate', 'phase',
                                 'depthSrc', 'depthShade', 'showShadow', 'morphX', 'morphY',
                                 'columnView', 'colSlices', 'colHide', 'colCore', 'colSurface', 'colAxis', 'gradOn']);
 // The rest of a patch's stepped state lives outside `params` — the waveforms, the
@@ -10424,9 +10506,9 @@ function buildSynthReadout() {
     ['am',    `${P.amAmt.toFixed(2)} ×${roRatio(P.amRatio)}${REF_TAG[P.amRef | 0] || ''} ${MODW_TAG[P.amWave] || P.amWave} ${ax('amAxis')}`, P.amAmt > 0],
     ['fm',    `${P.fmAmount.toFixed(1)} ×${roRatio(P.fmRatio)}${REF_TAG[P.fmRef | 0] || ''} ${MODW_TAG[P.fmWave] || P.fmWave} ${ax('fmAxis')}`, P.fmAmount > 0],
     ['cross', `fm ${P.crossFm.toFixed(2)} ring ${P.ringAmt.toFixed(2)} ${ax('crossAxis')}`, P.crossFm > 0 || P.ringAmt > 0],
-    ['shape', `${P.shapeAmt.toFixed(2)} ${ax('shapeAxis')}`, P.shapeAmt > 0],
+    ['shape', `${(SHAPE_MODES[P.shapeMode | 0] || 'TANH').toLowerCase()} ${P.shapeAmt.toFixed(2)} ${ax('shapeAxis')}`, P.shapeAmt > 0],
     ['fb',    `${P.fbAmt.toFixed(2)} ${ax('fbAxis')}`, P.fbAmt > 0],
-    ['warp',  `${fmtWarp(P.warp)} fold ${fmtFold(P.foldDrive)} bias ${P.foldBias.toFixed(2)} ${ax('warpAxis')}`,
+    ['warp',  `${P.warpMode === 1 ? 'knee ' : ''}${fmtWarp(P.warp)} ${P.foldMode === 1 ? 'wrap' : 'fold'} ${fmtFold(P.foldDrive)} bias ${P.foldBias.toFixed(2)} ${ax('warpAxis')}`,
               P.warp !== 0 || P.foldDrive > 1 || P.foldBias !== 0],
     ['crush', `${fmtBits(P.crushBits)} dec ${fmtDecimate(P.crushRate)} ${ax('crushAxis')}`, P.crushBits < 15.5 || P.crushRate >= 0.005],
     ['noise', `${P.noiseAmt.toFixed(3)} ${ax('noiseAxis')}`, P.noiseAmt > 0],
@@ -10543,6 +10625,7 @@ const TARGET_CONTROL = {
   waveX: '[data-axis="x"][data-bwave]', waveY: '[data-axis="y"][data-bwave]',
   fmAmount: 'fm-amount', fmRatio: 'fm-ratio', amAmt: 'am-amt', amRatio: 'am-ratio', crossFm: 'cross-fm', ringAmt: 'ring-amt',
   shapeAmt: 'shape-amt', fbAmt: 'fb-amt', warp: 'warp', foldDrive: 'fold-drive', foldBias: 'fold-bias',
+  shapeMode: '[data-shapemode]', warpMode: '[data-warpmode]', foldMode: '[data-foldmode]',
   crushBits: 'crush-bits', crushRate: 'crush-rate', noiseAmt: 'noise-amt', filterCutoff: 'filter-freq', filterQ: 'filter-res',
   syncAmt: 'sync-amt', unisonDetune: 'unison-detune', unisonMix: 'unison-mix', volume: 'audio-vol',
   fmRef: '[data-modref="fm"]', amRef: '[data-modref="am"]', damp: 'damp',
@@ -10618,7 +10701,8 @@ function makeTargetControl(key, valEl, onChange) {
 // the sidebar (resolution, MIDI settings, recording …) is listed too and jumps.
 const SEARCH_SYNONYMS = {
   bend: 'warp', glow: 'trail', afterglow: 'trail', persistence: 'trail', pitch: 'frequency', ratio: 'frequency',
-  distort: 'waveshape', saturate: 'waveshape', color: 'colour', rotate: 'tilt', orbit: 'tilt', speed: 'speed',
+  distort: 'waveshape', saturate: 'waveshape', clip: 'waveshape', rectify: 'waveshape', chebyshev: 'waveshape',
+  asymmetric: 'waveshape', power: 'waveshape', wrap: 'fold', knee: 'warp', 'phase distortion': 'warp', color: 'colour', rotate: 'tilt', orbit: 'tilt', speed: 'speed',
   width: 'width', thickness: 'width', lowpass: 'filter', cutoff: 'cutoff', resonance: 'reso', detune: 'detune',
   record: 'record', video: 'video', midi: 'midi', cc: 'cc', mirror: 'mirror', kaleidoscope: 'mirror', symmetry: 'mirror',
 };
@@ -10851,7 +10935,7 @@ function addPinButtons() {
 const READOUT_KEYS = {
   geo: ['geometry'], wave: ['waveX', 'waveY'], freq: ['fx', 'fy', 'ax', 'ay'],
   am: ['amAmt', 'amRatio', 'amRef', 'amAxis'], fm: ['fmAmount', 'fmRatio', 'fmRef', 'fmAxis'], cross: ['crossFm', 'ringAmt', 'crossAxis'],
-  shape: ['shapeAmt', 'shapeAxis'], fb: ['fbAmt', 'fbAxis'], warp: ['warp', 'foldDrive', 'foldBias', 'warpAxis'],
+  shape: ['shapeMode', 'shapeAmt', 'shapeAxis'], fb: ['fbAmt', 'fbAxis'], warp: ['warpMode', 'warp', 'foldMode', 'foldDrive', 'foldBias', 'warpAxis'],
   crush: ['crushBits', 'crushRate', 'crushAxis'], noise: ['noiseAmt', 'noiseAxis'], filt: ['filterCutoff', 'filterQ', 'filterAxis'],
   sync: ['syncAmt', 'syncAxis'], damp: ['damp'], uni: ['unisonDetune', 'unisonMix'], lfo1: ['lfo0Rate', 'lfo0Depth'], lfo2: ['lfo1Rate', 'lfo1Depth'],
 };
@@ -11252,7 +11336,7 @@ const INTRO_LEVELS = [
   { id: 'shape', title: 'Drive',
     text: 'Drive pushes the wave into a soft clip: a sine flattens toward a square and gains overtones. Drive past 0.7.',
     reveal: () => [introGroup('shapeAxis')],
-    snap: ['shapeAmt', 'shapeAxis'],
+    snap: ['shapeMode', 'shapeAmt', 'shapeAxis'],
     check: () => Math.min(1, (params.shapeAmt || 0) / 0.7) },
   { id: 'feedback', title: 'Feedback',
     text: 'Feedback feeds the wave back into its own phase: a sine leans over toward a saw, then breaks up. Amount past 0.6.',
@@ -11262,7 +11346,7 @@ const INTRO_LEVELS = [
   { id: 'warp', title: 'Warp & fold',
     text: 'Warp squeezes each cycle toward its start or its end. Fold reflects the wave back at the edges instead of clipping it, adding lobes. Move Warp off centre, then Fold past 3.',
     reveal: () => [introGroup('warpAxis')],
-    snap: ['warp', 'foldDrive', 'foldBias', 'warpAxis'],
+    snap: ['warpMode', 'warp', 'foldMode', 'foldDrive', 'foldBias', 'warpAxis'],
     check: () => Math.min(1, Math.abs(params.warp || 0) / 0.3) * 0.5 + Math.min(1, ((params.foldDrive || 1) - 1) / 2) * 0.5 },
   { id: 'crush', title: 'Crush',
     text: 'Crush is digital damage. Bits rounds the height into steps, Decimate holds each value for a while. Bits down to 4, Decimate past 0.3.',
