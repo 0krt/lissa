@@ -204,7 +204,7 @@
     content: ''; position: absolute; left: -5px; top: 9px; bottom: 11px; width: 1px; background: var(--border);
   }
   .tab-panel { display: flex; flex-direction: column; gap: 16px; }
-  .tab-panel[hidden], .sidebar .section[hidden], .view-tg[hidden] { display: none !important; }
+  .tab-panel[hidden], .sidebar .section[hidden], .view-tg[hidden], .adv-only[hidden], .adv-block[hidden] { display: none !important; }
   /* A control that cannot take effect in the current state is not shown (refreshVisibility). */
   .vis-off { display: none !important; }
   .tab-panel:focus { outline: none; }
@@ -1932,7 +1932,82 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
           <button class="wave-btn" data-geo="4" title="Torus knot — X round the ring, Y through the hole (3D)" aria-label="Torus knot"></button>
           <button class="wave-btn" data-geo="5" title="Waves — X and Y stacked across the full view, their normalised sum below" aria-label="Waves"></button>
         </div>
+        <!-- Advanced geometries: hidden until "/modes" is typed in the search. -->
+        <div class="adv-only" id="geo-adv-row" hidden>
+          <div class="param-header" style="margin-bottom:4px"><label>Advanced</label></div>
+          <div class="wave-toggle geo-toggle" style="margin-bottom:6px" role="group" aria-label="Advanced geometry">
+            <button class="wave-btn" data-geo="6" title="Lissajous knot — X, Y and a third sine on depth (3D)" aria-label="Lissajous knot"></button>
+            <button class="wave-btn" data-geo="7" title="Guilloché — counter-current rosette repeated in turned layers" aria-label="Guilloché"></button>
+            <button class="wave-btn" data-geo="8" title="Delay embedding — the X+Y signal plotted against its own delayed copy" aria-label="Delay embedding"></button>
+            <button class="wave-btn" data-geo="9" title="Interference — X and Y radiate ripples from two points" aria-label="Interference"></button>
+          </div>
+        </div>
         <div id="geo-hint" style="font-size:10.5px;color:var(--label);margin-bottom:10px;line-height:1.45"></div>
+        <div class="mod-group adv-only" id="adv-params" hidden>
+          <div class="adv-block" data-advgeo="6">
+            <div class="vel-row"><span class="vel-label">Lissajous knot</span></div>
+            <div class="param-row">
+              <div class="param-header"><label>Z frequency</label><span class="val" id="knot-fz-val">5</span></div>
+              <input type="range" id="knot-fz" min="1" max="12" step="1" value="5">
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>Z phase</label><span class="val" id="knot-pz-val">0.50π</span></div>
+              <input type="range" id="knot-pz" min="0" max="2" step="0.01" value="0.5">
+            </div>
+          </div>
+          <div class="adv-block" data-advgeo="7">
+            <div class="vel-row"><span class="vel-label">Guilloché</span></div>
+            <div class="param-row">
+              <div class="param-header"><label>Layers</label><span class="val" id="gui-layers-val">24</span></div>
+              <input type="range" id="gui-layers" min="2" max="48" step="1" value="24">
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>Twist</label><span class="val" id="gui-twist-val">0.08</span></div>
+              <input type="range" id="gui-twist" min="0" max="1" step="0.005" value="0.08">
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>Shrink</label><span class="val" id="gui-shrink-val">0.15</span></div>
+              <input type="range" id="gui-shrink" min="0" max="0.5" step="0.01" value="0.15">
+            </div>
+          </div>
+          <div class="adv-block" data-advgeo="8">
+            <div class="vel-row"><span class="vel-label">Delay embedding</span></div>
+            <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="Embedding dimensions">
+              <button class="wave-btn active" data-embdim="2" aria-pressed="true">2D</button>
+              <button class="wave-btn" data-embdim="3" aria-pressed="false">3D</button>
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>Delay</label><span class="val" id="emb-tau-val">0.25 cyc</span></div>
+              <input type="range" id="emb-tau" min="0.01" max="1" step="0.01" value="0.25">
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>X ↔ Y mix</label><span class="val" id="emb-mix-val">0.50</span></div>
+              <input type="range" id="emb-mix" min="0" max="1" step="0.01" value="0.5">
+            </div>
+          </div>
+          <div class="adv-block" data-advgeo="9">
+            <div class="vel-row"><span class="vel-label">Interference</span></div>
+            <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="Interference view">
+              <button class="wave-btn active" data-ifview="0" aria-pressed="true">WAVE</button>
+              <button class="wave-btn" data-ifview="1" aria-pressed="false">PATTERN</button>
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>Separation</label><span class="val" id="if-sep-val">0.30</span></div>
+              <input type="range" id="if-sep" min="0" max="1" step="0.01" value="0.3">
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>Wavelength</label><span class="val" id="if-lambda-val">0.40</span></div>
+              <input type="range" id="if-lambda" min="0.05" max="2" step="0.01" value="0.4">
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>Falloff</label><span class="val" id="if-decay-val">0.30</span></div>
+              <input type="range" id="if-decay" min="0" max="1" step="0.01" value="0.3">
+            </div>
+          </div>
+          <div class="info-text" data-info-label="advanced geometries">
+            <strong>Lissajous knot</strong> adds a third sine on depth: fx : fy : Z frequency picks the knot; drag to orbit. <strong>Guilloché</strong> repeats the counter-current rosette in turned, shrinking layers. <strong>Delay embedding</strong> plots the X+Y signal against itself one delay later (and two delays later in 3D). <strong>Interference</strong>: X and Y each radiate ripples from a point; Wavelength is a frequency-1 wave's, so a higher frequency gives shorter ripples. Animate the phase to set them moving. Typing <code>/modes</code> in the search hides these again.
+          </div>
+        </div>
         <div class="info-text" data-info-label="figure geometry">
           <strong>Lateral</strong>: X moves the point left–right, Y up–down. <strong>Con-current</strong> and <strong>counter-current</strong> turn each oscillator into a rotating circle and add the two, drawing rings or stars. <strong>Rose</strong>: r = cos(fx/fy · θ). <strong>Torus knot</strong> wraps the path on a torus; drag to orbit. <strong>Waves</strong> plots the raw waves. The 3D lift works in Lateral only; Construction view in every geometry but Waves and 3D lateral; Column view in every flat one.
         </div>
@@ -3048,6 +3123,19 @@ let params = {
   shapeMode: 0,   // waveshape curve: 0 tanh, 1 clip, 2 power, 3 asym, 4 rectify, 5 Chebyshev T3
   warpMode: 0,    // warp curve: 0 power bend, 1 knee (CZ-style phase distortion)
   foldMode: 0,    // fold: 0 reflect at ±1, 1 wrap around
+  // Advanced geometries (6–9, hidden until "/modes"):
+  knotFz: 5,       // Lissajous knot: depth frequency, in the same units as fx / fy
+  knotPz: 0.5,     // Lissajous knot: depth phase, in π
+  guiLayers: 24,   // guilloché: copies of the rosette
+  guiTwist: 0.08,  // guilloché: total turn across all layers, in turns
+  guiShrink: 0.15, // guilloché: how much smaller the last layer is than the first
+  embTau: 0.25,    // delay embedding: delay in cycles of X
+  embMix: 0.5,     // delay embedding: 0 = X alone, 1 = Y alone
+  embDim: 2,       // delay embedding: 2 = (s, s−τ), 3 = adds s−2τ on depth
+  ifSep: 0.3,      // interference: source separation, in half-widths of the box
+  ifLambda: 0.4,   // interference: wavelength of a frequency-1 wave, in half-widths
+  ifDecay: 0.3,    // interference: amplitude falloff with distance
+  ifView: 0,       // interference: 0 = moving ripples, 1 = still pattern (mean energy)
   unisonDetune: 0, // unison pair detune in cents (audio) / ghost drift rate (visual)
   unisonMix: 0,    // unison pair level 0..1 (0 = off)
   fmRef: 0,        // FM modulator frequency: 0 = ratio × each axis's own, 1 = × X's, 2 = × Y's
@@ -3523,12 +3611,14 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
     targetCtx.fillStyle = tA < 1 ? hexToRgba(bgColor, tA) : bgColor;
     targetCtx.fillRect(0, 0, w, h);
   }
+  // Interference is a field, not a curve: it paints every pixel of the box itself.
+  if (figGeometry() === GEO_INTERF) { drawInterference(targetCtx, w, h, phase, zoom); return; }
 
   const cx = w / 2, cy = h / 2;
   const pad = Math.min(w, h) * 0.034;
   // The rotary geometries fold the amplitudes into the point (they are rotor
   // radii there, not axis scales), so the box is square.
-  const geo = figGeometry(), polar = geo !== 0, solid = geo === 4;
+  const geo = figGeometry(), polar = geo !== 0, solid = solidGeometry();
   const rx = (w / 2 - pad) * (polar ? 1 : ax) * zoom;
   const ry = (h / 2 - pad) * (polar ? 1 : ay) * zoom;
 
@@ -3698,6 +3788,14 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
   // cue a lifted figure reads as a flat tangle rather than as an object.
   const shaded = !!params.depthShade && (lift || solid) && !_eraseMode;
 
+  // The advanced geometries build their own point list from the same samples.
+  if (geo >= GEO_ADV0) {
+    const A = advPoints(geo, sxArr, szArr, syArr, syqArr, resolution, periodFactor, cyclesX, 60000);
+    drawAdvancedFigure(targetCtx, w, h, A, cx, cy, rx, ry, mirrors, shaded, paint, lineWidth);
+    if (dashOn) { targetCtx.setLineDash([]); targetCtx.lineWidth = lineWidth; }
+    return;
+  }
+
   const drawFigure = (k) => {
     for (const [mx, my] of mirrors) {
       if (!shaded) {
@@ -3758,6 +3856,166 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
     }
   }
   if (dashOn) { targetCtx.setLineDash([]); targetCtx.lineWidth = lineWidth; }
+}
+// ── Advanced geometries (6–8): the point list ───────────────────────────────
+// sx/sy are one period of the X and Y samples (res + 1 points, the last equal to
+// the first), sxq/syq their quarter-period-ahead copies. Returns normalised
+// x/y/z per point plus the indices where a new subpath starts (guilloché layers).
+// `cap` bounds the total point count; the guilloché thins its layers to stay
+// under it, since it multiplies the curve by its layer count.
+let _advX = new Float64Array(0), _advY = new Float64Array(0), _advZ = new Float64Array(0);
+function advPoints(geo, sx, sxq, sy, syq, res, periodFactor, cyclesX, cap) {
+  const ax = params.ax, ay = params.ay;
+  const L = geo === GEO_GUIL ? Math.max(1, Math.round(params.guiLayers || 1)) : 1;
+  const stride = Math.max(1, Math.ceil(L * (res + 1) / (cap || 60000)));
+  const per = Math.floor(res / stride) + 1, n = per * L;
+  if (_advX.length < n) { _advX = new Float64Array(n); _advY = new Float64Array(n); _advZ = new Float64Array(n); }
+  const X = _advX, Y = _advY, Z = _advZ, breaks = [0];
+  if (geo === GEO_LKNOT) {
+    // A third oscillator on depth. It runs a whole number of cycles over the
+    // period so the knot closes: fz cycles per base cycle, like fx and fy.
+    const zc = Math.max(1, Math.round((params.knotFz || 1) * periodFactor)), zp = (params.knotPz || 0) * Math.PI;
+    const zs = (ax + ay) / 2;
+    for (let k = 0; k < per; k++) {
+      const i = Math.min(res, k * stride);
+      X[k] = ax * sx[i]; Y[k] = ay * sy[i]; Z[k] = zs * Math.cos(TAU * zc * i / res + zp);
+    }
+  } else if (geo === GEO_EMBED) {
+    // Delay embedding of s = mix of X and Y. The buffers are periodic, so the
+    // delay is a wrap-around index shift; τ is measured in cycles of X.
+    const m = Math.max(0, Math.min(1, params.embMix ?? 0.5));
+    const d = Math.max(1, Math.round((params.embTau || 0.25) * res / Math.max(1e-6, cyclesX)));
+    const three = Math.round(params.embDim) === 3, zs = (ax + ay) / 2;
+    const S = i => { const j = ((i % res) + res) % res; return (1 - m) * sx[j] + m * sy[j]; };
+    for (let k = 0; k < per; k++) {
+      const i = Math.min(res, k * stride);
+      X[k] = ax * S(i); Y[k] = ay * S(i - d); Z[k] = three ? zs * S(i - 2 * d) : 0;
+    }
+  } else {
+    // Guilloché: the counter-current rosette (rotor X plus a counter-turning
+    // rotor Y), repeated in layers that each turn a little further and shrink.
+    const twist = (params.guiTwist || 0) * TAU, shrink = params.guiShrink || 0;
+    let k = 0;
+    for (let l = 0; l < L; l++) {
+      const f = L > 1 ? l / (L - 1) : 0, a = twist * f, c = Math.cos(a) * (1 - shrink * f), s = Math.sin(a) * (1 - shrink * f);
+      if (l) breaks.push(k);
+      for (let q = 0; q < per; q++, k++) {
+        const i = Math.min(res, q * stride);
+        geoPoint(2, sx[i], sxq[i], sy[i], syq[i], _G);
+        X[k] = _G.x * c - _G.y * s; Y[k] = _G.x * s + _G.y * c; Z[k] = 0;
+      }
+    }
+  }
+  // Seen exactly head-on a knot is just its Lissajous shadow, so the solid ones
+  // start turned a little; an orbit drag adds to this.
+  if (geo === GEO_LKNOT || (geo === GEO_EMBED && Math.round(params.embDim) === 3)) {
+    const c = Math.cos(ADV_YAW), s = Math.sin(ADV_YAW);
+    for (let k = 0; k < n; k++) { const x = X[k] * c + Z[k] * s; Z[k] = -X[k] * s + Z[k] * c; X[k] = x; }
+  }
+  return { n, breaks, x: X, y: Y, z: Z };
+}
+const ADV_YAW = 0.6;
+// Stroke an advPoints() list through the shared view transform, with mirrors and,
+// for the solid ones, the same depth-binned shading the torus knot gets.
+function drawAdvancedFigure(g, w, h, A, cx, cy, rx, ry, mirrors, shaded, paint, lineWidth) {
+  const BINS = 16;
+  for (const [mx, my] of mirrors) {
+    const bins = shaded ? new Array(BINS) : null;
+    if (!shaded) g.beginPath();
+    let bi = 1, prevX = 0, prevY = 0, prevBin = -1;
+    for (let k = 0; k < A.n; k++) {
+      const start = k === 0 || (bi < A.breaks.length && A.breaks[bi] === k);
+      if (start && k) bi++;
+      figureXform(A.x[k], A.y[k], A.z[k], false);
+      const x = cx + rx * _Q.x * mx, y = cy + ry * _Q.y * my;
+      if (!shaded) { start ? g.moveTo(x, y) : g.lineTo(x, y); continue; }
+      if (!start) {
+        const bf = (_Q.z + 1) * 0.5 * BINS;
+        let b = (prevBin >= 0 && bf > prevBin - 0.35 && bf < prevBin + 1.35) ? prevBin : (bf | 0);
+        if (b < 0) b = 0; else if (b >= BINS) b = BINS - 1;
+        const path = bins[b] || (bins[b] = new Path2D());
+        if (b !== prevBin) path.moveTo(prevX, prevY);
+        path.lineTo(x, y);
+        prevBin = b;
+      } else prevBin = -1;
+      prevX = x; prevY = y;
+    }
+    if (!shaded) { g.stroke(); continue; }
+    for (let b = BINS - 1; b >= 0; b--) {
+      if (!bins[b]) continue;
+      const near = 1 - b / (BINS - 1);
+      g.strokeStyle = depthPaint(g, w, h, 0.28 + 0.72 * near);
+      g.lineWidth = lineWidth * (0.62 + 0.5 * near);
+      g.stroke(bins[b]);
+    }
+    g.strokeStyle = paint; g.lineWidth = lineWidth;
+  }
+}
+
+// ── Interference (geometry 9) ───────────────────────────────────────────────
+// Source A at (−d/2, 0) radiates the X wave, source B at (+d/2, 0) the Y wave,
+// each read from one processed cycle of its oscillator, so every synthesis stage
+// shapes the ripples. A wave of frequency f has wavelength λ/f. The phase δ is
+// time: animating it sets the ripples moving. PATTERN averages the energy over
+// one full period of δ, which leaves the still lines where the two cancel.
+const IF_RES = 240, IF_LUT = 1024;
+let _ifCv = null, _ifCtx = null, _ifImg = null;
+const _ifLX = new Float32Array(IF_LUT), _ifLY = new Float32Array(IF_LUT);
+const _ifR1 = new Float32Array(IF_RES * IF_RES), _ifR2 = new Float32Array(IF_RES * IF_RES);
+function hexRgb(hex) {
+  const h = String(hex || '#000').replace('#', '');
+  const f = h.length === 3 ? h.split('').map(c => c + c).join('') : h.slice(0, 6);
+  return [0, 2, 4].map(i => parseInt(f.slice(i, i + 2), 16) || 0);
+}
+function drawInterference(g, w, h, phase, zoom) {
+  if (!_ifCv) { _ifCv = document.createElement('canvas'); _ifCv.width = _ifCv.height = IF_RES; _ifCtx = _ifCv.getContext('2d'); _ifImg = _ifCtx.createImageData(IF_RES, IF_RES); }
+  for (let j = 0; j < IF_LUT; j++) {
+    const th = TAU * j / IF_LUT;
+    _ifLX[j] = processWave(th, th, waveTypeX, 'x');
+    _ifLY[j] = processWave(th, th, waveTypeY, 'y');
+  }
+  const { fx, fy } = params, z = Math.max(0.05, zoom || 1);
+  const d = (params.ifSep ?? 0.3) / 2, lam = Math.max(0.01, params.ifLambda ?? 0.4), decay = (params.ifDecay ?? 0.3) * 6;
+  const kx = fx / lam * IF_LUT, ky = fy / lam * IF_LUT;   // LUT steps per unit distance
+  for (let py = 0, p = 0; py < IF_RES; py++) {
+    const v = ((py + 0.5) / IF_RES * 2 - 1) / z;
+    for (let px = 0; px < IF_RES; px++, p++) {
+      const u = ((px + 0.5) / IF_RES * 2 - 1) / z;
+      _ifR1[p] = Math.hypot(u + d, v); _ifR2[p] = Math.hypot(u - d, v);
+    }
+  }
+  const lut = (L, a) => L[((a % IF_LUT) + IF_LUT) % IF_LUT | 0];
+  const pattern = Math.round(params.ifView) === 1;
+  const steps = pattern ? 24 : 1, span = 4;   // δ runs 0..4 (in π): a whole period even for half-integer ratios
+  const bg = hexRgb(params.bgColor), fg = hexRgb(params.strokeColor), D = _ifImg.data;
+  for (let p = 0, q = 0; p < IF_RES * IF_RES; p++, q += 4) {
+    const r1 = _ifR1[p], r2 = _ifR2[p];
+    const a1 = 1 / (1 + decay * r1), a2 = 1 / (1 + decay * r2);
+    let val;
+    if (!pattern) {
+      const t = phase / 2 * IF_LUT;   // δπ as a share of one cycle
+      const s = (a1 * lut(_ifLX, fx * t - kx * r1) + a2 * lut(_ifLY, fy * t - ky * r2)) / (a1 + a2);
+      val = (s + 1) / 2;
+    } else {
+      let e = 0;
+      for (let k = 0; k < steps; k++) {
+        const t = (k / steps) * span / 2 * IF_LUT;
+        const s = (a1 * lut(_ifLX, fx * t - kx * r1) + a2 * lut(_ifLY, fy * t - ky * r2)) / (a1 + a2);
+        e += s * s;
+      }
+      val = Math.min(1, e / steps * 2);
+    }
+    val = val < 0 ? 0 : val > 1 ? 1 : val;
+    D[q] = bg[0] + (fg[0] - bg[0]) * val; D[q + 1] = bg[1] + (fg[1] - bg[1]) * val; D[q + 2] = bg[2] + (fg[2] - bg[2]) * val; D[q + 3] = 255;
+  }
+  _ifCtx.putImageData(_ifImg, 0, 0);
+  g.save();
+  g.imageSmoothingEnabled = true;
+  g.drawImage(_ifCv, 0, 0, w, h);
+  // The two sources, so it is clear where the ripples come from.
+  g.fillStyle = params.strokeColor;
+  [-d, d].forEach(sx => { const x = w / 2 + sx * z * w / 2; if (x > -4 && x < w + 4) { g.beginPath(); g.arc(x, h / 2, Math.max(2, w * 0.006), 0, TAU); g.fill(); } });
+  g.restore();
 }
 // Damping (harmonograph). The slider runs on a square-law curve, so its low end
 // is fine-grained: 10% on the slider is 1% of full damping. `laps` copies of the
@@ -3885,9 +4143,16 @@ function liftActive() { return Math.round(params.depthSrc ?? 0) === 1 && !polarG
 // It goes through the same view transform as the lift, so dragging orbits them,
 // Tilt / Perspective apply and the stroke is depth-cued.
 // The 3D lift itself is defined for the lateral figure only and stands down here.
-const GEO_NAMES = ['LATERAL', 'CON-CURRENT', 'COUNTER', 'ROSE', 'TORUS KNOT', 'WAVES'];
+const GEO_NAMES = ['LATERAL', 'CON-CURRENT', 'COUNTER', 'ROSE', 'TORUS KNOT', 'WAVES',
+                   'LISSAJOUS KNOT', 'GUILLOCHÉ', 'EMBEDDING', 'INTERFERENCE'];
 const GEO_MAX = GEO_NAMES.length - 1;
-const GEO_LABELS = ['Lateral', 'Con-current', 'Counter-current', 'Rose', 'Torus knot', 'Waves'];
+const GEO_LABELS = ['Lateral', 'Con-current', 'Counter-current', 'Rose', 'Torus knot', 'Waves',
+                    'Lissajous knot', 'Guilloché', 'Delay embedding', 'Interference'];
+// 6–9 are the advanced geometries, only offered while "/modes" has revealed them.
+const GEO_ADV0 = 6, GEO_LKNOT = 6, GEO_GUIL = 7, GEO_EMBED = 8, GEO_INTERF = 9;
+const ADV_MODES_KEY = 'lissa.modes';
+let advModes = false;
+try { advModes = localStorage.getItem(ADV_MODES_KEY) === '1'; } catch (e) {}
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 // The geometry icons are the figures themselves, sampled from their own formulas
@@ -3927,14 +4192,25 @@ const ICON_PATHS = {
        + 'M4.7 9' + Array.from({ length: 25 }, (_, i) => 'L' + (4.7 - 1.8 * Math.sin(i / 24 * TAU * 2)).toFixed(2) + ' ' + (9 + i / 2).toFixed(2)).join(''),
   crings:'M9 9h12v12H9zM11.5 4.5a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0-7 0M1 15a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0-7 0',
   info:  'M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0M12 11v6M12 7.4v.2',
+  lknot: iconCurve(u => {   // the 3:2:5 Lissajous knot, turned a little so the depth shows
+    const t = u * TAU, x = Math.cos(3 * t + 1.5), y = Math.cos(2 * t + 0.2), z = Math.cos(5 * t);
+    return [x * Math.cos(0.5) + z * Math.sin(0.5), -y];
+  }, 240, true),
+  guil:  (() => { let d = ''; for (let l = 0; l < 4; l++) d += iconCurve(u => { const t = u * TAU, a = l * 0.13;
+    const x = Math.cos(t) + 0.28 * Math.cos(-7 * t), y = Math.sin(t) + 0.28 * Math.sin(-7 * t);
+    return [x * Math.cos(a) - y * Math.sin(a), x * Math.sin(a) + y * Math.cos(a)]; }, 200, true); return d; })(),
+  embed: iconCurve(u => { const t = u * TAU, s = v => Math.sin(3 * v) + 0.7 * Math.sin(2 * v); return [s(t), -s(t - 0.55)]; }, 240, true),
+  interf:'M2.5 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0M19.5 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0'
+       + 'M7 7a7 7 0 0 1 0 10M10 4.5a10.5 10.5 0 0 1 0 15M17 7a7 7 0 0 0 0 10M14 4.5a10.5 10.5 0 0 0 0 15',
 };
 function iconSvg(key) {
   return `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICON_PATHS[key]}"/></svg>`;
 }
-const GEO_ICON = ['lat', 'rotp', 'rotm', 'rose', 'knot', 'wave'];
+const GEO_ICON = ['lat', 'rotp', 'rotm', 'rose', 'knot', 'wave', 'lknot', 'guil', 'embed', 'interf'];
 function figGeometry() { return Math.max(0, Math.min(GEO_MAX, Math.round(params.geometry || 0))); }
 function polarGeometry() { return figGeometry() !== 0; }
-function solidGeometry() { return figGeometry() === 4; }
+function solidGeometry() { const g = figGeometry(); return g === 4 || g === GEO_LKNOT || (g === GEO_EMBED && Math.round(params.embDim) === 3); }
+function advGeometry() { return figGeometry() >= GEO_ADV0; }
 // WAVES is not a figure at all: the two waves and their sum, plotted flat.
 const GEO_WAVES = 5;
 function waveGeometry() { return figGeometry() === GEO_WAVES; }
@@ -3946,11 +4222,11 @@ const TORUS_TUBE = 0.6;     // tube radius over major radius at ay = 1
 // drawConstructionRot). WAVES is already its own explanation.
 // The two are alternatives (the checkboxes turn each other off); should both ever
 // be set at once, the construction view wins and the column stands down.
-function m4Active() { return constructionView && !waveGeometry() && !liftActive(); }
+function m4Active() { return constructionView && !waveGeometry() && !liftActive() && !advGeometry(); }
 // The lateral construction's own layout (strips, RINGS) applies only there.
 function m4Lateral() { return m4Active() && !polarGeometry(); }
 // The column view stacks the flat figure; the solids and WAVES have no flat slice.
-function columnActive() { const g = figGeometry(); return !!params.columnView && !solidGeometry() && g !== GEO_WAVES && !m4Active(); }
+function columnActive() { const g = figGeometry(); return !!params.columnView && !solidGeometry() && g !== GEO_WAVES && g < GEO_ADV0 && !m4Active(); }
 // Combine the samples into the figure point (normalised, before the view
 // transform). xs/ys are the wave values, xq/yq their quarter-period-ahead copies.
 // out.z is view depth (positive = away from the viewer), 0 for the flat ones.
@@ -6309,11 +6585,25 @@ document.getElementById('btn-export').addEventListener('click', () => {
       j = i % steps;
       idx = (j + Math.floor(i * DP.slip)) % steps;
     }
+    if (geo >= GEO_ADV0) break;   // the advanced geometries build their own path below
     let sx = SX[idx], sy = SY[j];
     if (geo) { geoPoint(geo, sx, SXQ[idx], sy, SYQ[j], _G); sx = _G.x; sy = _G.y; }
     const x = cx + rx * a * (visualSwap ? sy : sx);
     const y = cy + ry * a * (visualSwap ? sx : sy);
     points.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(3)},${y.toFixed(3)}`);
+  }
+  // Lissajous knot / guilloché / embedding: the canvas's own point list, through
+  // the same view transform (so an orbited knot exports as it is seen).
+  if (geo >= GEO_ADV0 && geo !== GEO_INTERF) {
+    const A = advPoints(geo, SX, SXQ, SY, SYQ, steps, periodFactor, fx * periodFactor, 200000);
+    beginFigureXform(phase, false, 1);
+    let bi = 1;
+    for (let k = 0; k < A.n; k++) {
+      const start = k === 0 || (bi < A.breaks.length && A.breaks[bi] === k);
+      if (start && k) bi++;
+      figureXform(A.x[k], A.y[k], A.z[k], false);
+      points.push(`${start ? 'M' : 'L'}${(cx + rx * _Q.x).toFixed(3)},${(cy + ry * _Q.y).toFixed(3)}`);
+    }
   }
   }
 
@@ -6326,7 +6616,14 @@ document.getElementById('btn-export').addEventListener('click', () => {
     defs = `<defs><linearGradient id="g" gradientUnits="userSpaceOnUse" x1="${(w / 2 - dx).toFixed(2)}" y1="${(h / 2 - dy).toFixed(2)}" x2="${(w / 2 + dx).toFixed(2)}" y2="${(h / 2 + dy).toFixed(2)}"><stop offset="0" stop-color="${strokeColor}"/><stop offset="1" stop-color="${params.gradColor}"/></linearGradient></defs>\n  `;
     paint = 'url(#g)';
   }
+  // Interference is a field, so the SVG carries it as an embedded image.
+  const fieldSvg = () => {
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    drawInterference(cv.getContext('2d'), w, h, phase, 1);
+    return `<image width="${w}" height="${h}" href="${cv.toDataURL('image/png')}"/>`;
+  };
   const body = column ? columnSvg(w, h, phase)
+    : geo === GEO_INTERF ? fieldSvg()
     : `${defs}<path d="${points.join(' ')}" fill="none" stroke="${paint}" stroke-width="${lineWidth}" stroke-linejoin="round" stroke-linecap="round"/>`;
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
@@ -7798,6 +8095,10 @@ const GEO_HINTS = [
   'r(θ) = cos(n/d · θ) — n = X freq, d = Y freq',
   '(p, q) torus knot — p = X freq, q = Y freq · drag to orbit',
   'X wave, Y wave and their normalised sum, over one period',
+  'x = X, y = Y, depth = a third sine · drag to orbit',
+  'the counter-current rosette, repeated in turned layers',
+  'x = s(t), y = s(t − τ), s = X and Y mixed',
+  'X and Y radiate ripples from two points · animate the phase',
 ];
 function setGeometry(g) {
   g = Math.max(0, Math.min(GEO_MAX, Math.round(g)));
@@ -7814,8 +8115,12 @@ function setGeometry(g) {
   // rather than silently ignoring them.
   // WAVES has no construction view: hide its section there.
   const cs = document.getElementById('section-construct');
-  if (cs) cs.hidden = g === GEO_WAVES;
-  const colOk = !solidGeometry() && g !== GEO_WAVES;
+  if (cs) cs.hidden = g === GEO_WAVES || g >= GEO_ADV0;
+  const colOk = !solidGeometry() && g !== GEO_WAVES && g < GEO_ADV0;
+  // The advanced geometries' own controls: only the active one's block shows.
+  document.querySelectorAll('.adv-block').forEach(b => { b.hidden = parseInt(b.dataset.advgeo) !== g; });
+  const ap = document.getElementById('adv-params');
+  if (ap) ap.hidden = !advModes || g < GEO_ADV0;
   const csc = document.getElementById('section-column');
   if (csc) csc.hidden = !colOk;
   document.querySelectorAll('.wave-btn[data-depthsrc]').forEach(b => { b.disabled = !!g; });
@@ -7827,6 +8132,73 @@ document.querySelectorAll('.wave-btn[data-geo]').forEach(btn => {
   btn.innerHTML = iconSvg(GEO_ICON[parseInt(btn.dataset.geo)]);
   btn.addEventListener('click', () => setGeometry(parseInt(btn.dataset.geo)));
 });
+
+// ── Advanced geometries: "/modes" shows or hides them ───────────────────────
+function setAdvModes(on, reveal) {
+  advModes = !!on;
+  try { localStorage.setItem(ADV_MODES_KEY, advModes ? '1' : '0'); } catch (e) {}
+  const row = document.getElementById('geo-adv-row');
+  if (row) row.hidden = !advModes;
+  // Hiding them while one is showing falls back to Lateral, so nothing on screen
+  // is drawn by a control you can no longer see.
+  if (!advModes && figGeometry() >= GEO_ADV0) setGeometry(0);
+  else setGeometry(figGeometry());
+  if (typeof syncViewToggles === 'function' && _uiReady) syncViewToggles();
+  if (advModes && reveal && row) {
+    const tb = document.getElementById('tabbtn-shape');
+    if (tb && tb.getAttribute('aria-selected') !== 'true') tb.click();
+    if (document.getElementById('layout').classList.contains('sidebar-hidden')) document.getElementById('sidebar-toggle').click();
+    row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+}
+function toggleAdvModes() { setAdvModes(!advModes, true); }
+{ const row = document.getElementById('geo-adv-row'); if (row) row.hidden = !advModes; }
+const ADV_SLIDERS = [
+  ['knot-fz',    'knotFz',    v => String(Math.round(v))],
+  ['knot-pz',    'knotPz',    v => v.toFixed(2) + 'π'],
+  ['gui-layers', 'guiLayers', v => String(Math.round(v))],
+  ['gui-twist',  'guiTwist',  v => v.toFixed(3)],
+  ['gui-shrink', 'guiShrink', v => v.toFixed(2)],
+  ['emb-tau',    'embTau',    v => v.toFixed(2) + ' cyc'],
+  ['emb-mix',    'embMix',    v => v.toFixed(2)],
+  ['if-sep',     'ifSep',     v => v.toFixed(2)],
+  ['if-lambda',  'ifLambda',  v => v.toFixed(2)],
+  ['if-decay',   'ifDecay',   v => v.toFixed(2)],
+];
+ADV_SLIDERS.forEach(([id, key, fmt]) => {
+  const el = document.getElementById(id), out = document.getElementById(id + '-val');
+  if (!el) return;
+  el.addEventListener('input', () => { params[key] = +el.value; if (out) out.textContent = fmt(+el.value); clearTrail(); });
+});
+function setEmbDim(m) {
+  m = Math.round(+m) === 3 ? 3 : 2;
+  params.embDim = m;
+  document.querySelectorAll('.wave-btn[data-embdim]').forEach(b => {
+    const on = parseInt(b.dataset.embdim) === m; b.classList.toggle('active', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  // 3D makes the embedding a solid: orbit, tilt and depth shading come with it.
+  document.body.classList.toggle('orbit', orbitable());
+  refreshDepthChecks();
+  clearTrail();
+}
+function setIfView(m) {
+  m = Math.round(+m) === 1 ? 1 : 0;
+  params.ifView = m;
+  document.querySelectorAll('.wave-btn[data-ifview]').forEach(b => {
+    const on = parseInt(b.dataset.ifview) === m; b.classList.toggle('active', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+}
+document.querySelectorAll('.wave-btn[data-embdim]').forEach(b => b.addEventListener('click', () => setEmbDim(parseInt(b.dataset.embdim))));
+document.querySelectorAll('.wave-btn[data-ifview]').forEach(b => b.addEventListener('click', () => setIfView(parseInt(b.dataset.ifview))));
+function refreshAdvControls() {
+  ADV_SLIDERS.forEach(([id, key, fmt]) => {
+    const el = document.getElementById(id), out = document.getElementById(id + '-val');
+    const v = params[key] ?? PARAM_DEFAULTS[key];
+    if (el) el.value = v; if (out) out.textContent = fmt(+v);
+  });
+  setEmbDim(params.embDim ?? 2);
+  setIfView(params.ifView ?? 0);
+}
 
 function setMirrorMode(m) {
   m = Math.max(0, Math.min(3, Math.round(m)));
@@ -9367,6 +9739,9 @@ function refreshAllControls() {
   setS('dots-line', params.dotsLine ?? 1, 'dots-line-val', fmtDotSpacing);
   VISUAL_SLIDERS.forEach(([id, key, fmt]) => setS(id, params[key] ?? 0, id + '-val', fmt));
   UNISON_SLIDERS.forEach(([id, key, fmt]) => setS(id, params[key] ?? 0, id + '-val', fmt));
+  // A patch drawn in an advanced geometry reveals them, so its controls are visible.
+  if ((params.geometry ?? 0) >= GEO_ADV0 && !advModes) setAdvModes(true);
+  refreshAdvControls();
   setGeometry(params.geometry ?? 0);
   setMirrorMode(params.mirrorMode ?? 0);
   setShapeMode(params.shapeMode ?? 0);
@@ -10444,6 +10819,10 @@ const VT_GEO = [
   { g: 3, lift: 0, icon: 'rose',  name: 'rose' },
   { g: 4, lift: 0, icon: 'knot',  name: 'torus knot' },
   { g: 5, lift: 0, icon: 'wave',  name: 'waves' },
+  { g: 6, lift: 0, icon: 'lknot', name: 'Lissajous knot', adv: true },
+  { g: 7, lift: 0, icon: 'guil',  name: 'guilloché',      adv: true },
+  { g: 8, lift: 0, icon: 'embed', name: 'delay embedding', adv: true },
+  { g: 9, lift: 0, icon: 'interf', name: 'interference',  adv: true },
 ];
 function vtGeoIndex() { const g = figGeometry(); return g === 0 ? (liftActive() ? 1 : 0) : g + 1; }
 // Construction: off, then the three generator styles.
@@ -10455,7 +10834,9 @@ const VT_CON = [
 ];
 function vtConIndex() { return !m4Active() ? 0 : polarGeometry() ? 1 : params.m4Rings ? 3 : params.m4Rotate ? 1 : 2; }
 document.getElementById('vt-geo').addEventListener('click', () => {
-  const st = VT_GEO[(vtGeoIndex() + 1) % VT_GEO.length];
+  let i = (vtGeoIndex() + 1) % VT_GEO.length;
+  while (VT_GEO[i].adv && !advModes) i = (i + 1) % VT_GEO.length;   // hidden modes are skipped
+  const st = VT_GEO[i];
   setDepthSrc(st.lift);
   setGeometry(st.g);
   syncViewToggles();
@@ -10583,12 +10964,12 @@ function refreshVisibility() {
   // The toolbar greys out what cannot apply rather than hiding it, so the
   // buttons never move.
   setVtEnabled('vt-frame', !waveGeometry() && !col);
-  setVtEnabled('vt-construct', !waveGeometry() && !lift);
+  setVtEnabled('vt-construct', !waveGeometry() && !lift && !advGeometry());
   // 3D lateral (the phase lift) has no construction: the lifted figure is its own explanation.
-  setVis('section-construct', !waveGeometry() && !lift);
+  setVis('section-construct', !waveGeometry() && !lift && !advGeometry());
   setVis('m4-gen-block', con && !polar);
   setVis('rot-con-info', con && polar);
-  setVtEnabled('vt-column', !solidGeometry() && !waveGeometry());
+  setVtEnabled('vt-column', !solidGeometry() && !waveGeometry() && !advGeometry());
   const azLbl = document.getElementById('az-label');
   if (azLbl) { const t = (lift || col) ? 'Perspective' : 'Depth'; if (azLbl.textContent !== t) azLbl.textContent = t; }
 }
@@ -10732,7 +11113,9 @@ function buildSearchIndex() {
     items.push({ key: null, name: h.textContent.trim(), el: h, where: controlWhere(h), heading: true });
   });
   // During the intro, only what has been unlocked can be found.
-  return intro ? items.filter(it => it.el && !it.el.closest('.intro-hide')) : items;
+  // Hidden advanced geometries stay out of the search until "/modes" shows them.
+  const shown = items.filter(it => !(it.el && it.el.closest('.adv-only[hidden]')));
+  return intro ? shown.filter(it => it.el && !it.el.closest('.intro-hide')) : shown;
 }
 const psEl = document.getElementById('param-search');
 const psInput = document.getElementById('ps-input');
@@ -10826,6 +11209,7 @@ function closeSearch(restore) {
 }
 psInput.addEventListener('input', () => {
   if (!intro && psInput.value.trim().toLowerCase() === 'intro') { closeSearch(false); startIntro(); return; }
+  if (/^\/?modes$/.test(psInput.value.trim().toLowerCase())) { closeSearch(false); toggleAdvModes(); return; }
   if (/^(theme|hue|interface colou?r)$/.test(psInput.value.trim().toLowerCase())) { closeSearch(false); cycleUiTheme(); return; }
   psSel = 0; psRender();
 });
