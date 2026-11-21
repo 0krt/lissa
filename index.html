@@ -205,6 +205,8 @@
   }
   .tab-panel { display: flex; flex-direction: column; gap: 16px; }
   .tab-panel[hidden], .sidebar .section[hidden], .view-tg[hidden], .adv-only[hidden], .adv-block[hidden] { display: none !important; }
+  body.if-hover, body.if-hover * { cursor: grab; }
+  body.if-dragging, body.if-dragging * { cursor: grabbing !important; user-select: none; }
   /* A control that cannot take effect in the current state is not shown (refreshVisibility). */
   .vis-off { display: none !important; }
   .tab-panel:focus { outline: none; }
@@ -1992,8 +1994,8 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
               <button class="wave-btn" data-ifview="1" aria-pressed="false">PATTERN</button>
             </div>
             <div class="param-row">
-              <div class="param-header"><label>Separation</label><span class="val" id="if-sep-val">0.30</span></div>
-              <input type="range" id="if-sep" min="0" max="1" step="0.01" value="0.3">
+              <div class="param-header"><label>Sources</label><span class="val">drag the dots</span></div>
+              <button class="btn-outline" type="button" id="if-reset" style="width:100%;margin-top:4px">Reset positions</button>
             </div>
             <div class="param-row">
               <div class="param-header"><label>Wavelength</label><span class="val" id="if-lambda-val">0.40</span></div>
@@ -2005,7 +2007,7 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
             </div>
           </div>
           <div class="info-text" data-info-label="advanced geometries">
-            <strong>Lissajous knot</strong> adds a third sine on depth: fx : fy : Z frequency picks the knot; drag to orbit. <strong>Guilloché</strong> repeats the counter-current rosette in turned, shrinking layers. <strong>Delay embedding</strong> plots the X+Y signal against itself one delay later (and two delays later in 3D). <strong>Interference</strong>: X and Y each radiate ripples from a point; Wavelength is a frequency-1 wave's, so a higher frequency gives shorter ripples. Animate the phase to set them moving. Typing <code>/modes</code> in the search hides these again.
+            <strong>Lissajous knot</strong> adds a third sine on depth: fx : fy : Z frequency picks the knot; drag to orbit. <strong>Guilloché</strong> repeats the counter-current rosette in turned, shrinking layers. <strong>Delay embedding</strong> plots the X+Y signal against itself one delay later (and two delays later in 3D). <strong>Interference</strong>: X and Y each radiate ripples from a point, and you can drag either point on the canvas; Wavelength is a frequency-1 wave's, so a higher frequency gives shorter ripples. Animate the phase to set them moving. <strong>Pattern</strong> maps where the two arrive in step (bright) and out of step (dark): hyperbolas when fx = fy, ovals otherwise. Typing <code>/modes</code> in the search hides these again.
           </div>
         </div>
         <div class="info-text" data-info-label="figure geometry">
@@ -3132,7 +3134,10 @@ let params = {
   embTau: 0.25,    // delay embedding: delay in cycles of X
   embMix: 0.5,     // delay embedding: 0 = X alone, 1 = Y alone
   embDim: 2,       // delay embedding: 2 = (s, s−τ), 3 = adds s−2τ on depth
-  ifSep: 0.3,      // interference: source separation, in half-widths of the box
+  ifAx: -0.15,     // interference: source A (the X wave), in half-widths of the box
+  ifAy: 0,
+  ifBx: 0.15,      // interference: source B (the Y wave)
+  ifBy: 0,
   ifLambda: 0.4,   // interference: wavelength of a frequency-1 wave, in half-widths
   ifDecay: 0.3,    // interference: amplitude falloff with distance
   ifView: 0,       // interference: 0 = moving ripples, 1 = still pattern (mean energy)
@@ -3953,70 +3958,154 @@ function drawAdvancedFigure(g, w, h, A, cx, cy, rx, ry, mirrors, shaded, paint, 
 }
 
 // ── Interference (geometry 9) ───────────────────────────────────────────────
-// Source A at (−d/2, 0) radiates the X wave, source B at (+d/2, 0) the Y wave,
-// each read from one processed cycle of its oscillator, so every synthesis stage
-// shapes the ripples. A wave of frequency f has wavelength λ/f. The phase δ is
-// time: animating it sets the ripples moving. PATTERN averages the energy over
-// one full period of δ, which leaves the still lines where the two cancel.
-const IF_RES = 240, IF_LUT = 1024;
-let _ifCv = null, _ifCtx = null, _ifImg = null;
-const _ifLX = new Float32Array(IF_LUT), _ifLY = new Float32Array(IF_LUT);
-const _ifR1 = new Float32Array(IF_RES * IF_RES), _ifR2 = new Float32Array(IF_RES * IF_RES);
+// Source A radiates the X wave, source B the Y wave, each read from one processed
+// cycle of its oscillator, so every synthesis stage shapes the ripples. A wave of
+// frequency f has wavelength λ/f. The phase δ is time: animating it sets the
+// ripples moving. PATTERN maps where the two are in and out of step (see
+// below). Both sources can be dragged.
+//
+// The field is computed at close to the screen's own pixel density (capped for
+// speed) and the wave tables are read with linear interpolation, so the bands
+// stay smooth. Distances and weights only change when the geometry does, and the
+// PATTERN image only when the geometry or the phase does, so both are cached.
+const IF_RES_MAX = 560, IF_RES_MIN = 160, IF_LUT = 2048;
+let _ifCv = null, _ifCtx = null, _ifImg = null, _ifR = 0;
+let _ifP1 = null, _ifP2 = null, _ifW1 = null, _ifW2 = null, _ifGeoKey = '', _ifPatKey = '';
+const _ifLX = new Float32Array(IF_LUT + 1), _ifLY = new Float32Array(IF_LUT + 1);
 function hexRgb(hex) {
   const h = String(hex || '#000').replace('#', '');
   const f = h.length === 3 ? h.split('').map(c => c + c).join('') : h.slice(0, 6);
   return [0, 2, 4].map(i => parseInt(f.slice(i, i + 2), 16) || 0);
 }
+function ifSources() {
+  return [[params.ifAx ?? -0.15, params.ifAy ?? 0], [params.ifBx ?? 0.15, params.ifBy ?? 0]];
+}
 function drawInterference(g, w, h, phase, zoom) {
-  if (!_ifCv) { _ifCv = document.createElement('canvas'); _ifCv.width = _ifCv.height = IF_RES; _ifCtx = _ifCv.getContext('2d'); _ifImg = _ifCtx.createImageData(IF_RES, IF_RES); }
+  const R = Math.max(IF_RES_MIN, Math.min(IF_RES_MAX, Math.round(w * (viewDpr || 1) * 0.6)));
+  if (R !== _ifR) {
+    _ifR = R; _ifCv = document.createElement('canvas'); _ifCv.width = _ifCv.height = R;
+    _ifCtx = _ifCv.getContext('2d'); _ifImg = _ifCtx.createImageData(R, R);
+    _ifP1 = new Float32Array(R * R); _ifP2 = new Float32Array(R * R);
+    _ifW1 = new Float32Array(R * R); _ifW2 = new Float32Array(R * R);
+    _ifGeoKey = _ifPatKey = '';
+  }
+  // One processed cycle of each wave; the extra last entry makes interpolation wrap.
   for (let j = 0; j < IF_LUT; j++) {
     const th = TAU * j / IF_LUT;
     _ifLX[j] = processWave(th, th, waveTypeX, 'x');
     _ifLY[j] = processWave(th, th, waveTypeY, 'y');
   }
+  _ifLX[IF_LUT] = _ifLX[0]; _ifLY[IF_LUT] = _ifLY[0];
   const { fx, fy } = params, z = Math.max(0.05, zoom || 1);
-  const d = (params.ifSep ?? 0.3) / 2, lam = Math.max(0.01, params.ifLambda ?? 0.4), decay = (params.ifDecay ?? 0.3) * 6;
-  const kx = fx / lam * IF_LUT, ky = fy / lam * IF_LUT;   // LUT steps per unit distance
-  for (let py = 0, p = 0; py < IF_RES; py++) {
-    const v = ((py + 0.5) / IF_RES * 2 - 1) / z;
-    for (let px = 0; px < IF_RES; px++, p++) {
-      const u = ((px + 0.5) / IF_RES * 2 - 1) / z;
-      _ifR1[p] = Math.hypot(u + d, v); _ifR2[p] = Math.hypot(u - d, v);
+  const [[ax, ay], [bx, by]] = ifSources();
+  const lam = Math.max(0.01, params.ifLambda ?? 0.4), decay = (params.ifDecay ?? 0.3) * 6;
+  const geoKey = [R, z, ax, ay, bx, by, fx, fy, lam, decay].join();
+  const N = R * R;
+  if (geoKey !== _ifGeoKey) {
+    _ifGeoKey = geoKey; _ifPatKey = '';
+    const kx = fx / lam * IF_LUT, ky = fy / lam * IF_LUT;   // table steps per unit distance
+    for (let py = 0, p = 0; py < R; py++) {
+      const v = ((py + 0.5) / R * 2 - 1) / z;
+      for (let px = 0; px < R; px++, p++) {
+        const u = ((px + 0.5) / R * 2 - 1) / z;
+        const r1 = Math.hypot(u - ax, v - ay), r2 = Math.hypot(u - bx, v - by);
+        const a1 = 1 / (1 + decay * r1), a2 = 1 / (1 + decay * r2), n = a1 + a2;
+        _ifP1[p] = kx * r1; _ifP2[p] = ky * r2; _ifW1[p] = a1 / n; _ifW2[p] = a2 / n;
+      }
     }
   }
-  const lut = (L, a) => L[((a % IF_LUT) + IF_LUT) % IF_LUT | 0];
+  const lerp = (L, a) => { a %= IF_LUT; if (a < 0) a += IF_LUT; const i = a | 0, f = a - i; return L[i] + (L[i + 1] - L[i]) * f; };
   const pattern = Math.round(params.ifView) === 1;
-  const steps = pattern ? 24 : 1, span = 4;   // δ runs 0..4 (in π): a whole period even for half-integer ratios
   const bg = hexRgb(params.bgColor), fg = hexRgb(params.strokeColor), D = _ifImg.data;
-  for (let p = 0, q = 0; p < IF_RES * IF_RES; p++, q += 4) {
-    const r1 = _ifR1[p], r2 = _ifR2[p];
-    const a1 = 1 / (1 + decay * r1), a2 = 1 / (1 + decay * r2);
-    let val;
-    if (!pattern) {
-      const t = phase / 2 * IF_LUT;   // δπ as a share of one cycle
-      const s = (a1 * lut(_ifLX, fx * t - kx * r1) + a2 * lut(_ifLY, fy * t - ky * r2)) / (a1 + a2);
-      val = (s + 1) / 2;
-    } else {
-      let e = 0;
-      for (let k = 0; k < steps; k++) {
-        const t = (k / steps) * span / 2 * IF_LUT;
-        const s = (a1 * lut(_ifLX, fx * t - kx * r1) + a2 * lut(_ifLY, fy * t - ky * r2)) / (a1 + a2);
-        e += s * s;
-      }
-      val = Math.min(1, e / steps * 2);
-    }
+  const paint = (q, val) => {
     val = val < 0 ? 0 : val > 1 ? 1 : val;
     D[q] = bg[0] + (fg[0] - bg[0]) * val; D[q + 1] = bg[1] + (fg[1] - bg[1]) * val; D[q + 2] = bg[2] + (fg[2] - bg[2]) * val; D[q + 3] = 255;
+  };
+  if (!pattern) {
+    const t = phase / 2 * IF_LUT, tx = fx * t, ty = fy * t;   // δπ as a share of one cycle
+    for (let p = 0, q = 0; p < N; p++, q += 4) {
+      const s = _ifW1[p] * lerp(_ifLX, tx - _ifP1[p]) + _ifW2[p] * lerp(_ifLY, ty - _ifP2[p]);
+      paint(q, (s + 1) / 2);
+    }
+    _ifPatKey = '';
+  } else {
+    // Where the two arrive in step (bright) and out of step (dark): the phase
+    // difference of the two fundamentals, with each source's own falloff. With
+    // fx = fy this is the still interference pattern, hyperbolas round the two
+    // sources; with different frequencies it is the family of ovals along which
+    // the two keep a fixed phase relation, at the current δ.
+    const patKey = geoKey + '|' + phase.toFixed(4) + '|' + bg + fg;
+    if (patKey !== _ifPatKey) {
+      _ifPatKey = patKey;
+      const dt = (fx - fy) * phase / 2 * TAU;
+      for (let p = 0, q = 0; p < N; p++, q += 4) {
+        const a = _ifW1[p], b = _ifW2[p];
+        const d = (_ifP1[p] - _ifP2[p]) / IF_LUT * TAU - dt;
+        paint(q, a * a + b * b + 2 * a * b * Math.cos(d));
+      }
+    }
   }
   _ifCtx.putImageData(_ifImg, 0, 0);
   g.save();
   g.imageSmoothingEnabled = true;
+  g.imageSmoothingQuality = 'high';
   g.drawImage(_ifCv, 0, 0, w, h);
-  // The two sources, so it is clear where the ripples come from.
-  g.fillStyle = params.strokeColor;
-  [-d, d].forEach(sx => { const x = w / 2 + sx * z * w / 2; if (x > -4 && x < w + 4) { g.beginPath(); g.arc(x, h / 2, Math.max(2, w * 0.006), 0, TAU); g.fill(); } });
+  // The two sources, drawn as handles: a dot inside a ring.
+  const r = Math.max(3, w * 0.006);
+  g.fillStyle = params.strokeColor; g.strokeStyle = params.strokeColor; g.lineWidth = 1.5;
+  [[ax, ay], [bx, by]].forEach(([sx, sy], i) => {
+    const x = w / 2 + sx * z * w / 2, y = h / 2 + sy * z * h / 2;
+    if (x < -10 || x > w + 10 || y < -10 || y > h + 10) return;
+    g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
+    g.beginPath(); g.arc(x, y, r * 2.6, 0, TAU); g.stroke();
+    g.font = `${Math.max(10, Math.round(w * 0.016))}px 'IBM Plex Mono', monospace`;
+    g.fillText(i ? 'Y' : 'X', x + r * 3.4, y - r * 2);
+  });
   g.restore();
 }
+// Drag a source. The canvas sits behind the page chrome, so like the orbit drag
+// these listen on the document and refuse a press that lands on the chrome.
+const IF_HIT_PX = 18;
+let ifDrag = null;
+function ifPointerBox(e) {
+  const z = Math.max(ZOOM_MIN, recZoom);
+  return [((e.clientX - figBox.x) / figBox.size * 2 - 1) / z, ((e.clientY - figBox.y) / figBox.size * 2 - 1) / z];
+}
+function ifHit(e) {
+  if (figGeometry() !== GEO_INTERF || m4Active() || columnActive()) return -1;
+  if (e.target && e.target.closest && e.target.closest(ORBIT_CHROME)) return -1;
+  const z = Math.max(ZOOM_MIN, recZoom);
+  let best = -1, bestD = IF_HIT_PX;
+  ifSources().forEach(([sx, sy], i) => {
+    const x = figBox.x + (sx * z + 1) / 2 * figBox.size, y = figBox.y + (sy * z + 1) / 2 * figBox.size;
+    const d = Math.hypot(e.clientX - x, e.clientY - y);
+    if (d < bestD) { bestD = d; best = i; }
+  });
+  return best;
+}
+document.addEventListener('pointerdown', e => {
+  if (e.button !== 0) return;
+  const i = ifHit(e);
+  if (i < 0) return;
+  ifDrag = { id: e.pointerId, i };
+  document.body.classList.add('if-dragging');
+  e.preventDefault();
+});
+window.addEventListener('pointermove', e => {
+  if (ifDrag && e.pointerId === ifDrag.id) {
+    const [u, v] = ifPointerBox(e), c = x => Math.max(-1.5, Math.min(1.5, x));
+    if (ifDrag.i === 0) { params.ifAx = c(u); params.ifAy = c(v); } else { params.ifBx = c(u); params.ifBy = c(v); }
+    e.preventDefault();
+    return;
+  }
+  if (figGeometry() === GEO_INTERF) document.body.classList.toggle('if-hover', ifHit(e) >= 0);
+  else document.body.classList.remove('if-hover');
+});
+['pointerup', 'pointercancel'].forEach(ev => window.addEventListener(ev, () => {
+  if (!ifDrag) return;
+  ifDrag = null;
+  document.body.classList.remove('if-dragging');
+}));
 // Damping (harmonograph). The slider runs on a square-law curve, so its low end
 // is fine-grained: 10% on the slider is 1% of full damping. `laps` copies of the
 // curve shrink by e^-4·strength in all; X slips `slip` samples per sample, a
@@ -7316,6 +7405,53 @@ let unisonGainX = null, unisonGainY = null;     // unison level (params.unisonMi
 let masterGain = null;
 let noiseGain = null, noiseSrc = null;
 const NOISE_SCALE = 4;  // maps noiseAmt 0..0.1 to a sensible audio level (0..0.4)
+let synthTrim = null;    // mono headroom: two centred voices would otherwise sum past full scale
+let outLimiter = null;   // a fast limiter in front of the speakers and the recorder
+
+// ── Voices ───────────────────────────────────────────────────────────────────
+// A voice is two OscillatorNodes that share one frequency and one detune input
+// (ConstantSourceNodes wired into both), started on the same sample, so they run
+// in exact phase. A new wavetable goes onto the silent one and the two crossfade
+// over PW_XFADE. Swapping the table on a sounding oscillator jumps the waveform
+// mid-cycle, which is the click heard while dragging any synthesis control.
+// The object keeps the OscillatorNode calls the engine uses: frequency, detune,
+// connect, start, stop, setPeriodicWave.
+const PW_XFADE = 0.025;
+function makeVoice(ctx) {
+  const freq = ctx.createConstantSource(), det = ctx.createConstantSource();
+  freq.offset.value = 0; det.offset.value = 0;
+  const out = ctx.createGain();
+  const osc = [ctx.createOscillator(), ctx.createOscillator()];
+  const g = [ctx.createGain(), ctx.createGain()];
+  osc.forEach((o, i) => {
+    o.frequency.value = 0; o.detune.value = 0;
+    freq.connect(o.frequency); det.connect(o.detune);
+    o.connect(g[i]); g[i].connect(out);
+    g[i].gain.value = i ? 0 : 1;
+  });
+  let cur = 0, busyUntil = 0, pending = null;
+  const v = {
+    frequency: freq.offset, detune: det.offset, out,
+    connect(node) { out.connect(node); },
+    start() { const t = ctx.currentTime + 0.01; freq.start(t); det.start(t); osc[0].start(t); osc[1].start(t); },
+    stop() { [osc[0], osc[1], freq, det].forEach(n => { try { n.stop(); } catch (e) {} }); },
+    // immediate: put the table on both at once (start-up, or a change of period
+    // where the old table would play at the wrong pitch during a fade).
+    setPeriodicWave(pw, immediate) {
+      const now = ctx.currentTime;
+      if (immediate) { osc[0].setPeriodicWave(pw); osc[1].setPeriodicWave(pw); pending = null; return; }
+      if (now < busyUntil) { pending = pw; return; }   // mid-fade: take it when this fade ends
+      pending = null;
+      const nxt = 1 - cur, t0 = now + 0.01, t1 = t0 + PW_XFADE;
+      osc[nxt].setPeriodicWave(pw);
+      g[cur].gain.cancelScheduledValues(now); g[cur].gain.setValueAtTime(1, t0); g[cur].gain.linearRampToValueAtTime(0, t1);
+      g[nxt].gain.cancelScheduledValues(now); g[nxt].gain.setValueAtTime(0, t0); g[nxt].gain.linearRampToValueAtTime(1, t1);
+      cur = nxt; busyUntil = t1 + 0.002;
+    },
+    flush() { if (pending && ctx.currentTime >= busyUntil) v.setPeriodicWave(pending); },
+  };
+  return v;
+}
 let audioEnabled = false;
 let audioStereo = true;  // true = X→L / Y→R, false = X+Y summed to mono
 
@@ -7398,6 +7534,7 @@ function applyAudioChannelMode() {
   // Mono: both oscillators centred so they sum equally into both channels.
   panX.pan.setTargetAtTime(audioStereo ? -1 : 0, t, 0.02);
   panY.pan.setTargetAtTime(audioStereo ?  1 : 0, t, 0.02);
+  if (synthTrim) synthTrim.gain.setTargetAtTime(audioStereo ? 1 : Math.SQRT1_2, t, 0.02);
 }
 
 // All four names map directly to native Web Audio oscillator types.
@@ -7427,7 +7564,16 @@ function startAudio() {
   monitorGain = audioCtx.createGain();
   monitorGain.gain.value = monitorLevel();
   monitorGain.connect(audioCtx.destination);
-  masterGain.connect(monitorGain);
+  // A limiter after Volume: a hot patch (fold + unison + noise at full volume)
+  // is held just under full scale instead of hard-clipping in the output.
+  outLimiter = audioCtx.createDynamicsCompressor();
+  outLimiter.threshold.value = -2;
+  outLimiter.knee.value = 0;
+  outLimiter.ratio.value = 20;
+  outLimiter.attack.value = 0.002;
+  outLimiter.release.value = 0.12;
+  masterGain.connect(outLimiter);
+  outLimiter.connect(monitorGain);
 
   // Record path: recordBus → masterGain(Volume) → recFadeGain → recDest. The tap
   // is AFTER Volume, so what you set is what the video gets; it stays BEFORE the
@@ -7439,7 +7585,7 @@ function startAudio() {
   recordBus = audioCtx.createGain();
   recordBus.gain.value = 1;
   recordBus.connect(masterGain);
-  masterGain.connect(recFadeGain);
+  outLimiter.connect(recFadeGain);
 
   // Source buses. internalGain carries the synth; externalGain carries the device.
   // Both are pure 0/1 switches — exactly one is open at a time.
@@ -7458,16 +7604,21 @@ function startAudio() {
   externalAnalyser.smoothingTimeConstant = 0.3;
   externalAnalyser.connect(externalGain);
 
+  // Mono puts both voices in the centre, where they add: −3 dB keeps their sum
+  // at the level one voice has on its own side in stereo.
+  synthTrim = audioCtx.createGain();
+  synthTrim.gain.value = audioStereo ? 1 : Math.SQRT1_2;
+  synthTrim.connect(internalGain);
   // X → left (stereo) or centre (mono), through its own loudness weighting.
   panX = audioCtx.createStereoPanner();
   panX.pan.value = audioStereo ? -1 : 0;
-  panX.connect(internalGain);
+  panX.connect(synthTrim);
   eqGainX = audioCtx.createGain();
   eqGainX.gain.value = elcGain(params.fx * baseFreq);
   eqGainX.connect(panX);
 
   audioDiv = lapDiv();
-  oscX = audioCtx.createOscillator();
+  oscX = makeVoice(audioCtx);
   oscX.frequency.value = params.fx * baseFreq / audioDiv;
   oscX.connect(eqGainX);
   oscX.start();
@@ -7475,12 +7626,12 @@ function startAudio() {
   // Y → right (stereo) or centre (mono)
   panY = audioCtx.createStereoPanner();
   panY.pan.value = audioStereo ? 1 : 0;
-  panY.connect(internalGain);
+  panY.connect(synthTrim);
   eqGainY = audioCtx.createGain();
   eqGainY.gain.value = elcGain(params.fy * baseFreq);
   eqGainY.connect(panY);
 
-  oscY = audioCtx.createOscillator();
+  oscY = makeVoice(audioCtx);
   oscY.frequency.value = params.fy * baseFreq / audioDiv;
   oscY.connect(eqGainY);
   oscY.start();
@@ -7490,15 +7641,17 @@ function startAudio() {
   // a node start/stop pop when the mix comes up).
   unisonGainX = audioCtx.createGain();
   unisonGainY = audioCtx.createGain();
-  unisonGainX.gain.value = unisonGainY.gain.value = Math.max(0, params.unisonMix || 0);
+  // The pair and the main voice share the axis's level, so mixing the pair in
+  // thickens the sound without making it louder (see unisonLevels).
+  { const [m, u] = unisonLevels(); unisonGainX.gain.value = unisonGainY.gain.value = u; oscX.out.gain.value = oscY.out.gain.value = m; }
   unisonGainX.connect(eqGainX);   // the pair shares its axis's weighting
   unisonGainY.connect(eqGainY);
-  oscX2 = audioCtx.createOscillator();
+  oscX2 = makeVoice(audioCtx);
   oscX2.frequency.value = params.fx * baseFreq / audioDiv;
   oscX2.detune.value = params.unisonDetune || 0;
   oscX2.connect(unisonGainX);
   oscX2.start();
-  oscY2 = audioCtx.createOscillator();
+  oscY2 = makeVoice(audioCtx);
   oscY2.frequency.value = params.fy * baseFreq / audioDiv;
   oscY2.detune.value = -(params.unisonDetune || 0);
   oscY2.connect(unisonGainY);
@@ -7518,7 +7671,7 @@ function startAudio() {
   // Always drive both oscillators with a computed PeriodicWave so there is never
   // a hard switch between native and periodic waveforms (that switch caused the
   // audible pop when crossing from no-modulation to any modulation).
-  applyPeriodicWave();
+  applyPeriodicWave(true);
 
   // A context created outside a user gesture can start suspended — resume it.
   if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -7551,6 +7704,7 @@ function stopAudio() {
   if (externalSink) { try { externalSink.pause(); externalSink.srcObject = null; } catch(e) {} externalSink = null; }
   externalAnalyser = null; externalLevel = 0;
   internalGain = externalGain = recordBus = recDest = monitorGain = null;
+  synthTrim = outLimiter = null;
   if (audioCtx) { audioCtx.close(); audioCtx = null; }
 }
 
@@ -7574,15 +7728,23 @@ function syncAudioParams() {
   // frequency changes here don't require a wave rebuild.
 }
 
+// [main, pair] levels for a unison mix: the two always add up to 1, so the
+// pair fattens the sound at a constant peak level instead of doubling it.
+function unisonLevels() {
+  const mix = Math.max(0, Math.min(1, params.unisonMix || 0));
+  return [1 / (1 + mix), mix / (1 + mix)];
+}
 // Push the unison mix / detune params onto the live nodes (called from the UI
 // handlers and each pwTick so LFO/MIDI modulation tracks too).
 function applyUnisonAudio() {
   if (!audioCtx || !oscX2) return;
   const t = audioCtx.currentTime;
-  const mix = Math.max(0, Math.min(1, params.unisonMix || 0));
   const det = params.unisonDetune || 0;
-  unisonGainX.gain.setTargetAtTime(mix, t, 0.03);
-  unisonGainY.gain.setTargetAtTime(mix, t, 0.03);
+  const [m, u] = unisonLevels();
+  unisonGainX.gain.setTargetAtTime(u, t, 0.03);
+  unisonGainY.gain.setTargetAtTime(u, t, 0.03);
+  oscX.out.gain.setTargetAtTime(m, t, 0.03);
+  oscY.out.gain.setTargetAtTime(m, t, 0.03);
   oscX2.detune.setTargetAtTime(det, t, 0.03);
   oscY2.detune.setTargetAtTime(-det, t, 0.03);
 }
@@ -8161,7 +8323,6 @@ const ADV_SLIDERS = [
   ['gui-shrink', 'guiShrink', v => v.toFixed(2)],
   ['emb-tau',    'embTau',    v => v.toFixed(2) + ' cyc'],
   ['emb-mix',    'embMix',    v => v.toFixed(2)],
-  ['if-sep',     'ifSep',     v => v.toFixed(2)],
   ['if-lambda',  'ifLambda',  v => v.toFixed(2)],
   ['if-decay',   'ifDecay',   v => v.toFixed(2)],
 ];
@@ -8169,6 +8330,9 @@ ADV_SLIDERS.forEach(([id, key, fmt]) => {
   const el = document.getElementById(id), out = document.getElementById(id + '-val');
   if (!el) return;
   el.addEventListener('input', () => { params[key] = +el.value; if (out) out.textContent = fmt(+el.value); clearTrail(); });
+});
+document.getElementById('if-reset').addEventListener('click', () => {
+  ['ifAx', 'ifAy', 'ifBx', 'ifBy'].forEach(k => { params[k] = PARAM_DEFAULTS[k]; });
 });
 function setEmbDim(m) {
   m = Math.round(+m) === 3 ? 3 : 2;
@@ -9556,6 +9720,16 @@ document.getElementById('btn-export-wav').addEventListener('click', () => {
 const PW_N = 1024; // time-domain samples used to derive Fourier coefficients
 const PW_H = 256;  // number of harmonics to keep (≤ PW_N/2)
 
+const _dftTables = new Map();
+function dftTable(NS) {
+  let t = _dftTables.get(NS);
+  if (!t) {
+    const c = new Float64Array(NS), s = new Float64Array(NS);
+    for (let n = 0; n < NS; n++) { c[n] = Math.cos(2 * Math.PI * n / NS); s[n] = Math.sin(2 * Math.PI * n / NS); }
+    t = [c, s]; _dftTables.set(NS, t);
+  }
+  return t;
+}
 function buildPeriodicWave(type, axis) {
   if (!audioCtx) return null;
   // Sample one period of the processed wave for the given base waveform. With a
@@ -9580,17 +9754,18 @@ function buildPeriodicWave(type, axis) {
   for (let i = 0; i < NS; i++) { const a = Math.abs(x[i]); if (a > peak) peak = a; }
   if (peak > 0.0001) { const g = 0.9 / peak; for (let i = 0; i < NS; i++) x[i] *= g; }
 
-  // Naive DFT for low harmonic count — fine off the audio thread.
+  // DFT over the first H harmonics, reading cos/sin from one table of the NS
+  // roots of unity rather than calling the trig functions H·NS times. It runs on
+  // the main thread every rebuild, so this keeps frames from stalling.
   const real = new Float32Array(H + 1);
   const imag = new Float32Array(H + 1);
+  const [ct, st] = dftTable(NS);
   for (let k = 1; k <= H; k++) {
     let re = 0, im = 0;
-    const w = (2 * Math.PI * k) / NS;
-    for (let n = 0; n < NS; n++) {
-      const c = Math.cos(w * n);
-      const s = Math.sin(w * n);
-      re += x[n] * c;
-      im -= x[n] * s;
+    for (let n = 0, j = 0; n < NS; n++, j += k) {
+      if (j >= NS) j -= NS;
+      re += x[n] * ct[j];
+      im -= x[n] * st[j];
     }
     real[k] = (2 / NS) * re;
     imag[k] = (2 / NS) * im;
@@ -9598,11 +9773,11 @@ function buildPeriodicWave(type, axis) {
   return audioCtx.createPeriodicWave(real, imag, { disableNormalization: false });
 }
 
-function applyPeriodicWave() {
+function applyPeriodicWave(immediate) {
   if (!audioCtx || !oscX || !oscY) return;
   try {
     const pwX = buildPeriodicWave(waveTypeX, 'x');
-    if (pwX) oscX.setPeriodicWave(pwX);
+    if (pwX) oscX.setPeriodicWave(pwX, immediate);
     // Reuse X's wave only when both axes are truly identical (same base type and
     // nothing targeting one axis — sync "X only", or FM/AM set to a single axis)
     // — otherwise build Y separately.
@@ -9616,9 +9791,9 @@ function applyPeriodicWave() {
     const aimed = AXIS_GROUPS.some(([k]) => Math.abs(+params[k] || 0) > 0.0005);
     const axisDiffers = syncDiffers || fmDiffers || amDiffers || morphDiffers || aimed;
     const pwY = (waveTypeY === waveTypeX && !axisDiffers) ? pwX : buildPeriodicWave(waveTypeY, 'y');
-    if (pwY) oscY.setPeriodicWave(pwY);
-    if (pwX && oscX2) oscX2.setPeriodicWave(pwX);
-    if (pwY && oscY2) oscY2.setPeriodicWave(pwY);
+    if (pwY) oscY.setPeriodicWave(pwY, immediate);
+    if (pwX && oscX2) oscX2.setPeriodicWave(pwX, immediate);
+    if (pwY && oscY2) oscY2.setPeriodicWave(pwY, immediate);
   } catch (e) { /* osc may have stopped */ }
 }
 
@@ -9658,9 +9833,11 @@ function pwTick(now) {
     if (oscX2) oscX2.frequency.setValueAtTime(params.fx * baseFreq / d, t);
     if (oscY2) oscY2.frequency.setValueAtTime(params.fy * baseFreq / d, t);
     _lastPwBuild = now; pwDirty = false;
-    applyPeriodicWave();
+    applyPeriodicWave(true);
     return;
   }
+  // A table that arrived mid-crossfade goes on as soon as that fade is over.
+  [oscX, oscY, oscX2, oscY2].forEach(v => v && v.flush());
   const continuous = lfoHasSynthTargets();
   if ((pwDirty || continuous) && now - _lastPwBuild >= PW_MIN_INTERVAL) {
     _lastPwBuild = now;
