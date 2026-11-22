@@ -204,7 +204,7 @@
     content: ''; position: absolute; left: -5px; top: 9px; bottom: 11px; width: 1px; background: var(--border);
   }
   .tab-panel { display: flex; flex-direction: column; gap: 16px; }
-  .tab-panel[hidden], .sidebar .section[hidden], .view-tg[hidden], .adv-only[hidden], .adv-block[hidden] { display: none !important; }
+  .tab-panel[hidden], .sidebar .section[hidden], .view-tg[hidden], .adv-only[hidden], .adv-block[hidden], #wf-layout-row[hidden] { display: none !important; }
   body.if-hover, body.if-hover * { cursor: grab; }
   body.if-dragging, body.if-dragging * { cursor: grabbing !important; user-select: none; }
   /* A control that cannot take effect in the current state is not shown (refreshVisibility). */
@@ -1942,6 +1942,7 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
             <button class="wave-btn" data-geo="7" title="Guilloché — counter-current rosette repeated in turned layers" aria-label="Guilloché"></button>
             <button class="wave-btn" data-geo="8" title="Delay embedding — the X+Y signal plotted against its own delayed copy" aria-label="Delay embedding"></button>
             <button class="wave-btn" data-geo="9" title="Interference — X and Y radiate ripples from two points" aria-label="Interference"></button>
+            <button class="wave-btn" data-geo="10" title="Waterfall — the wave's history as stacked lines" aria-label="Waterfall"></button>
           </div>
         </div>
         <div id="geo-hint" style="font-size:10.5px;color:var(--label);margin-bottom:10px;line-height:1.45"></div>
@@ -2006,8 +2007,35 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
               <input type="range" id="if-decay" min="0" max="1" step="0.01" value="0.3">
             </div>
           </div>
+          <div class="adv-block" data-advgeo="10">
+            <div class="vel-row"><span class="vel-label">Waterfall</span></div>
+            <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="Waterfall wave">
+              <button class="wave-btn" data-wfaxis="0" aria-pressed="false">X</button>
+              <button class="wave-btn" data-wfaxis="1" aria-pressed="false">Y</button>
+              <button class="wave-btn active" data-wfaxis="2" aria-pressed="true">BOTH</button>
+            </div>
+            <div class="wave-toggle" id="wf-layout-row" style="margin-bottom:6px" role="group" aria-label="Waterfall layout for both waves">
+              <button class="wave-btn active" data-wflayout="0" aria-pressed="true">SIDE BY SIDE</button>
+              <button class="wave-btn" data-wflayout="1" aria-pressed="false">INTERLEAVED</button>
+            </div>
+            <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="When a new line is added">
+              <button class="wave-btn active" data-wfmode="0" aria-pressed="true" title="One line once a change settles">STEP</button>
+              <button class="wave-btn" data-wfmode="1" aria-pressed="false" title="Lines keep coming while something changes">SWEEP</button>
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>Lines</label><span class="val" id="wf-lines-val">32</span></div>
+              <input type="range" id="wf-lines" min="8" max="80" step="1" value="32">
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>Height</label><span class="val" id="wf-height-val">2.5</span></div>
+              <input type="range" id="wf-height" min="0.5" max="6" step="0.1" value="2.5">
+            </div>
+            <div class="param-row">
+              <button class="btn-outline" type="button" id="wf-clear" style="width:100%">Clear lines</button>
+            </div>
+          </div>
           <div class="info-text" data-info-label="advanced geometries">
-            <strong>Lissajous knot</strong> adds a third sine on depth: fx : fy : Z frequency picks the knot; drag to orbit. <strong>Guilloché</strong> repeats the counter-current rosette in turned, shrinking layers. <strong>Delay embedding</strong> plots the X+Y signal against itself one delay later (and two delays later in 3D). <strong>Interference</strong>: X and Y each radiate ripples from a point, and you can drag either point on the canvas; Wavelength is a frequency-1 wave's, so a higher frequency gives shorter ripples. Animate the phase to set them moving. <strong>Pattern</strong> maps where the two arrive in step (bright) and out of step (dark): hyperbolas when fx = fy, ovals otherwise. Typing <code>/modes</code> in the search hides these again.
+            <strong>Lissajous knot</strong> adds a third sine on depth: fx : fy : Z frequency picks the knot; drag to orbit. <strong>Guilloché</strong> repeats the counter-current rosette in turned, shrinking layers. <strong>Delay embedding</strong> plots the X+Y signal against itself one delay later (and two delays later in 3D). <strong>Interference</strong>: X and Y each radiate ripples from a point, and you can drag either point on the canvas; Wavelength is a frequency-1 wave's, so a higher frequency gives shorter ripples. Animate the phase to set them moving. <strong>Pattern</strong> maps where the two arrive in step (bright) and out of step (dark): hyperbolas when fx = fy, ovals otherwise. <strong>Waterfall</strong> stacks the wave's history: every change to the sound adds a line at the front and pushes the older ones back (STEP: one line per settled change; SWEEP: a line every few frames while it changes). The phase scrolls every line sideways and never adds one. Typing <code>/modes</code> in the search hides these again.
           </div>
         </div>
         <div class="info-text" data-info-label="figure geometry">
@@ -3141,6 +3169,11 @@ let params = {
   ifLambda: 0.4,   // interference: wavelength of a frequency-1 wave, in half-widths
   ifDecay: 0.3,    // interference: amplitude falloff with distance
   ifView: 0,       // interference: 0 = moving ripples, 1 = still pattern (mean energy)
+  wfLines: 32,     // waterfall: how many lines the stack keeps
+  wfHeight: 2.5,   // waterfall: wave height, in line spacings
+  wfMode: 0,       // waterfall: 0 = a line once a change settles, 1 = lines while it changes
+  wfAxis: 2,       // waterfall: 0 = X, 1 = Y, 2 = both
+  wfLayout: 0,     // waterfall, both waves: 0 = side by side, 1 = interleaved
   unisonDetune: 0, // unison pair detune in cents (audio) / ghost drift rate (visual)
   unisonMix: 0,    // unison pair level 0..1 (0 = off)
   fmRef: 0,        // FM modulator frequency: 0 = ratio × each axis's own, 1 = × X's, 2 = × Y's
@@ -3618,6 +3651,7 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
   }
   // Interference is a field, not a curve: it paints every pixel of the box itself.
   if (figGeometry() === GEO_INTERF) { drawInterference(targetCtx, w, h, phase, zoom); return; }
+  if (figGeometry() === GEO_WFALL) { drawWaterfall(targetCtx, w, h, phase, zoom); return; }
 
   const cx = w / 2, cy = h / 2;
   const pad = Math.min(w, h) * 0.034;
@@ -4063,6 +4097,113 @@ function drawInterference(g, w, h, phase, zoom) {
   });
   g.restore();
 }
+// ── Waterfall (geometry 10) ─────────────────────────────────────────────────
+// A stack of lines, each a snapshot of the X and Y waves. Anything that changes
+// the waves (shape, frequency, amplitude, every synthesis stage, LFOs) adds a
+// line at the front and pushes the older ones back; the phase never does, it
+// scrolls every line sideways instead. A line spans one cycle of the slower
+// oscillator, so the faster one shows its extra cycles and a frequency change is
+// visible. STEP adds a line once a change has settled for WF_SETTLE ms; SWEEP adds
+// one every WF_SWEEP ms while something keeps changing. The history lives for the
+// session only.
+const WF_N = 512, WF_SETTLE = 150, WF_SWEEP = 60, WF_EPS = 0.002;
+const _wfHist = [];            // newest first: { x, y, cx, cy }
+let _wfPrev = null, _wfLastMove = 0, _wfLastPush = 0;
+function wfSample(type, axis, amp) {
+  const div = lapDiv(), NS = WF_N, out = new Float32Array(NS);
+  _audioSampling = true;   // no visual noise: it would read as a change every frame
+  for (let i = 0; i < NS; i++) { const t = (i / NS) * TAU * div; out[i] = processWave(t, t, type, axis); }
+  _audioSampling = false;
+  if (filterIsOn() && onAxis('filterAxis', axis)) {
+    const wc = TAU * Math.min(0.49, filterHarmonics() * div / NS);
+    filterPeriodic(out, NS, biquadCoeffs(filterType, wc, params.filterQ), filterAxisMix(axis));
+  }
+  for (let i = 0; i < NS; i++) out[i] *= amp;
+  return out;
+}
+function wfCurrent() {
+  const lo = Math.max(1e-6, Math.min(params.fx, params.fy)), div = lapDiv();
+  return { x: wfSample(waveTypeX, 'x', params.ax), y: wfSample(waveTypeY, 'y', params.ay),
+           cx: params.fx / lo / div, cy: params.fy / lo / div };
+}
+function wfDiffers(a, b) {
+  if (!a || !b || Math.abs(a.cx - b.cx) > 1e-6 || Math.abs(a.cy - b.cy) > 1e-6) return true;
+  for (let i = 0; i < WF_N; i++) if (Math.abs(a.x[i] - b.x[i]) > WF_EPS || Math.abs(a.y[i] - b.y[i]) > WF_EPS) return true;
+  return false;
+}
+// Once per drawn frame: decide whether the current wave becomes a new line.
+function wfTrack() {
+  const now = performance.now(), cur = wfCurrent();
+  if (wfDiffers(cur, _wfPrev)) _wfLastMove = now;
+  _wfPrev = cur;
+  const newest = _wfHist[0];
+  if (!newest) { _wfHist.unshift(cur); _wfLastPush = now; }
+  else if (wfDiffers(cur, newest)) {
+    const sweep = Math.round(params.wfMode) === 1;
+    if (sweep ? now - _wfLastPush >= WF_SWEEP : now - _wfLastMove >= WF_SETTLE) { _wfHist.unshift(cur); _wfLastPush = now; }
+  }
+  const cap = Math.max(2, Math.round(params.wfLines || 32));
+  if (_wfHist.length > cap) _wfHist.length = cap;
+}
+// The stack as drawable lines, in painter's order (oldest first). Each has its
+// SVG-style path `d` (the curve, then closed down to its column's bottom edge for
+// the background fill), the curve points, and its colour.
+function waterfallLines(w, h, phase, zoom) {
+  if (!_wfHist.length) _wfHist.push(wfCurrent());
+  const z = Math.max(0.05, zoom || 1), axisSel = Math.round(params.wfAxis ?? 2), inter = axisSel === 2 && Math.round(params.wfLayout) === 1;
+  const cols = axisSel === 2 && !inter ? [['x', 0], ['y', 1]] : [[axisSel === 1 ? 'y' : 'x', 0]];
+  const nCols = cols.length, cap = Math.max(2, Math.round(params.wfLines || 32));
+  const mx = w * 0.06, my = h * 0.06, gap = nCols > 1 ? w * 0.04 : 0;
+  const colW = (w - 2 * mx - gap * (nCols - 1)) / nCols;
+  const rows = inter ? cap * 2 : cap;
+  const top = my + (h - 2 * my) * 0.12, bottom = h - my;
+  const spacing = (bottom - top) / Math.max(1, rows - 1), amp = spacing * (params.wfHeight || 2.5) / 2;
+  const shift = (phase || 0) / 2;   // δ in π → cycles
+  const lerp = (T, a) => { a = (a % 1 + 1) % 1 * WF_N; const i = a | 0, f = a - i; return T[i] + (T[(i + 1) % WF_N] - T[i]) * f; };
+  const P = Math.max(80, Math.min(600, Math.round(colW / 1.5)));
+  const zx = x => w / 2 + (x - w / 2) * z, zy = y => h / 2 + (y - h / 2) * z;
+  const grad = params.gradColor || '#5b8def';
+  // Every line to draw: [history index, axis key, column, row].
+  const items = [];
+  _wfHist.forEach((e, k) => {
+    if (inter) { items.push([k, 'y', 0, 2 * k + 1], [k, 'x', 0, 2 * k]); }
+    else cols.forEach(([ax, c]) => items.push([k, ax, c, k]));
+  });
+  items.sort((a, b) => b[3] - a[3]);   // farthest row first
+  return items.map(([k, ax, c, row]) => {
+    const e = _wfHist[k], T = ax === 'x' ? e.x : e.y, cyc = ax === 'x' ? e.cx : e.cy;
+    const x0 = mx + c * (colW + gap), base = bottom - row * spacing;
+    const pts = new Float32Array((P + 1) * 2);
+    let d = '';
+    for (let i = 0; i <= P; i++) {
+      const u = i / P, x = zx(x0 + u * colW), y = zy(base - lerp(T, u * cyc + shift) * amp);
+      pts[2 * i] = x; pts[2 * i + 1] = y;
+      d += (i ? 'L' : 'M') + x.toFixed(2) + ',' + y.toFixed(2);
+    }
+    const yb = zy(bottom + amp * 1.2);
+    d += `L${zx(x0 + colW).toFixed(2)},${yb.toFixed(2)}L${zx(x0).toFixed(2)},${yb.toFixed(2)}Z`;
+    const age = _wfHist.length > 1 ? k / (_wfHist.length - 1) : 0;
+    return { d, pts, color: mixHex(params.strokeColor, grad, 1 - age), x0: zx(x0), x1: zx(x0 + colW), yb };
+  });
+}
+function drawWaterfall(g, w, h, phase, zoom) {
+  wfTrack();
+  const lines = waterfallLines(w, h, phase, zoom);
+  g.save();
+  g.lineJoin = 'round'; g.lineCap = 'round'; g.lineWidth = params.lineWidth || 1.5;
+  for (const L of lines) {
+    const p = L.pts, n = p.length / 2;
+    g.beginPath(); g.moveTo(p[0], p[1]);
+    for (let i = 1; i < n; i++) g.lineTo(p[2 * i], p[2 * i + 1]);
+    // Hidden lines: fill below the curve with the background, then stroke it.
+    g.lineTo(L.x1, L.yb); g.lineTo(L.x0, L.yb); g.closePath();
+    g.fillStyle = params.bgColor; g.fill();
+    g.beginPath(); g.moveTo(p[0], p[1]);
+    for (let i = 1; i < n; i++) g.lineTo(p[2 * i], p[2 * i + 1]);
+    g.strokeStyle = L.color; g.stroke();
+  }
+  g.restore();
+}
 // Drag a source. The canvas sits behind the page chrome, so like the orbit drag
 // these listen on the document and refuse a press that lands on the chrome.
 const IF_HIT_PX = 18;
@@ -4233,12 +4374,12 @@ function liftActive() { return Math.round(params.depthSrc ?? 0) === 1 && !polarG
 // Tilt / Perspective apply and the stroke is depth-cued.
 // The 3D lift itself is defined for the lateral figure only and stands down here.
 const GEO_NAMES = ['LATERAL', 'CON-CURRENT', 'COUNTER', 'ROSE', 'TORUS KNOT', 'WAVES',
-                   'LISSAJOUS KNOT', 'GUILLOCHÉ', 'EMBEDDING', 'INTERFERENCE'];
+                   'LISSAJOUS KNOT', 'GUILLOCHÉ', 'EMBEDDING', 'INTERFERENCE', 'WATERFALL'];
 const GEO_MAX = GEO_NAMES.length - 1;
 const GEO_LABELS = ['Lateral', 'Con-current', 'Counter-current', 'Rose', 'Torus knot', 'Waves',
-                    'Lissajous knot', 'Guilloché', 'Delay embedding', 'Interference'];
+                    'Lissajous knot', 'Guilloché', 'Delay embedding', 'Interference', 'Waterfall'];
 // 6–9 are the advanced geometries, only offered while "/modes" has revealed them.
-const GEO_ADV0 = 6, GEO_LKNOT = 6, GEO_GUIL = 7, GEO_EMBED = 8, GEO_INTERF = 9;
+const GEO_ADV0 = 6, GEO_LKNOT = 6, GEO_GUIL = 7, GEO_EMBED = 8, GEO_INTERF = 9, GEO_WFALL = 10;
 const ADV_MODES_KEY = 'lissa.modes';
 let advModes = false;
 try { advModes = localStorage.getItem(ADV_MODES_KEY) === '1'; } catch (e) {}
@@ -4289,13 +4430,16 @@ const ICON_PATHS = {
     const x = Math.cos(t) + 0.28 * Math.cos(-7 * t), y = Math.sin(t) + 0.28 * Math.sin(-7 * t);
     return [x * Math.cos(a) - y * Math.sin(a), x * Math.sin(a) + y * Math.cos(a)]; }, 200, true); return d; })(),
   embed: iconCurve(u => { const t = u * TAU, s = v => Math.sin(3 * v) + 0.7 * Math.sin(2 * v); return [s(t), -s(t - 0.55)]; }, 240, true),
+  wfall: [0, 1, 2, 3, 4].map(k => { const y = 5 + k * 3.6;   // five stacked ridgelines
+           return 'M2 ' + y.toFixed(2) + Array.from({ length: 21 }, (_, i) => { const u = i / 20;
+             return 'L' + (2 + u * 20).toFixed(2) + ' ' + (y - 2.6 * Math.exp(-Math.pow((u - 0.35 - k * 0.07) * 5, 2))).toFixed(2); }).join(''); }).join(''),
   interf:'M2.5 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0M19.5 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0'
        + 'M7 7a7 7 0 0 1 0 10M10 4.5a10.5 10.5 0 0 1 0 15M17 7a7 7 0 0 0 0 10M14 4.5a10.5 10.5 0 0 0 0 15',
 };
 function iconSvg(key) {
   return `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICON_PATHS[key]}"/></svg>`;
 }
-const GEO_ICON = ['lat', 'rotp', 'rotm', 'rose', 'knot', 'wave', 'lknot', 'guil', 'embed', 'interf'];
+const GEO_ICON = ['lat', 'rotp', 'rotm', 'rose', 'knot', 'wave', 'lknot', 'guil', 'embed', 'interf', 'wfall'];
 function figGeometry() { return Math.max(0, Math.min(GEO_MAX, Math.round(params.geometry || 0))); }
 function polarGeometry() { return figGeometry() !== 0; }
 function solidGeometry() { const g = figGeometry(); return g === 4 || g === GEO_LKNOT || (g === GEO_EMBED && Math.round(params.embDim) === 3); }
@@ -6683,7 +6827,7 @@ document.getElementById('btn-export').addEventListener('click', () => {
   }
   // Lissajous knot / guilloché / embedding: the canvas's own point list, through
   // the same view transform (so an orbited knot exports as it is seen).
-  if (geo >= GEO_ADV0 && geo !== GEO_INTERF) {
+  if (geo >= GEO_ADV0 && geo !== GEO_INTERF && geo !== GEO_WFALL) {
     const A = advPoints(geo, SX, SXQ, SY, SYQ, steps, periodFactor, fx * periodFactor, 200000);
     beginFigureXform(phase, false, 1);
     let bi = 1;
@@ -6711,8 +6855,13 @@ document.getElementById('btn-export').addEventListener('click', () => {
     drawInterference(cv.getContext('2d'), w, h, phase, 1);
     return `<image width="${w}" height="${h}" href="${cv.toDataURL('image/png')}"/>`;
   };
+  // Waterfall: each line a path filled with the background down to the stack's
+  // bottom, in painter's order, so the hidden-line look survives as vectors.
+  const wfSvg = () => waterfallLines(w, h, phase, 1).map(L =>
+    `<path d="${L.d}" fill="${bgColor}" stroke="${L.color}" stroke-width="${lineWidth}" stroke-linejoin="round" stroke-linecap="round"/>`).join('\n  ');
   const body = column ? columnSvg(w, h, phase)
     : geo === GEO_INTERF ? fieldSvg()
+    : geo === GEO_WFALL ? wfSvg()
     : `${defs}<path d="${points.join(' ')}" fill="none" stroke="${paint}" stroke-width="${lineWidth}" stroke-linejoin="round" stroke-linecap="round"/>`;
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
@@ -8261,6 +8410,7 @@ const GEO_HINTS = [
   'the counter-current rosette, repeated in turned layers',
   'x = s(t), y = s(t − τ), s = X and Y mixed',
   'X and Y radiate ripples from two points · animate the phase',
+  'the wave\'s history, newest in front · phase scrolls the lines',
 ];
 function setGeometry(g) {
   g = Math.max(0, Math.min(GEO_MAX, Math.round(g)));
@@ -8325,6 +8475,8 @@ const ADV_SLIDERS = [
   ['emb-mix',    'embMix',    v => v.toFixed(2)],
   ['if-lambda',  'ifLambda',  v => v.toFixed(2)],
   ['if-decay',   'ifDecay',   v => v.toFixed(2)],
+  ['wf-lines',   'wfLines',   v => String(Math.round(v))],
+  ['wf-height',  'wfHeight',  v => (+v).toFixed(1)],
 ];
 ADV_SLIDERS.forEach(([id, key, fmt]) => {
   const el = document.getElementById(id), out = document.getElementById(id + '-val');
@@ -8362,7 +8514,21 @@ function refreshAdvControls() {
   });
   setEmbDim(params.embDim ?? 2);
   setIfView(params.ifView ?? 0);
+  setWfMode(params.wfMode ?? 0);
+  setWfAxis(params.wfAxis ?? 2);
+  setWfLayout(params.wfLayout ?? 0);
 }
+// Waterfall toggles. They are stepped params like the synthesis curve selectors.
+function setWfMode(m) { setStageMode('wfMode', 'wfmode', 1, m); }
+function setWfAxis(m) {
+  setStageMode('wfAxis', 'wfaxis', 2, m);
+  const row = document.getElementById('wf-layout-row');
+  if (row) row.hidden = params.wfAxis !== 2;   // the layout only matters with both waves
+}
+function setWfLayout(m) { setStageMode('wfLayout', 'wflayout', 1, m); }
+[['wfmode', setWfMode], ['wfaxis', setWfAxis], ['wflayout', setWfLayout]].forEach(([attr, set]) =>
+  document.querySelectorAll(`.wave-btn[data-${attr}]`).forEach(b => b.addEventListener('click', () => set(parseInt(b.dataset[attr])))));
+document.getElementById('wf-clear').addEventListener('click', () => { _wfHist.length = 0; });
 
 function setMirrorMode(m) {
   m = Math.max(0, Math.min(3, Math.round(m)));
@@ -11000,6 +11166,7 @@ const VT_GEO = [
   { g: 7, lift: 0, icon: 'guil',  name: 'guilloché',      adv: true },
   { g: 8, lift: 0, icon: 'embed', name: 'delay embedding', adv: true },
   { g: 9, lift: 0, icon: 'interf', name: 'interference',  adv: true },
+  { g: 10, lift: 0, icon: 'wfall', name: 'waterfall',      adv: true },
 ];
 function vtGeoIndex() { const g = figGeometry(); return g === 0 ? (liftActive() ? 1 : 0) : g + 1; }
 // Construction: off, then the three generator styles.
