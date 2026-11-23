@@ -308,6 +308,46 @@
   }
   .dk-tg.on { background: var(--accent); border-color: var(--accent); color: var(--bg); }
   body.has-dock #interval-label { bottom: calc(var(--dock-h, 60px) + 18px) !important; }
+  /* ── Automation dock (/automate) ── */
+  .auto-dock {
+    position: absolute; left: 12px; right: 12px; bottom: 10px; z-index: 4;
+    height: var(--auto-h, 210px); display: grid; grid-template-rows: auto minmax(0, 1fr);
+    background: rgba(13,13,17,0.94); border: 1px solid var(--border); border-radius: 6px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--label); overflow: hidden;
+    pointer-events: auto;   /* the canvas area itself lets clicks through to the figure */
+  }
+  .auto-dock[hidden] { display: none; }
+  body.automate .pin-dock { bottom: calc(var(--auto-h, 210px) + 18px); }
+  body.automate #interval-label { bottom: calc(var(--auto-h, 210px) + 22px) !important; }
+  body.automate.has-dock #interval-label { bottom: calc(var(--auto-h, 210px) + var(--dock-h, 60px) + 26px) !important; }
+  .ad-grip { position: absolute; left: 0; right: 0; top: 0; height: 6px; cursor: ns-resize; touch-action: none; }
+  .ad-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 7px 10px 6px; border-bottom: 1px solid var(--border); }
+  .ad-btn { height: 26px; min-width: 26px; padding: 0 8px; border-radius: 4px; border: 1px solid var(--border); background: none; color: var(--text); font: inherit; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+  .ad-btn:hover { border-color: var(--label); }
+  .ad-btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #0c0c0e; }
+  .ad-pos { min-width: 58px; text-align: center; color: var(--text); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .ad-num { display: inline-flex; align-items: center; gap: 4px; }
+  .ad-num input, .ad-head select { height: 26px; box-sizing: border-box; border-radius: 4px; border: 1px solid var(--border); background: var(--bg, #0c0c0e); color: var(--text); font: inherit; padding: 0 5px; }
+  .ad-num input { width: 50px; }
+  .ad-head select { max-width: 150px; }
+  .ad-sp { flex: 1; }
+  .ad-body { display: grid; grid-template-columns: 150px minmax(0, 1fr); overflow-y: auto; min-height: 0; }
+  .ad-heads { border-right: 1px solid var(--border); }
+  .ad-lh { height: 38px; box-sizing: border-box; display: flex; align-items: center; gap: 4px; padding: 0 6px 0 10px; border-top: 1px solid rgba(255,255,255,0.05); }
+  .ad-lh:first-child { height: 22px; border-top: 0; }
+  .ad-ln { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+  .ad-lv { color: var(--accent); font-variant-numeric: tabular-nums; }
+  .ad-x { width: 20px; height: 20px; padding: 0; border: 0; border-radius: 3px; background: none; color: var(--muted); cursor: pointer; font: inherit; }
+  .ad-x:hover { color: var(--text); background: rgba(255,255,255,0.08); }
+  .ad-lanes { position: relative; min-width: 0; }
+  .ad-lanes svg { display: block; touch-action: none; }
+  .ad-morph { display: inline-flex; align-items: center; gap: 4px; }
+  .ad-morph[hidden] { display: none; }
+  .lane-btn { width: 15px; height: 15px; padding: 0; margin-left: 2px; border-radius: 50%; border: 1px solid currentColor; background: none; color: color-mix(in srgb, var(--muted) 55%, transparent); font: 600 8px/13px 'IBM Plex Mono', monospace; cursor: pointer; order: 1; display: none; flex: none; }
+  body.automate .lane-btn { display: inline-block; }
+  .lane-btn:hover { color: var(--label); }
+  .lane-btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #0c0c0e; }
+  @media (max-width: 700px) { .ad-body { grid-template-columns: 104px minmax(0, 1fr); } .ad-lv { display: none; } }
   .synth-readout .ro-row {
     display: inline; font: inherit; color: inherit; background: none; border: 0; padding: 0 2px; margin: 0 -2px;
     text-align: left; cursor: pointer; border-radius: 2px; white-space: pre;
@@ -3031,6 +3071,7 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
     <pre class="synth-readout" id="synth-readout" aria-live="off" hidden></pre>
     <div class="ro-pop" id="ro-pop" role="dialog" aria-label="Edit stage" hidden></div>
     <div class="pin-dock" id="pin-dock" role="region" aria-label="Pinned controls" hidden></div>
+    <div class="auto-dock" id="auto-dock" role="region" aria-label="Automation timeline" hidden></div>
     <div id="rec-overlay" data-label=""></div>
     <div id="interval-label" style="
       position:absolute;
@@ -6481,6 +6522,9 @@ function render(now) {
 
   // Preset morph writes interpolated base values on top of which LFOs modulate.
   tickPresetMorph(now);
+  // Automation lanes (and pads) after the morph and MIDI, so a lane wins while
+  // the transport plays; LFOs still modulate on top of the lane's value.
+  tickAutomation(lfodt);
 
   // Apply BEFORE advancing, so one LFO modulating the other's rate actually bends
   // it, and before the phase step below, so Anim Speed is a real target too.
@@ -6974,7 +7018,7 @@ let viewW = 0, viewH = 0, viewDpr = 1;
 // drag is refused over the chrome instead. Move/up ride the window so a drag
 // that leaves the figure area still tracks.
 let orbitDrag = null;
-const ORBIT_CHROME = '.sidebar, header, .preset-sidebar, .view-toggles, .synth-readout, .ro-pop, .pin-dock, .param-search, input, button, select, textarea, label, a';
+const ORBIT_CHROME = '.sidebar, header, .preset-sidebar, .view-toggles, .synth-readout, .ro-pop, .pin-dock, .auto-dock, .param-search, input, button, select, textarea, label, a';
 function orbitSet(key, id, value) {
   params[key] = value;
   const el = document.getElementById(id); if (el) el.value = value;
@@ -10210,7 +10254,10 @@ function applyPresetDataRaw(d) {
 }
 
 document.getElementById('preset-save').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify(serializePreset(), null, 2)], { type: 'application/json' });
+  // A patch file carries its automation (lanes and pads) when there is any.
+  const data = serializePreset();
+  if (AUTO.lanes.length || AUTO.pads.length) data.automation = autoSerial();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = `lissajous_preset_${params.fx}x${params.fy}.json`; a.click();
@@ -10225,6 +10272,7 @@ document.getElementById('preset-file').addEventListener('change', e => {
       const d = JSON.parse(r.result);
       applyPresetData(d);
       if (Array.isArray(d.pins)) setPins(d.pins);
+      if (d.automation) autoImport(d.automation);
     } catch (err) { alert('That file could not be imported. Choose a patch .json exported from Files › Patch.'); }
   };
   r.readAsText(f);
@@ -11458,7 +11506,7 @@ function buildSearchIndex() {
   });
   // During the intro, only what has been unlocked can be found.
   // Hidden advanced geometries stay out of the search until "/modes" shows them.
-  const shown = items.filter(it => !(it.el && it.el.closest('.adv-only[hidden]')));
+  const shown = items.filter(it => !(it.el && it.el.closest('.adv-only[hidden], .auto-dock[hidden]')));
   return intro ? shown.filter(it => it.el && !it.el.closest('.intro-hide')) : shown;
 }
 const psEl = document.getElementById('param-search');
@@ -11554,6 +11602,7 @@ function closeSearch(restore) {
 psInput.addEventListener('input', () => {
   if (!intro && psInput.value.trim().toLowerCase() === 'intro') { closeSearch(false); startIntro(); return; }
   if (/^\/?modes$/.test(psInput.value.trim().toLowerCase())) { closeSearch(false); toggleAdvModes(); return; }
+  if (/^\/?automate$/.test(psInput.value.trim().toLowerCase())) { closeSearch(false); setAutomate(!autoOn, true); return; }
   if (/^(theme|hue|interface colou?r)$/.test(psInput.value.trim().toLowerCase())) { closeSearch(false); cycleUiTheme(); return; }
   psSel = 0; psRender();
 });
@@ -11655,9 +11704,312 @@ function addPinButtons() {
     // The crossfaders take a lock but no pin (they read poorly on the dock).
     if (!AXIS_GROUPS.some(([k]) => k === key)) host.appendChild(makePinButton(key));
     host.appendChild(makeLockButton(key));
+    if (laneable(key)) host.appendChild(makeLaneButton(key));
     if (host.classList.contains('param-header') || host.classList.contains('checkbox-row')) host.style.display = 'flex';
   });
 }
+
+// ── Automation (/automate) ─────────────────────────────────────────────────────
+// A loop of `bars` 4/4 bars at `bpm`, with breakpoint lanes for any numeric
+// registry parameter and pads that recall a whole-patch snapshot when the
+// playhead reaches them. While the transport plays, a lane sets its parameter
+// every frame (after MIDI and preset glides, before the LFOs, which ride on it);
+// stopped, nothing is written. Hidden until "/automate" is typed in the search.
+const AUTO_KEY = 'lissa.automation', AUTO_ON_KEY = 'lissa.automate';
+const AUTO = { bpm: 92, bars: 4, lanes: [], pads: [], dockH: 210 };
+const AT = { playing: false, u: 0, lastPad: -1, sel: -1 };
+let autoOn = false;
+try { autoOn = localStorage.getItem(AUTO_ON_KEY) === '1'; } catch (e) {}
+function laneable(key) {
+  const t = MAP_TARGETS[key];
+  return !!t && !t.toggle && key !== 'preset' && Number.isFinite(t.min) && Number.isFinite(t.max) && typeof lfoGet(key) === 'number';
+}
+function autoSerial() { return JSON.parse(JSON.stringify({ bpm: AUTO.bpm, bars: AUTO.bars, lanes: AUTO.lanes, pads: AUTO.pads, dockH: AUTO.dockH })); }
+function autoImport(v) {
+  if (!v || typeof v !== 'object') return;
+  AUTO.bpm = Math.max(30, Math.min(240, +v.bpm || 92));
+  AUTO.bars = Math.max(1, Math.min(16, Math.round(+v.bars || 4)));
+  AUTO.lanes = (Array.isArray(v.lanes) ? v.lanes : []).filter(l => l && laneable(l.key) && Array.isArray(l.pts) && l.pts.length)
+    .map(l => ({ key: l.key, pts: l.pts.filter(p => Array.isArray(p) && p.length === 2).map(([u, x]) => [Math.max(0, Math.min(1, +u || 0)), +x || 0]).sort((a, b) => a[0] - b[0]) }));
+  AUTO.pads = (Array.isArray(v.pads) ? v.pads : []).filter(p => p && p.snap)
+    .map(p => ({ name: String(p.name || 'pad').slice(0, 24), start: Math.max(0, +p.start || 0), len: Math.max(0.25, +p.len || 1), morph: Math.max(0, +p.morph || 0), snap: p.snap }));
+  if (Number.isFinite(+v.dockH)) AUTO.dockH = +v.dockH;
+  AT.lastPad = -1; AT.sel = -1;
+  buildAutoDock(); paintLaneButtons(); autoSave();
+}
+let _autoSaveT = 0;
+function autoSave() { clearTimeout(_autoSaveT); _autoSaveT = setTimeout(() => { try { localStorage.setItem(AUTO_KEY, JSON.stringify(autoSerial())); } catch (e) {} }, 300); }
+function loopSec() { return AUTO.bars * 4 * 60 / AUTO.bpm; }
+function laneFor(key) { return AUTO.lanes.find(l => l.key === key); }
+function laneValue(lane, u) {
+  const p = lane.pts; if (!p.length) return null;
+  if (u <= p[0][0]) return p[0][1];
+  for (let i = 1; i < p.length; i++) if (u <= p[i][0]) { const [u0, v0] = p[i - 1], [u1, v1] = p[i]; return u1 === u0 ? v1 : v0 + (v1 - v0) * (u - u0) / (u1 - u0); }
+  return p[p.length - 1][1];
+}
+function laneClamp(key, v) {
+  const t = MAP_TARGETS[key]; v = Math.max(t.min, Math.min(t.max, v));
+  return t.step ? Math.round(v / t.step) * t.step : v;
+}
+function laneFrac(key, v) { const t = MAP_TARGETS[key]; return (v - t.min) / ((t.max - t.min) || 1); }
+function laneFromFrac(key, f) { const t = MAP_TARGETS[key]; return t.min + Math.max(0, Math.min(1, f)) * (t.max - t.min); }
+function laneFmt(key, v) {
+  const t = MAP_TARGETS[key];
+  if (t.step && t.step >= 1) return String(Math.round(v));
+  const span = t.max - t.min;
+  return v.toFixed(span >= 50 ? 0 : span >= 5 ? 1 : 2);
+}
+function toggleLane(key) {
+  if (laneFor(key)) AUTO.lanes = AUTO.lanes.filter(l => l.key !== key);
+  else { const v = laneClamp(key, lfoGet(key)); AUTO.lanes.push({ key, pts: [[0, v], [1, v]] }); }
+  buildAutoDock(); paintLaneButtons(); autoSave();
+}
+// The round "A" next to a slider's lock: adds or removes that parameter's lane.
+function makeLaneButton(key) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'lane-btn'; b.dataset.lanekey = key; b.textContent = 'A';
+  b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); toggleLane(key); });
+  paintLaneButton(b);
+  return b;
+}
+function paintLaneButton(b) {
+  const on = !!laneFor(b.dataset.lanekey), lbl = (MAP_TARGETS[b.dataset.lanekey] || {}).label || b.dataset.lanekey;
+  b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  b.title = on ? `Remove the ${lbl} automation lane` : `Automate ${lbl} on the timeline`;
+  b.setAttribute('aria-label', b.title);
+}
+function paintLaneButtons() { document.querySelectorAll('.lane-btn').forEach(paintLaneButton); }
+
+// Pads: the whole patch except MIDI mappings, pins and the automation itself.
+function capturePad() {
+  const snap = serializePreset(); delete snap.mappings; delete snap.pins; delete snap.automation;
+  const start = Math.min(AUTO.bars - 0.25, Math.floor(AT.u * AUTO.bars * 4) / 4);
+  AUTO.pads.push({ name: 'pad ' + (AUTO.pads.length + 1), start, len: 1, morph: 0, snap });
+  AT.sel = AUTO.pads.length - 1;
+  buildAutoDock(); autoSave();
+}
+function recallPad(pad, glide) {
+  const keep = presetMorphSec;
+  presetMorphSec = glide ? pad.morph * 4 * 60 / AUTO.bpm : 0;
+  startPresetMorph(JSON.parse(JSON.stringify(pad.snap)));
+  presetMorphSec = keep;
+}
+function padAt(u) {
+  const b = u * AUTO.bars;
+  for (let i = AUTO.pads.length - 1; i >= 0; i--) { const p = AUTO.pads[i]; if (b >= p.start && b < p.start + p.len) return i; }
+  return -1;
+}
+
+// ── Transport ──
+function setAutoPlaying(on) {
+  AT.playing = !!on && autoOn; AT.lastPad = -1;
+  const b = document.getElementById('ad-play');
+  if (b) { b.setAttribute('aria-pressed', AT.playing ? 'true' : 'false'); b.innerHTML = AT.playing ? AD_ICON.stop : AD_ICON.play; b.setAttribute('aria-label', AT.playing ? 'Stop' : 'Play'); }
+}
+function autoSeek(u) { AT.u = ((u % 1) + 1) % 1; AT.lastPad = -1; paintPlayhead(); }
+function tickAutomation(dt) {
+  if (!AT.playing) return;
+  const prev = AT.u;
+  AT.u = (AT.u + Math.max(0, dt || 0) / loopSec()) % 1;
+  if (AT.u < prev) AT.lastPad = -1;   // wrapped: a pad at bar 1 fires again
+  const pi = padAt(AT.u);
+  if (pi !== AT.lastPad) { AT.lastPad = pi; if (pi >= 0) recallPad(AUTO.pads[pi], true); }
+  for (const l of AUTO.lanes) {
+    const t = MAP_TARGETS[l.key]; if (!t) continue;
+    const v = laneClamp(l.key, laneValue(l, AT.u));
+    if (Math.abs(v - lfoGet(l.key)) > 1e-4) t.apply(v);
+  }
+  paintPlayhead();
+}
+function paintPlayhead() {
+  const ph = document.getElementById('ad-playhead'), svg = ph && ph.ownerSVGElement;
+  if (ph && svg) { const x = AT.u * (+svg.getAttribute('width')); ph.setAttribute('x1', x); ph.setAttribute('x2', x); }
+  const pos = document.getElementById('ad-pos');
+  if (pos) {
+    const beats = AT.u * AUTO.bars * 4;
+    pos.textContent = `${Math.floor(beats / 4) + 1}.${Math.floor(beats % 4) + 1}.${Math.floor((beats % 1) * 4) + 1}`;
+  }
+  document.querySelectorAll('.ad-lv').forEach(v => { const k = v.dataset.key; if (MAP_TARGETS[k]) v.textContent = laneFmt(k, lfoGet(k)); });
+}
+
+// ── Dock ──
+const AD_ICON = {
+  play: '<svg width="11" height="11" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 2l9 5-9 5z" fill="currentColor"/></svg>',
+  stop: '<svg width="11" height="11" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 3h8v8H3z" fill="currentColor"/></svg>',
+  rew:  '<svg width="11" height="11" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 2v10M12 2L5 7l7 5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+};
+const AD_LANE_H = 38, AD_RULER = 22;
+function buildAutoDock() {
+  const dock = document.getElementById('auto-dock'); if (!dock) return;
+  dock.textContent = '';
+  const el = (tag, attrs, text) => { const e = document.createElement(tag); for (const k in attrs || {}) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; };
+  const grip = el('div', { class: 'ad-grip', title: 'Drag to resize' });
+  grip.addEventListener('pointerdown', e => {
+    e.preventDefault(); grip.setPointerCapture(e.pointerId);
+    const y0 = e.clientY, h0 = AUTO.dockH;
+    grip.onpointermove = ev => { AUTO.dockH = Math.max(120, Math.min(window.innerHeight * 0.6, h0 - (ev.clientY - y0))); document.body.style.setProperty('--auto-h', AUTO.dockH + 'px'); };
+    grip.onpointerup = () => { grip.onpointermove = null; grip.onpointerup = null; autoSave(); buildAutoTimeline(); };
+  });
+  const head = el('div', { class: 'ad-head' });
+  const rew = el('button', { type: 'button', class: 'ad-btn', 'aria-label': 'Back to bar 1', title: 'Back to bar 1' }); rew.innerHTML = AD_ICON.rew;
+  rew.addEventListener('click', () => autoSeek(0));
+  const play = el('button', { type: 'button', class: 'ad-btn', id: 'ad-play', title: 'Play / stop the automation' });
+  play.addEventListener('click', () => setAutoPlaying(!AT.playing));
+  const pos = el('span', { class: 'ad-pos', id: 'ad-pos' }, '1.1.1');
+  const num = (id, label, min, max, val, set) => {
+    const w = el('label', { class: 'ad-num', for: id }, label + ' ');
+    const i = el('input', { type: 'number', id, min, max, step: 1, value: val });
+    i.addEventListener('change', () => { set(Math.max(min, Math.min(max, Math.round(+i.value || val)))); i.value = (id === 'ad-bpm' ? AUTO.bpm : AUTO.bars); autoSave(); buildAutoTimeline(); });
+    w.appendChild(i); return w;
+  };
+  const sel = el('select', { id: 'ad-add', 'aria-label': 'Add an automation lane' });
+  sel.appendChild(el('option', { value: '' }, '+ lane…'));
+  Object.keys(MAP_TARGETS).filter(laneable).sort((a, b) => MAP_TARGETS[a].label.localeCompare(MAP_TARGETS[b].label)).forEach(k => {
+    const o = el('option', { value: k }, MAP_TARGETS[k].label + (laneFor(k) ? ' ✓' : ''));
+    if (laneFor(k)) o.disabled = true;
+    sel.appendChild(o);
+  });
+  sel.addEventListener('change', () => { if (sel.value) toggleLane(sel.value); });
+  const cap = el('button', { type: 'button', class: 'ad-btn', title: 'Store the current patch as a pad at the playhead' }, '+ pad');
+  cap.addEventListener('click', capturePad);
+  const morph = el('label', { class: 'ad-morph', for: 'ad-morph-in' }, 'morph ');
+  const mi = el('input', { type: 'number', id: 'ad-morph-in', min: 0, max: 8, step: 0.25, value: 0, style: 'width:54px', title: 'Bars the selected pad takes to glide in (0 = instant)' });
+  mi.addEventListener('change', () => { const p = AUTO.pads[AT.sel]; if (!p) return; p.morph = Math.max(0, Math.min(8, +mi.value || 0)); autoSave(); buildAutoTimeline(); });
+  morph.appendChild(mi); morph.appendChild(document.createTextNode(' bars'));
+  const clr = el('button', { type: 'button', class: 'ad-btn', title: 'Remove every lane and pad' }, 'clear');
+  clr.addEventListener('click', () => { AUTO.lanes = []; AUTO.pads = []; AT.sel = -1; buildAutoDock(); paintLaneButtons(); autoSave(); });
+  head.append(rew, play, pos, num('ad-bpm', 'bpm', 30, 240, AUTO.bpm, v => { AUTO.bpm = v; }), num('ad-bars', 'bars', 1, 16, AUTO.bars, v => { AUTO.bars = v; }),
+              el('span', { class: 'ad-sp' }), sel, cap, morph, clr);
+  const body = el('div', { class: 'ad-body' });
+  body.append(el('div', { class: 'ad-heads', id: 'ad-heads' }), el('div', { class: 'ad-lanes', id: 'ad-lanes' }));
+  dock.append(grip, head, body);
+  setAutoPlaying(AT.playing);
+  buildAutoTimeline();
+}
+function buildAutoTimeline() {
+  const lanesEl = document.getElementById('ad-lanes'), headsEl = document.getElementById('ad-heads');
+  if (!lanesEl || !headsEl) return;
+  const sel = AUTO.pads[AT.sel], mw = document.querySelector('.ad-morph');
+  if (mw) { mw.hidden = !sel; if (sel) document.getElementById('ad-morph-in').value = sel.morph; }
+  const W = Math.max(240, lanesEl.clientWidth || 600), H = AD_RULER + AD_LANE_H * (1 + AUTO.lanes.length);
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#c8f060';
+  // Lane heads.
+  headsEl.textContent = '';
+  const hd = (cls, html) => { const d = document.createElement('div'); d.className = cls; if (html) d.innerHTML = html; return d; };
+  headsEl.appendChild(hd('ad-lh'));
+  const ph = hd('ad-lh'); const pn = document.createElement('span'); pn.className = 'ad-ln'; pn.textContent = 'Pads'; ph.appendChild(pn); headsEl.appendChild(ph);
+  AUTO.lanes.forEach(l => {
+    const d = hd('ad-lh'), n = document.createElement('span'), v = document.createElement('span'), x = document.createElement('button');
+    n.className = 'ad-ln'; n.textContent = MAP_TARGETS[l.key].label; n.title = MAP_TARGETS[l.key].label;
+    v.className = 'ad-lv'; v.dataset.key = l.key;
+    x.type = 'button'; x.className = 'ad-x'; x.textContent = '✕'; x.setAttribute('aria-label', 'Remove the ' + MAP_TARGETS[l.key].label + ' lane');
+    x.addEventListener('click', () => toggleLane(l.key));
+    d.append(n, v, x); headsEl.appendChild(d);
+  });
+  // Timeline.
+  const NS = 'http://www.w3.org/2000/svg', mk = (t, a) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  const svg = mk('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: 'group', 'aria-label': 'Automation timeline' });
+  const bars = AUTO.bars, bw = W / bars, grid = 'rgba(255,255,255,0.07)', tick = 'rgba(255,255,255,0.16)';
+  for (let i = 0; i <= bars; i++) {
+    svg.appendChild(mk('line', { x1: i * bw, y1: 0, x2: i * bw, y2: H, stroke: grid }));
+    for (let q = 1; q < 4 && i < bars; q++) svg.appendChild(mk('line', { x1: i * bw + q * bw / 4, y1: AD_RULER - 5, x2: i * bw + q * bw / 4, y2: AD_RULER, stroke: tick }));
+    if (i < bars) { const t = mk('text', { x: i * bw + 5, y: 15, fill: 'currentColor', 'font-size': 10 }); t.textContent = String(i + 1); svg.appendChild(t); }
+  }
+  const ruler = mk('rect', { x: 0, y: 0, width: W, height: AD_RULER, fill: 'transparent', style: 'cursor:pointer' });
+  ruler.addEventListener('pointerdown', e => { const r = svg.getBoundingClientRect(); autoSeek((e.clientX - r.left) / W); });
+  svg.appendChild(ruler);
+  for (let j = 0; j <= AUTO.lanes.length; j++) svg.appendChild(mk('line', { x1: 0, y1: AD_RULER + j * AD_LANE_H, x2: W, y2: AD_RULER + j * AD_LANE_H, stroke: grid }));
+  // Pads.
+  AUTO.pads.forEach((p, i) => {
+    const x = p.start * bw, w = Math.max(10, p.len * bw), y = AD_RULER + 5, h = AD_LANE_H - 10;
+    const g = mk('g', { tabindex: 0, role: 'button', style: 'cursor:grab', 'aria-label': `${p.name} at bar ${(p.start + 1).toFixed(2)}, ${p.len} bars. Enter recalls it, Delete removes it.` });
+    g.appendChild(mk('rect', { x: x + 1, y, width: w - 2, height: h, rx: 4, fill: accent, 'fill-opacity': AT.sel === i ? 0.95 : 0.6, stroke: AT.sel === i ? '#fff' : 'none', 'stroke-width': 1.5 }));
+    if (p.morph > 0) g.appendChild(mk('path', { d: `M${x + 1} ${y + h} L${x + Math.min(w - 2, p.morph * bw)} ${y} L${x + Math.min(w - 2, p.morph * bw)} ${y + h} Z`, fill: '#000', 'fill-opacity': 0.22 }));
+    const t = mk('text', { x: x + 8, y: y + h / 2 + 4, fill: '#0c0c0e', 'font-size': 11, 'font-weight': 600 }); t.textContent = p.name; g.appendChild(t);
+    const edge = mk('rect', { x: x + w - 7, y, width: 7, height: h, fill: 'transparent', style: 'cursor:ew-resize' });
+    g.appendChild(edge);
+    const snapQ = v => Math.round(v * 4) / 4;
+    g.addEventListener('pointerdown', e => {
+      e.preventDefault(); AT.sel = i;
+      const x0 = e.clientX, s0 = p.start, l0 = p.len, resize = e.target === edge;
+      g.setPointerCapture(e.pointerId);
+      g.onpointermove = ev => {
+        const d = (ev.clientX - x0) / bw;
+        if (resize) p.len = Math.max(0.25, Math.min(bars - p.start, snapQ(l0 + d)));
+        else p.start = Math.max(0, Math.min(bars - 0.25, snapQ(s0 + d)));
+        g.setAttribute('transform', resize ? '' : `translate(${(p.start - s0) * bw} 0)`);
+        if (resize) { g.firstChild.setAttribute('width', Math.max(10, p.len * bw) - 2); edge.setAttribute('x', x + p.len * bw - 7); }
+      };
+      g.onpointerup = () => { g.onpointermove = null; g.onpointerup = null; AT.lastPad = -1; buildAutoTimeline(); autoSave(); };
+    });
+    g.addEventListener('dblclick', () => recallPad(p, false));
+    g.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { recallPad(p, false); e.preventDefault(); }
+      if (e.key === 'Delete' || e.key === 'Backspace') { AUTO.pads.splice(i, 1); AT.sel = -1; AT.lastPad = -1; buildAutoTimeline(); autoSave(); e.preventDefault(); }
+    });
+    svg.appendChild(g);
+  });
+  // Lanes.
+  AUTO.lanes.forEach((l, j) => {
+    const key = l.key, top = AD_RULER + AD_LANE_H * (j + 1), pad = 6;
+    const y = v => top + AD_LANE_H - pad - laneFrac(key, v) * (AD_LANE_H - 2 * pad);
+    const fromY = py => laneFromFrac(key, (top + AD_LANE_H - pad - py) / (AD_LANE_H - 2 * pad));
+    const bg = mk('rect', { x: 0, y: top, width: W, height: AD_LANE_H, fill: 'transparent', style: 'cursor:copy' });
+    bg.addEventListener('pointerdown', e => {
+      const r = svg.getBoundingClientRect();
+      l.pts.push([(e.clientX - r.left) / W, laneClamp(key, fromY(e.clientY - r.top))]);
+      l.pts.sort((a, b) => a[0] - b[0]); buildAutoTimeline(); autoSave();
+    });
+    svg.appendChild(bg);
+    const d = 'M0 ' + y(l.pts[0][1]).toFixed(1) + l.pts.map(([u, v]) => 'L' + (u * W).toFixed(1) + ' ' + y(v).toFixed(1)).join('') + 'L' + W + ' ' + y(l.pts[l.pts.length - 1][1]).toFixed(1);
+    svg.appendChild(mk('path', { d: d + `L${W} ${top + AD_LANE_H}L0 ${top + AD_LANE_H}Z`, fill: accent, 'fill-opacity': 0.1, 'pointer-events': 'none' }));
+    svg.appendChild(mk('path', { d, fill: 'none', stroke: accent, 'stroke-width': 1.6, 'pointer-events': 'none' }));
+    l.pts.forEach((pt, k) => {
+      const c = mk('circle', { cx: pt[0] * W, cy: y(pt[1]), r: 4.5, fill: '#0c0c0e', stroke: accent, 'stroke-width': 1.6, style: 'cursor:grab' });
+      c.addEventListener('pointerdown', e => {
+        e.preventDefault(); e.stopPropagation(); c.setPointerCapture(e.pointerId);
+        const r = svg.getBoundingClientRect();
+        c.onpointermove = ev => { pt[0] = Math.max(0, Math.min(1, (ev.clientX - r.left) / W)); pt[1] = laneClamp(key, fromY(ev.clientY - r.top)); c.setAttribute('cx', pt[0] * W); c.setAttribute('cy', y(pt[1])); };
+        c.onpointerup = () => { c.onpointermove = null; c.onpointerup = null; l.pts.sort((a, b) => a[0] - b[0]); buildAutoTimeline(); autoSave(); };
+      });
+      c.addEventListener('dblclick', e => { e.stopPropagation(); if (l.pts.length > 1) { l.pts.splice(k, 1); buildAutoTimeline(); autoSave(); } });
+      svg.appendChild(c);
+    });
+  });
+  svg.appendChild(mk('line', { id: 'ad-playhead', x1: 0, y1: 0, x2: 0, y2: H, stroke: '#ff8c7a', 'stroke-width': 1.5, 'pointer-events': 'none' }));
+  lanesEl.textContent = ''; lanesEl.appendChild(svg);
+  paintPlayhead();
+}
+function setAutomate(on, reveal) {
+  autoOn = !!on;
+  try { localStorage.setItem(AUTO_ON_KEY, autoOn ? '1' : '0'); } catch (e) {}
+  document.body.classList.toggle('automate', autoOn);
+  document.body.style.setProperty('--auto-h', AUTO.dockH + 'px');
+  const dock = document.getElementById('auto-dock');
+  if (dock) dock.hidden = !autoOn;
+  if (!autoOn) setAutoPlaying(false);
+  if (autoOn) {
+    // First visit with nothing saved: one example lane, so the dock shows what it does.
+    if (!AUTO.lanes.length && !AUTO.pads.length && !localStorage.getItem(AUTO_KEY)) {
+      const key = ['fmAmount', 'foldDrive', 'shapeAmt'].find(k => laneable(k)) || Object.keys(MAP_TARGETS).find(laneable);
+      if (key) {
+        const t = MAP_TARGETS[key], a = laneClamp(key, lfoGet(key)), b = laneClamp(key, t.min + (t.max - t.min) * 0.5);
+        AUTO.lanes.push({ key, pts: [[0, a], [0.25, a], [0.75, b], [1, a]] });
+        autoSave();
+      }
+    }
+    buildAutoDock(); paintLaneButtons();
+  }
+}
+try {
+  const v = JSON.parse(localStorage.getItem(AUTO_KEY) || 'null');
+  if (v) {
+    Object.assign(AUTO, { bpm: v.bpm ?? 92, bars: v.bars ?? 4, dockH: v.dockH ?? 210 });
+    AUTO.lanes = (v.lanes || []).filter(l => l && laneable(l.key) && Array.isArray(l.pts) && l.pts.length);
+    AUTO.pads = (v.pads || []).filter(p => p && p.snap);
+  }
+} catch (e) {}
+window.addEventListener('resize', () => { if (autoOn) buildAutoTimeline(); });
 
 // ── The readout as a set of editors ───────────────────────────────────────────
 const READOUT_KEYS = {
@@ -11727,6 +12079,8 @@ function syncLiveControls() {
   if (roOpen && document.getElementById('synth-readout').hidden) closeReadoutEditor();
 }
 addPinButtons();
+// The automation dock comes back as it was left (shown or hidden).
+setAutomate(autoOn);
 renderDock();
 // The LFO panels are rebuilt on every patch load; give their sliders stars again.
 {
