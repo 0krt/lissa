@@ -204,7 +204,7 @@
     content: ''; position: absolute; left: -5px; top: 9px; bottom: 11px; width: 1px; background: var(--border);
   }
   .tab-panel { display: flex; flex-direction: column; gap: 16px; }
-  .tab-panel[hidden], .sidebar .section[hidden], .view-tg[hidden], .adv-only[hidden], .adv-block[hidden], #wf-layout-row[hidden] { display: none !important; }
+  .tab-panel[hidden], .sidebar .section[hidden], .view-tg[hidden], .adv-only[hidden], .adv-block[hidden], #wf-layout-row[hidden], #if-3d-rows[hidden] { display: none !important; }
   body.if-hover, body.if-hover * { cursor: grab; }
   body.if-dragging, body.if-dragging * { cursor: grabbing !important; user-select: none; }
   /* A control that cannot take effect in the current state is not shown (refreshVisibility). */
@@ -2034,6 +2034,20 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
               <button class="wave-btn active" data-ifview="0" aria-pressed="true">WAVE</button>
               <button class="wave-btn" data-ifview="1" aria-pressed="false">PATTERN</button>
             </div>
+            <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="Interference surface">
+              <button class="wave-btn active" data-ifsurf="0" aria-pressed="true">FLAT</button>
+              <button class="wave-btn" data-ifsurf="1" aria-pressed="false" title="The field as a lit height map; drag the canvas to orbit">3D</button>
+            </div>
+            <div id="if-3d-rows" hidden>
+              <div class="param-row">
+                <div class="param-header"><label>Height</label><span class="val" id="if-relief-val">0.35</span></div>
+                <input type="range" id="if-relief" min="0.05" max="1.5" step="0.01" value="0.35">
+              </div>
+              <div class="param-row">
+                <div class="param-header"><label>Light</label><span class="val" id="if-light-val">135°</span></div>
+                <input type="range" id="if-light" min="0" max="360" step="1" value="135">
+              </div>
+            </div>
             <div class="param-row">
               <div class="param-header"><label>Sources</label><span class="val">drag the dots</span></div>
               <button class="btn-outline" type="button" id="if-reset" style="width:100%;margin-top:4px">Reset positions</button>
@@ -2075,7 +2089,7 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
             </div>
           </div>
           <div class="info-text" data-info-label="advanced geometries">
-            <strong>Lissajous knot</strong> adds a third sine on depth: fx : fy : Z frequency picks the knot; drag to orbit. <strong>Guilloché</strong> repeats the counter-current rosette in turned, shrinking layers. <strong>Delay embedding</strong> plots the X+Y signal against itself one delay later (and two delays later in 3D). <strong>Interference</strong>: X and Y each radiate ripples from a point, and you can drag either point on the canvas; Wavelength is a frequency-1 wave's, so a higher frequency gives shorter ripples. Animate the phase to set them moving. <strong>Pattern</strong> maps where the two arrive in step (bright) and out of step (dark): hyperbolas when fx = fy, ovals otherwise. <strong>Waterfall</strong> stacks the wave's history: every change to the sound adds a line at the front and pushes the older ones back (STEP: one line per settled change; SWEEP: a line every few frames while it changes). The phase scrolls every line sideways and never adds one. Typing <code>/modes</code> in the search hides these again.
+            <strong>Lissajous knot</strong> adds a third sine on depth: fx : fy : Z frequency picks the knot; drag to orbit. <strong>Guilloché</strong> repeats the counter-current rosette in turned, shrinking layers. <strong>Delay embedding</strong> plots the X+Y signal against itself one delay later (and two delays later in 3D). <strong>Interference</strong>: X and Y each radiate ripples from a point, and you can drag either point on the canvas; Wavelength is a frequency-1 wave's, so a higher frequency gives shorter ripples. Animate the phase to set them moving. <strong>Pattern</strong> maps where the two arrive in step (bright) and out of step (dark): hyperbolas when fx = fy, ovals otherwise. <strong>3D</strong> raises either one into a lit relief: drag the canvas to orbit (the sources can be moved in FLAT). <strong>Waterfall</strong> stacks the wave's history: every change to the sound adds a line at the front and pushes the older ones back (STEP: one line per settled change; SWEEP: a line every few frames while it changes). The phase scrolls every line sideways and never adds one. Typing <code>/modes</code> in the search hides these again.
           </div>
         </div>
         <div class="info-text" data-info-label="figure geometry">
@@ -3210,6 +3224,9 @@ let params = {
   ifLambda: 0.4,   // interference: wavelength of a frequency-1 wave, in half-widths
   ifDecay: 0.3,    // interference: amplitude falloff with distance
   ifView: 0,       // interference: 0 = moving ripples, 1 = still pattern (mean energy)
+  ifSurface: 0,    // interference: 0 = flat field, 1 = 3D relief
+  ifRelief: 0.35,  // interference relief: wave height, in ripple wavelengths
+  ifLight: 135,    // interference relief: light azimuth in degrees
   wfLines: 32,     // waterfall: how many lines the stack keeps
   wfHeight: 2.5,   // waterfall: wave height, in line spacings
   wfMode: 0,       // waterfall: 0 = a line once a change settles, 1 = lines while it changes
@@ -4055,13 +4072,17 @@ function hexRgb(hex) {
 function ifSources() {
   return [[params.ifAx ?? -0.15, params.ifAy ?? 0], [params.ifBx ?? 0.15, params.ifBy ?? 0]];
 }
-function drawInterference(g, w, h, phase, zoom) {
-  const R = Math.max(IF_RES_MIN, Math.min(IF_RES_MAX, Math.round(w * (viewDpr || 1) * 0.6)));
+// The field itself, at R×R points over the box: the signed wave s in −1..1 for
+// WAVE, the in-step map e in 0..1 for PATTERN. Distances and weights are cached
+// until the geometry changes, the PATTERN field until the geometry or δ does.
+let _ifVal = null;
+function ifField(R, phase, zoom) {
   if (R !== _ifR) {
     _ifR = R; _ifCv = document.createElement('canvas'); _ifCv.width = _ifCv.height = R;
     _ifCtx = _ifCv.getContext('2d'); _ifImg = _ifCtx.createImageData(R, R);
     _ifP1 = new Float32Array(R * R); _ifP2 = new Float32Array(R * R);
     _ifW1 = new Float32Array(R * R); _ifW2 = new Float32Array(R * R);
+    _ifVal = new Float32Array(R * R);
     _ifGeoKey = _ifPatKey = '';
   }
   // One processed cycle of each wave; the extra last entry makes interpolation wrap.
@@ -4091,17 +4112,9 @@ function drawInterference(g, w, h, phase, zoom) {
   }
   const lerp = (L, a) => { a %= IF_LUT; if (a < 0) a += IF_LUT; const i = a | 0, f = a - i; return L[i] + (L[i + 1] - L[i]) * f; };
   const pattern = Math.round(params.ifView) === 1;
-  const bg = hexRgb(params.bgColor), fg = hexRgb(params.strokeColor), D = _ifImg.data;
-  const paint = (q, val) => {
-    val = val < 0 ? 0 : val > 1 ? 1 : val;
-    D[q] = bg[0] + (fg[0] - bg[0]) * val; D[q + 1] = bg[1] + (fg[1] - bg[1]) * val; D[q + 2] = bg[2] + (fg[2] - bg[2]) * val; D[q + 3] = 255;
-  };
   if (!pattern) {
     const t = phase / 2 * IF_LUT, tx = fx * t, ty = fy * t;   // δπ as a share of one cycle
-    for (let p = 0, q = 0; p < N; p++, q += 4) {
-      const s = _ifW1[p] * lerp(_ifLX, tx - _ifP1[p]) + _ifW2[p] * lerp(_ifLY, ty - _ifP2[p]);
-      paint(q, (s + 1) / 2);
-    }
+    for (let p = 0; p < N; p++) _ifVal[p] = _ifW1[p] * lerp(_ifLX, tx - _ifP1[p]) + _ifW2[p] * lerp(_ifLY, ty - _ifP2[p]);
     _ifPatKey = '';
   } else {
     // Where the two arrive in step (bright) and out of step (dark): the phase
@@ -4109,16 +4122,55 @@ function drawInterference(g, w, h, phase, zoom) {
     // fx = fy this is the still interference pattern, hyperbolas round the two
     // sources; with different frequencies it is the family of ovals along which
     // the two keep a fixed phase relation, at the current δ.
-    const patKey = geoKey + '|' + phase.toFixed(4) + '|' + bg + fg;
+    const patKey = geoKey + '|' + phase.toFixed(4);
     if (patKey !== _ifPatKey) {
       _ifPatKey = patKey;
       const dt = (fx - fy) * phase / 2 * TAU;
-      for (let p = 0, q = 0; p < N; p++, q += 4) {
+      for (let p = 0; p < N; p++) {
         const a = _ifW1[p], b = _ifW2[p];
         const d = (_ifP1[p] - _ifP2[p]) / IF_LUT * TAU - dt;
-        paint(q, a * a + b * b + 2 * a * b * Math.cos(d));
+        _ifVal[p] = a * a + b * b + 2 * a * b * Math.cos(d);
       }
     }
+  }
+  return { pattern, z, sources: [[ax, ay], [bx, by]] };
+}
+// The relief's height at a field point: the wave itself, or the in-step map
+// stretched to −1..1.
+function ifHeight(v, pattern) { return pattern ? 2 * v - 1 : v; }
+function ifRelief() { return Math.round(params.ifSurface) === 1; }
+// Relief height in world units. It scales with the shortest ripple wavelength, so
+// the swell keeps the same gentle proportion to its spacing at any frequency.
+function ifReliefH() {
+  const lam = Math.max(0.01, params.ifLambda ?? 0.4) / Math.max(params.fx, params.fy, 1e-6);
+  return (params.ifRelief ?? 0.35) * lam;
+}
+function ifLightDir() {
+  const a = (params.ifLight ?? 135) * Math.PI / 180, e = 28 * Math.PI / 180;
+  return [Math.cos(e) * Math.cos(a), Math.cos(e) * Math.sin(a), Math.sin(e)];
+}
+function drawInterference(g, w, h, phase, zoom) {
+  if (ifRelief() && drawIfRelief(g, w, h, phase, zoom)) return;
+  const R = Math.max(IF_RES_MIN, Math.min(IF_RES_MAX, Math.round(w * (viewDpr || 1) * 0.6)));
+  const F = ifField(R, phase, zoom), N = R * R, V = _ifVal;
+  const bg = hexRgb(params.bgColor), fg = hexRgb(params.strokeColor), D = _ifImg.data;
+  const paint = (q, val) => {
+    val = val < 0 ? 0 : val > 1 ? 1 : val;
+    D[q] = bg[0] + (fg[0] - bg[0]) * val; D[q + 1] = bg[1] + (fg[1] - bg[1]) * val; D[q + 2] = bg[2] + (fg[2] - bg[2]) * val; D[q + 3] = 255;
+  };
+  if (ifRelief()) {
+    // 3D asked for but no WebGL2: the same relief as a hillshade seen from above.
+    const L = ifLightDir(), k = ifReliefH() * R / 4;
+    for (let py = 0, p = 0, q = 0; py < R; py++) for (let px = 0; px < R; px++, p++, q += 4) {
+      const hx = ifHeight(V[p + (px < R - 1 ? 1 : 0)], F.pattern) - ifHeight(V[p - (px > 0 ? 1 : 0)], F.pattern);
+      const hy = ifHeight(V[p - (py > 0 ? R : 0)], F.pattern) - ifHeight(V[p + (py < R - 1 ? R : 0)], F.pattern);
+      const nx = -hx * k, ny = -hy * k, n = Math.hypot(nx, ny, 1);
+      paint(q, 0.18 + 0.82 * Math.max(0, (nx * L[0] + ny * L[1] + L[2]) / n));
+    }
+  } else if (!F.pattern) {
+    for (let p = 0, q = 0; p < N; p++, q += 4) paint(q, (V[p] + 1) / 2);
+  } else {
+    for (let p = 0, q = 0; p < N; p++, q += 4) paint(q, V[p]);
   }
   _ifCtx.putImageData(_ifImg, 0, 0);
   g.save();
@@ -4126,9 +4178,9 @@ function drawInterference(g, w, h, phase, zoom) {
   g.imageSmoothingQuality = 'high';
   g.drawImage(_ifCv, 0, 0, w, h);
   // The two sources, drawn as handles: a dot inside a ring.
-  const r = Math.max(3, w * 0.006);
+  const r = Math.max(3, w * 0.006), z = F.z;
   g.fillStyle = params.strokeColor; g.strokeStyle = params.strokeColor; g.lineWidth = 1.5;
-  [[ax, ay], [bx, by]].forEach(([sx, sy], i) => {
+  if (!ifRelief()) F.sources.forEach(([sx, sy], i) => {
     const x = w / 2 + sx * z * w / 2, y = h / 2 + sy * z * h / 2;
     if (x < -10 || x > w + 10 || y < -10 || y > h + 10) return;
     g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
@@ -4137,6 +4189,136 @@ function drawInterference(g, w, h, phase, zoom) {
     g.fillText(i ? 'Y' : 'X', x + r * 3.4, y - r * 2);
   });
   g.restore();
+}
+
+// ── Interference relief (3D) ─────────────────────────────────────────────────
+// The field as a height map on a slab: a 192×192 grid whose heights and normals
+// are refreshed every frame, with skirt walls down to a base so the cut edge of
+// the slab shows. Lit matte from a low light fixed to the world (azimuth
+// ifLight), in the stroke colour on the background. The camera starts tipped
+// 55° from straight down; the orbit drag adds yaw (rotateAngle) and tilt.
+// Drawn on its own WebGL2 canvas and copied into the target; null without WebGL2.
+const IFR_M = 192;
+const _hgl = { tried: false, gl: null, cv: null, prog: null, loc: null, vbo: null, ibo: null, nIdx: 0, data: null };
+const IFR_VS = `#version 300 es
+in vec3 aP; in vec3 aN; uniform mat4 uMVP; out vec3 vN;
+void main() { gl_Position = uMVP * vec4(aP, 1.0); vN = aN; }`;
+const IFR_FS = `#version 300 es
+precision highp float;
+in vec3 vN; uniform vec3 uC, uL, uV; out vec4 o;
+void main() {
+  vec3 n = normalize(vN);
+  float lam = max(dot(n, uL), 0.0);
+  float wrap = 0.5 + 0.5 * dot(n, uL);
+  float spec = pow(max(dot(n, normalize(uL + uV)), 0.0), 24.0);
+  vec3 col = uC * (0.16 + 0.66 * lam + 0.22 * wrap) + vec3(0.08 * spec);
+  o = vec4(col, 1.0);
+}`;
+function ifrGL() {
+  if (_hgl.tried) return _hgl.gl ? _hgl : null;
+  _hgl.tried = true;
+  try {
+    const cv = document.createElement('canvas');
+    const gl = cv.getContext('webgl2', { antialias: true, premultipliedAlpha: true, alpha: false });
+    if (!gl) return null;
+    const sh = (type, src) => { const x = gl.createShader(type); gl.shaderSource(x, src); gl.compileShader(x); if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(x)); return x; };
+    const prog = gl.createProgram();
+    gl.attachShader(prog, sh(gl.VERTEX_SHADER, IFR_VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, IFR_FS));
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+    _hgl.loc = { aP: gl.getAttribLocation(prog, 'aP'), aN: gl.getAttribLocation(prog, 'aN') };
+    ['uMVP', 'uC', 'uL', 'uV'].forEach(u => { _hgl.loc[u] = gl.getUniformLocation(prog, u); });
+    _hgl.vbo = gl.createBuffer(); _hgl.ibo = gl.createBuffer();
+    // Indices never change: the grid's quads, then the four walls.
+    const M = IFR_M, idx = [];
+    for (let j = 0; j < M - 1; j++) for (let i = 0; i < M - 1; i++) { const a = j * M + i; idx.push(a, a + 1, a + M, a + 1, a + M + 1, a + M); }
+    for (let s = 0; s < 4; s++) {
+      const base = M * M + s * M * 2;
+      for (let k = 0; k < M - 1; k++) { const t = base + k * 2; idx.push(t, t + 2, t + 1, t + 2, t + 3, t + 1); }
+    }
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, _hgl.ibo);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(idx), gl.STATIC_DRAW);
+    _hgl.nIdx = idx.length;
+    _hgl.data = new Float32Array((M * M + 8 * M) * 6);
+    _hgl.gl = gl; _hgl.cv = cv; _hgl.prog = prog;
+    cv.addEventListener('webglcontextlost', e => { e.preventDefault(); _hgl.gl = null; });
+  } catch (e) { _hgl.gl = null; }
+  return _hgl.gl ? _hgl : null;
+}
+function m4mul(a, b) {   // column-major 4×4
+  const o = new Float32Array(16);
+  for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) {
+    let s = 0; for (let k = 0; k < 4; k++) s += a[k * 4 + r] * b[c * 4 + k]; o[c * 4 + r] = s;
+  }
+  return o;
+}
+function drawIfRelief(g, w, h, phase, zoom) {
+  const G = ifrGL(); if (!G) return false;
+  const gl = G.gl, M = IFR_M, dpr = viewDpr || 1;
+  const F = ifField(M, phase, zoom), V = _ifVal, D = G.data;
+  const H = ifReliefH(), step = 2 / M;
+  const zAt = (i, j) => H * ifHeight(V[j * M + i], F.pattern);
+  // Surface. World: x right, y up (the field's v points down the screen), z up.
+  for (let j = 0, o = 0; j < M; j++) for (let i = 0; i < M; i++, o += 6) {
+    const x = (i + 0.5) * step - 1, y = 1 - (j + 0.5) * step, zz = zAt(i, j);
+    const dzdx = (zAt(Math.min(M - 1, i + 1), j) - zAt(Math.max(0, i - 1), j)) / ((Math.min(M - 1, i + 1) - Math.max(0, i - 1)) * step);
+    const dzdy = (zAt(i, Math.max(0, j - 1)) - zAt(i, Math.min(M - 1, j + 1))) / ((Math.min(M - 1, j + 1) - Math.max(0, j - 1)) * step);
+    const n = Math.hypot(dzdx, dzdy, 1);
+    D[o] = x; D[o + 1] = y; D[o + 2] = zz; D[o + 3] = -dzdx / n; D[o + 4] = -dzdy / n; D[o + 5] = 1 / n;
+  }
+  // Walls: for each side, pairs (top on the edge, bottom on the base).
+  const base = -(H + 0.06), edge = 1 - 0.5 * step;
+  const sides = [
+    [k => [k, M - 1], [0, -1, 0]],   // front (bottom row of the field)
+    [k => [M - 1, M - 1 - k], [1, 0, 0]],
+    [k => [M - 1 - k, 0], [0, 1, 0]],
+    [k => [0, k], [-1, 0, 0]],
+  ];
+  let o = M * M * 6;
+  sides.forEach(([at, nrm]) => {
+    for (let k = 0; k < M; k++) {
+      const [i, j] = at(k), x = (i + 0.5) * step - 1, y = 1 - (j + 0.5) * step;
+      const ex = nrm[0] ? nrm[0] * edge : x, ey = nrm[1] ? nrm[1] * edge : y;
+      D.set([ex, ey, zAt(i, j), nrm[0], nrm[1], 0], o); o += 6;
+      D.set([ex, ey, base, nrm[0], nrm[1], 0], o); o += 6;
+    }
+  });
+  // Camera.
+  const W = Math.max(2, Math.round(w * dpr)), Hh = Math.max(2, Math.round(h * dpr));
+  if (G.cv.width !== W || G.cv.height !== Hh) { G.cv.width = W; G.cv.height = Hh; }
+  const yaw = (params.rotateAngle || 0) * Math.PI / 180;
+  const pitch = Math.max(0, Math.min(85, 55 + (params.tiltAngle || 0))) * Math.PI / 180;
+  const fov = 35 * Math.PI / 180, f = 1 / Math.tan(fov / 2), dist = 1.12 * f + 0.35, near = 0.1, far = 20;
+  const P = new Float32Array([f * Hh / W, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) / (near - far), -1, 0, 0, 2 * far * near / (near - far), 0]);
+  const cz = Math.cos(yaw), sz = Math.sin(yaw), cx = Math.cos(-pitch), sx = Math.sin(-pitch);
+  const Rz = new Float32Array([cz, sz, 0, 0, -sz, cz, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+  const Rx = new Float32Array([1, 0, 0, 0, 0, cx, sx, 0, 0, -sx, cx, 0, 0, 0, 0, 1]);
+  const T = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, -dist, 1]);
+  const S = Math.max(0.05, zoom || 1), Z = new Float32Array([S, 0, 0, 0, 0, S, 0, 0, 0, 0, S, 0, 0, 0, 0, 1]);
+  const MV = m4mul(T, m4mul(Rx, m4mul(Rz, Z))), MVP = m4mul(P, MV);
+  // The view direction in world space (the rotation's transpose applied to +z).
+  const vw = [MV[2], MV[6], MV[10]], vl = Math.hypot(...vw);
+  const bg = hexRgb(params.bgColor), fg = hexRgb(params.strokeColor);
+  gl.viewport(0, 0, W, Hh);
+  gl.clearColor(bg[0] / 255, bg[1] / 255, bg[2] / 255, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE);
+  gl.useProgram(G.prog);
+  gl.bindBuffer(gl.ARRAY_BUFFER, G.vbo);
+  gl.bufferData(gl.ARRAY_BUFFER, D, gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(G.loc.aP); gl.vertexAttribPointer(G.loc.aP, 3, gl.FLOAT, false, 24, 0);
+  gl.enableVertexAttribArray(G.loc.aN); gl.vertexAttribPointer(G.loc.aN, 3, gl.FLOAT, false, 24, 12);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, G.ibo);
+  gl.uniformMatrix4fv(G.loc.uMVP, false, MVP);
+  gl.uniform3f(G.loc.uC, fg[0] / 255, fg[1] / 255, fg[2] / 255);
+  gl.uniform3fv(G.loc.uL, ifLightDir());
+  gl.uniform3f(G.loc.uV, vw[0] / vl, vw[1] / vl, vw[2] / vl);
+  gl.drawElements(gl.TRIANGLES, G.nIdx, gl.UNSIGNED_INT, 0);
+  g.save();
+  g.imageSmoothingEnabled = true;
+  g.drawImage(G.cv, 0, 0, w, h);
+  g.restore();
+  return true;
 }
 // ── Waterfall (geometry 10) ─────────────────────────────────────────────────
 // A stack of lines, each a snapshot of the X and Y waves. Anything that changes
@@ -4254,7 +4436,7 @@ function ifPointerBox(e) {
   return [((e.clientX - figBox.x) / figBox.size * 2 - 1) / z, ((e.clientY - figBox.y) / figBox.size * 2 - 1) / z];
 }
 function ifHit(e) {
-  if (figGeometry() !== GEO_INTERF || m4Active() || columnActive()) return -1;
+  if (figGeometry() !== GEO_INTERF || m4Active() || columnActive() || ifRelief()) return -1;
   if (e.target && e.target.closest && e.target.closest(ORBIT_CHROME)) return -1;
   const z = Math.max(ZOOM_MIN, recZoom);
   let best = -1, bestD = IF_HIT_PX;
@@ -4483,7 +4665,7 @@ function iconSvg(key) {
 const GEO_ICON = ['lat', 'rotp', 'rotm', 'rose', 'knot', 'wave', 'lknot', 'guil', 'embed', 'interf', 'wfall'];
 function figGeometry() { return Math.max(0, Math.min(GEO_MAX, Math.round(params.geometry || 0))); }
 function polarGeometry() { return figGeometry() !== 0; }
-function solidGeometry() { const g = figGeometry(); return g === 4 || g === GEO_LKNOT || (g === GEO_EMBED && Math.round(params.embDim) === 3); }
+function solidGeometry() { const g = figGeometry(); return g === 4 || g === GEO_LKNOT || (g === GEO_EMBED && Math.round(params.embDim) === 3) || (g === GEO_INTERF && Math.round(params.ifSurface) === 1); }
 function advGeometry() { return figGeometry() >= GEO_ADV0; }
 // WAVES is not a figure at all: the two waves and their sum, plotted flat.
 const GEO_WAVES = 5;
@@ -8519,6 +8701,8 @@ const ADV_SLIDERS = [
   ['emb-mix',    'embMix',    v => v.toFixed(2)],
   ['if-lambda',  'ifLambda',  v => v.toFixed(2)],
   ['if-decay',   'ifDecay',   v => v.toFixed(2)],
+  ['if-relief',  'ifRelief',  v => (+v).toFixed(2)],
+  ['if-light',   'ifLight',   v => Math.round(v) + '°'],
   ['wf-lines',   'wfLines',   v => String(Math.round(v))],
   ['wf-height',  'wfHeight',  v => (+v).toFixed(1)],
 ];
@@ -8558,10 +8742,20 @@ function refreshAdvControls() {
   });
   setEmbDim(params.embDim ?? 2);
   setIfView(params.ifView ?? 0);
+  setIfSurface(params.ifSurface ?? 0);
   setWfMode(params.wfMode ?? 0);
   setWfAxis(params.wfAxis ?? 2);
   setWfLayout(params.wfLayout ?? 0);
 }
+// FLAT / 3D for the interference field. 3D makes it a solid: the canvas drag orbits.
+function setIfSurface(m) {
+  setStageMode('ifSurface', 'ifsurf', 1, m);
+  const rows = document.getElementById('if-3d-rows');
+  if (rows) rows.hidden = params.ifSurface !== 1;
+  document.body.classList.toggle('orbit', orbitable());
+  if (typeof refreshDepthChecks === 'function') refreshDepthChecks();
+}
+document.querySelectorAll('.wave-btn[data-ifsurf]').forEach(b => b.addEventListener('click', () => setIfSurface(parseInt(b.dataset.ifsurf))));
 // Waterfall toggles. They are stepped params like the synthesis curve selectors.
 function setWfMode(m) { setStageMode('wfMode', 'wfmode', 1, m); }
 function setWfAxis(m) {
