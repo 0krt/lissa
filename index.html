@@ -204,7 +204,7 @@
     content: ''; position: absolute; left: -5px; top: 9px; bottom: 11px; width: 1px; background: var(--border);
   }
   .tab-panel { display: flex; flex-direction: column; gap: 16px; }
-  .tab-panel[hidden], .sidebar .section[hidden], .view-tg[hidden], .adv-only[hidden], .adv-block[hidden], #wf-layout-row[hidden], #if-3d-rows[hidden] { display: none !important; }
+  .tab-panel[hidden], .sidebar .section[hidden], .view-tg[hidden], .adv-only[hidden], .adv-block[hidden], #wf-layout-row[hidden], #if-3d-rows[hidden], #if-surf-row[hidden], #if-drag-row[hidden], #if-globe-rows[hidden], #if-globe-z[hidden] { display: none !important; }
   body.if-hover, body.if-hover * { cursor: grab; }
   body.if-dragging, body.if-dragging * { cursor: grabbing !important; user-select: none; }
   /* A control that cannot take effect in the current state is not shown (refreshVisibility). */
@@ -2048,7 +2048,12 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
               <button class="wave-btn active" data-ifview="0" aria-pressed="true">WAVE</button>
               <button class="wave-btn" data-ifview="1" aria-pressed="false">PATTERN</button>
             </div>
-            <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="Interference surface">
+            <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="Interference plate shape">
+              <button class="wave-btn active" data-ifshape="0" aria-pressed="true">SQUARE</button>
+              <button class="wave-btn" data-ifshape="1" aria-pressed="false">ROUND</button>
+              <button class="wave-btn" data-ifshape="2" aria-pressed="false" title="The waves spread over a sphere; drag the canvas to turn it">GLOBE</button>
+            </div>
+            <div class="wave-toggle" id="if-surf-row" style="margin-bottom:6px" role="group" aria-label="Interference surface">
               <button class="wave-btn active" data-ifsurf="0" aria-pressed="true">FLAT</button>
               <button class="wave-btn" data-ifsurf="1" aria-pressed="false" title="The field as a lit height map; drag the canvas to orbit">3D</button>
             </div>
@@ -2062,7 +2067,17 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
                 <input type="range" id="if-light" min="0" max="360" step="1" value="135">
               </div>
             </div>
-            <div class="param-row">
+            <div id="if-globe-rows" hidden>
+              <div class="param-row"><div class="param-header"><label>X latitude</label><span class="val" id="if-xlat-val">0°</span></div><input type="range" id="if-xlat" min="-90" max="90" step="1" value="0"></div>
+              <div class="param-row"><div class="param-header"><label>X longitude</label><span class="val" id="if-xlon-val">-35°</span></div><input type="range" id="if-xlon" min="-180" max="180" step="1" value="-35"></div>
+              <div class="param-row"><div class="param-header"><label>Y latitude</label><span class="val" id="if-ylat-val">0°</span></div><input type="range" id="if-ylat" min="-90" max="90" step="1" value="0"></div>
+              <div class="param-row"><div class="param-header"><label>Y longitude</label><span class="val" id="if-ylon-val">35°</span></div><input type="range" id="if-ylon" min="-180" max="180" step="1" value="35"></div>
+              <div id="if-globe-z" hidden>
+                <div class="param-row"><div class="param-header"><label>Z latitude</label><span class="val" id="if-zlat-val">45°</span></div><input type="range" id="if-zlat" min="-90" max="90" step="1" value="45"></div>
+                <div class="param-row"><div class="param-header"><label>Z longitude</label><span class="val" id="if-zlon-val">0°</span></div><input type="range" id="if-zlon" min="-180" max="180" step="1" value="0"></div>
+              </div>
+            </div>
+            <div class="param-row" id="if-drag-row">
               <div class="param-header"><label>Sources</label><span class="val">drag the dots</span></div>
               <button class="btn-outline" type="button" id="if-reset" style="width:100%;margin-top:4px">Reset positions</button>
             </div>
@@ -2073,6 +2088,10 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
             <div class="param-row">
               <div class="param-header"><label>Falloff</label><span class="val" id="if-decay-val">0.30</span></div>
               <input type="range" id="if-decay" min="0" max="1" step="0.01" value="0.3">
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>Taper</label><span class="val" id="if-taper-val">off</span></div>
+              <input type="range" id="if-taper" min="0" max="1" step="0.01" value="0" title="Waves die away with distance from their emitter, leaving the plate flat">
             </div>
             <div class="param-row">
               <div class="param-header"><label>Z frequency</label><span class="val" id="if-fz-val">off</span></div>
@@ -2111,7 +2130,7 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
             </div>
           </div>
           <div class="info-text" data-info-label="advanced geometries">
-            <strong>Lissajous knot</strong> adds a third sine on depth: fx : fy : Z frequency picks the knot; drag to orbit. <strong>Guilloché</strong> repeats the counter-current rosette in turned, shrinking layers. <strong>Delay embedding</strong> plots the X+Y signal against itself one delay later (and two delays later in 3D). <strong>Interference</strong>: X and Y each radiate ripples from a point, and you can drag either point on the canvas; Wavelength is a frequency-1 wave's, so a higher frequency gives shorter ripples. Animate the phase to set them moving. <strong>Pattern</strong> maps where the two arrive in step (bright) and out of step (dark): hyperbolas when fx = fy, ovals otherwise. <strong>Z frequency</strong> adds a third source, a sine like the Lissajous knot's depth oscillator, which you can drag like the other two. <strong>3D</strong> raises either one into a lit relief: drag the canvas to orbit (the sources can be moved in FLAT). <strong>Waterfall</strong> stacks the wave's history: every change to the sound adds a line at the front and pushes the older ones back (STEP: one line per settled change; SWEEP: a line every few frames while it changes). The phase scrolls every line sideways and never adds one. Typing <code>/modes</code> in the search hides these again.
+            <strong>Lissajous knot</strong> adds a third sine on depth: fx : fy : Z frequency picks the knot; drag to orbit. <strong>Guilloché</strong> repeats the counter-current rosette in turned, shrinking layers. <strong>Delay embedding</strong> plots the X+Y signal against itself one delay later (and two delays later in 3D). <strong>Interference</strong>: X and Y each radiate ripples from a point, and you can drag either point on the canvas; Wavelength is a frequency-1 wave's, so a higher frequency gives shorter ripples. Animate the phase to set them moving. <strong>Pattern</strong> maps where the two arrive in step (bright) and out of step (dark): hyperbolas when fx = fy, ovals otherwise. <strong>Round</strong> and <strong>Globe</strong> change the plate; on the globe the waves travel over the sphere and its sources are placed by latitude and longitude. <strong>Taper</strong> lets each wave die away with distance, so the plate settles flat; each wave's height follows its axis Amplitude. <strong>Z frequency</strong> adds a third source, a sine like the Lissajous knot's depth oscillator, which you can drag like the other two. <strong>3D</strong> raises either one into a lit relief: drag the canvas to orbit (the sources can be moved in FLAT). <strong>Waterfall</strong> stacks the wave's history: every change to the sound adds a line at the front and pushes the older ones back (STEP: one line per settled change; SWEEP: a line every few frames while it changes). The phase scrolls every line sideways and never adds one. Typing <code>/modes</code> in the search hides these again.
           </div>
         </div>
         <div class="info-text" data-info-label="figure geometry">
@@ -3243,6 +3262,11 @@ let params = {
   ifAy: 0,
   ifBx: 0.15,      // interference: source B (the Y wave)
   ifBy: 0,
+  ifShape: 0,      // interference: 0 square plate, 1 round plate, 2 globe
+  ifTaper: 0,      // interference: waves flatten out with distance from their emitter (0..1)
+  ifXLat: 0, ifXLon: -35,   // globe: where X, Y and Z sit (degrees)
+  ifYLat: 0, ifYLon: 35,
+  ifZLat: 45, ifZLon: 0,
   ifFz: 0,         // interference: third source Z, a sine at this frequency (0 = off)
   ifPz: 0,         // interference: Z's phase, in π
   ifCx: 0,         // interference: Z's position
@@ -4107,6 +4131,15 @@ function ifSources() {
 // WAVE, the in-step map e in 0..1 for PATTERN. Distances and weights are cached
 // until the geometry changes, the PATTERN field until the geometry or δ does.
 let _ifVal = null;
+// One processed cycle of each wave; the extra last entry makes interpolation wrap.
+function ifFillLUT() {
+  for (let j = 0; j < IF_LUT; j++) {
+    const th = TAU * j / IF_LUT;
+    _ifLX[j] = processWave(th, th, waveTypeX, 'x');
+    _ifLY[j] = processWave(th, th, waveTypeY, 'y');
+  }
+  _ifLX[IF_LUT] = _ifLX[0]; _ifLY[IF_LUT] = _ifLY[0];
+}
 function ifField(R, phase, zoom) {
   if (R !== _ifR) {
     _ifR = R; _ifCv = document.createElement('canvas'); _ifCv.width = _ifCv.height = R;
@@ -4117,18 +4150,13 @@ function ifField(R, phase, zoom) {
     _ifVal = new Float32Array(R * R);
     _ifGeoKey = _ifPatKey = '';
   }
-  // One processed cycle of each wave; the extra last entry makes interpolation wrap.
-  for (let j = 0; j < IF_LUT; j++) {
-    const th = TAU * j / IF_LUT;
-    _ifLX[j] = processWave(th, th, waveTypeX, 'x');
-    _ifLY[j] = processWave(th, th, waveTypeY, 'y');
-  }
-  _ifLX[IF_LUT] = _ifLX[0]; _ifLY[IF_LUT] = _ifLY[0];
+  ifFillLUT();
   const { fx, fy } = params, z = Math.max(0.05, zoom || 1);
   const src = ifSources(), [[ax, ay], [bx, by]] = src;
   const zOn = src.length > 2, fz = zOn ? Math.round(params.ifFz) : 0, [cx, cy] = zOn ? src[2] : [0, 0];
   const lam = Math.max(0.01, params.ifLambda ?? 0.4), decay = (params.ifDecay ?? 0.3) * 6;
-  const geoKey = [R, z, ax, ay, bx, by, fx, fy, lam, decay].join() + (zOn ? '|' + [fz, cx, cy].join() : '');
+  const tp = ifTaperK(), amX = params.ax, amY = params.ay, mod = tp > 0 || amX !== 1 || amY !== 1;
+  const geoKey = [R, z, ax, ay, bx, by, fx, fy, lam, decay].join() + (zOn ? '|' + [fz, cx, cy].join() : '') + (mod ? '|' + [tp, amX, amY].join() : '');
   const N = R * R;
   if (geoKey !== _ifGeoKey) {
     _ifGeoKey = geoKey; _ifPatKey = '';
@@ -4148,6 +4176,12 @@ function ifField(R, phase, zoom) {
           const r3 = Math.hypot(u - cx, v - cy), a3 = 1 / (1 + decay * r3), n = a1 + a2 + a3;
           _ifP1[p] = kx * r1; _ifP2[p] = ky * r2; _ifP3[p] = fz / lam * r3;
           _ifW1[p] = a1 / n; _ifW2[p] = a2 / n; _ifW3[p] = a3 / n;
+        }
+        if (mod) {
+          // Amplitude sets each wave's height; the taper flattens a wave out with
+          // its distance from the emitter, so far from all three the plate is calm.
+          _ifW1[p] *= amX * Math.exp(-tp * r1); _ifW2[p] *= amY * Math.exp(-tp * r2);
+          if (zOn) _ifW3[p] *= Math.exp(-tp * Math.hypot(u - cx, v - cy));
         }
       }
     }
@@ -4196,6 +4230,9 @@ function ifField(R, phase, zoom) {
 // stretched to −1..1.
 function ifHeight(v, pattern) { return pattern ? 2 * v - 1 : v; }
 function ifRelief() { return Math.round(params.ifSurface) === 1; }
+function ifShape() { return Math.max(0, Math.min(2, Math.round(params.ifShape || 0))); }   // 0 square, 1 round, 2 globe
+function ifGlobe() { return ifShape() === 2; }
+function ifTaperK() { return Math.max(0, +params.ifTaper || 0) * 6; }
 // Relief height in world units. It scales with the shortest ripple wavelength, so
 // the swell keeps the same gentle proportion to its spacing at any frequency.
 function ifReliefH() {
@@ -4207,7 +4244,7 @@ function ifLightDir() {
   return [Math.cos(e) * Math.cos(a), Math.cos(e) * Math.sin(a), Math.sin(e)];
 }
 function drawInterference(g, w, h, phase, zoom) {
-  if (ifRelief() && drawIfRelief(g, w, h, phase, zoom)) return;
+  if ((ifRelief() || ifGlobe()) && drawIfRelief(g, w, h, phase, zoom)) return;
   const R = Math.max(IF_RES_MIN, Math.min(IF_RES_MAX, Math.round(w * (viewDpr || 1) * 0.6)));
   const F = ifField(R, phase, zoom), N = R * R, V = _ifVal;
   const bg = hexRgb(params.bgColor), fg = hexRgb(params.strokeColor), D = _ifImg.data;
@@ -4228,6 +4265,17 @@ function drawInterference(g, w, h, phase, zoom) {
     for (let p = 0, q = 0; p < N; p++, q += 4) paint(q, (V[p] + 1) / 2);
   } else {
     for (let p = 0, q = 0; p < N; p++, q += 4) paint(q, V[p]);
+  }
+  if (ifShape() === 1) {
+    // Round plate: outside the box's inscribed circle is background, the rim
+    // anti-aliased over about a pixel and a half.
+    const aa = 1.5 * 2 / R;
+    for (let py = 0, q = 0; py < R; py++) for (let px = 0; px < R; px++, q += 4) {
+      const d = Math.hypot((px + 0.5) / R * 2 - 1, (py + 0.5) / R * 2 - 1);
+      if (d < 1 - aa) continue;
+      const k = Math.max(0, Math.min(1, (1 - d) / aa));
+      D[q] = bg[0] + (D[q] - bg[0]) * k; D[q + 1] = bg[1] + (D[q + 1] - bg[1]) * k; D[q + 2] = bg[2] + (D[q + 2] - bg[2]) * k;
+    }
   }
   _ifCtx.putImageData(_ifImg, 0, 0);
   g.save();
@@ -4309,11 +4357,9 @@ function m4mul(a, b) {   // column-major 4×4
   }
   return o;
 }
-function drawIfRelief(g, w, h, phase, zoom) {
-  const G = ifrGL(); if (!G) return false;
-  const gl = G.gl, M = IFR_M, dpr = viewDpr || 1;
-  // The slab always carries the whole field; zoom scales the slab itself (below).
-  const F = ifField(M, phase, 1), V = _ifVal, D = G.data;
+// Square slab: the M×M grid plus four walls (the original relief mesh).
+function ifSquareMesh(G, phase) {
+  const M = IFR_M, F = ifField(M, phase, 1), V = _ifVal, D = G.data;
   const H = ifReliefH(), step = 2 / M;
   const zAt = (i, j) => H * ifHeight(V[j * M + i], F.pattern);
   // Surface. World: x right, y up (the field's v points down the screen), z up.
@@ -4341,6 +4387,148 @@ function drawIfRelief(g, w, h, phase, zoom) {
       D.set([ex, ey, base, nrm[0], nrm[1], 0], o); o += 6;
     }
   });
+  return { data: D, ibo: G.ibo, n: G.nIdx };
+}
+// A mesh's index buffer, built once (the topology never changes, only heights).
+function ifMeshIbo(G, key, build) {
+  G.meshes = G.meshes || {};
+  if (!G.meshes[key]) {
+    const gl = G.gl, idx = build(), ibo = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(idx), gl.STATIC_DRAW);
+    G.meshes[key] = { ibo, n: idx.length, data: null };
+  }
+  return G.meshes[key];
+}
+// Round plate: a polar mesh (centre + rings × segments) whose heights are read
+// bilinearly from the square field, with a cylindrical wall round the rim.
+const IFR_RINGS = 96, IFR_SEGS = 256;
+function ifRoundMesh(G, phase) {
+  const M = IFR_M, NR = IFR_RINGS, NS = IFR_SEGS;
+  const mesh = ifMeshIbo(G, 'round', () => {
+    const idx = [], ring = r => 1 + (r - 1) * NS;
+    for (let s = 0; s < NS; s++) idx.push(0, ring(1) + s, ring(1) + (s + 1) % NS);
+    for (let r = 1; r < NR; r++) for (let s = 0; s < NS; s++) {
+      const a = ring(r) + s, b = ring(r) + (s + 1) % NS, c = ring(r + 1) + s, d = ring(r + 1) + (s + 1) % NS;
+      idx.push(a, c, b, b, c, d);
+    }
+    const w0 = 1 + NR * NS;
+    for (let s = 0; s < NS; s++) { const t = w0 + 2 * s, u = w0 + 2 * ((s + 1) % NS); idx.push(t, u, t + 1, u, u + 1, t + 1); }
+    return idx;
+  });
+  if (!mesh.data) mesh.data = new Float32Array((1 + NR * NS + 2 * NS) * 6);
+  const F = ifField(M, phase, 1), V = _ifVal, D = mesh.data, H = ifReliefH(), step = 2 / M;
+  const hAt = (x, y) => {   // bilinear height at world (x, y)
+    let gx = (x + 1) / step - 0.5, gy = (1 - y) / step - 0.5;
+    gx = Math.max(0, Math.min(M - 1.001, gx)); gy = Math.max(0, Math.min(M - 1.001, gy));
+    const i = gx | 0, j = gy | 0, fx = gx - i, fy = gy - j, p = j * M + i;
+    const v = (V[p] * (1 - fx) + V[p + 1] * fx) * (1 - fy) + (V[p + M] * (1 - fx) + V[p + M + 1] * fx) * fy;
+    return H * ifHeight(v, F.pattern);
+  };
+  const put = (o, x, y) => {
+    const e = step, dzdx = (hAt(x + e, y) - hAt(x - e, y)) / (2 * e), dzdy = (hAt(x, y + e) - hAt(x, y - e)) / (2 * e), n = Math.hypot(dzdx, dzdy, 1);
+    D[o] = x; D[o + 1] = y; D[o + 2] = hAt(x, y); D[o + 3] = -dzdx / n; D[o + 4] = -dzdy / n; D[o + 5] = 1 / n;
+  };
+  const rMax = 1 - 0.5 * step;
+  put(0, 0, 0);
+  for (let r = 1, o = 6; r <= NR; r++) for (let s = 0; s < NS; s++, o += 6) {
+    const a = TAU * s / NS, rr = rMax * r / NR; put(o, rr * Math.cos(a), rr * Math.sin(a));
+  }
+  const base = -(H + 0.06);
+  for (let s = 0, o = (1 + NR * NS) * 6; s < NS; s++) {
+    const a = TAU * s / NS, c = Math.cos(a), sn = Math.sin(a), x = rMax * c, y = rMax * sn;
+    D.set([x, y, hAt(x, y), c, sn, 0], o); o += 6;
+    D.set([x, y, base, c, sn, 0], o); o += 6;
+  }
+  return { data: D, ibo: mesh.ibo, n: mesh.n };
+}
+// Globe: the waves spread over a sphere, measured along its surface (great-circle
+// angle), so ripples meeting on the far side interfere again. Sources sit at
+// latitude/longitude sliders. Same wave, falloff, taper and amplitude rules as
+// the plate; the surface rises and falls with the field.
+const IFG_LON = 256, IFG_LAT = 128;
+let _igKey = '', _igP = null, _igW = null, _igPos = null, _igVal = null;
+function ifGlobeSources() {
+  const s = [[params.ifXLat ?? 0, params.ifXLon ?? -35], [params.ifYLat ?? 0, params.ifYLon ?? 35]];
+  if (ifZOn()) s.push([params.ifZLat ?? 45, params.ifZLon ?? 0]);
+  return s.map(([la, lo]) => { const a = la * Math.PI / 180, b = lo * Math.PI / 180; return [Math.cos(a) * Math.cos(b), Math.cos(a) * Math.sin(b), Math.sin(a)]; });
+}
+function ifGlobeMesh(G, phase) {
+  const NL = IFG_LON, NT = IFG_LAT, row = NL + 1, NV = row * (NT + 1);
+  const mesh = ifMeshIbo(G, 'globe', () => {
+    const idx = [];
+    for (let i = 0; i < NT; i++) for (let j = 0; j < NL; j++) { const a = i * row + j, b = a + 1, c = a + row, d = c + 1; idx.push(a, c, b, b, c, d); }
+    return idx;
+  });
+  if (!mesh.data) { mesh.data = new Float32Array(NV * 6); _igPos = new Float32Array(NV * 3); _igVal = new Float32Array(NV); _igP = new Float32Array(NV * 3); _igW = new Float32Array(NV * 3); _igKey = ''; }
+  ifFillLUT();
+  const src = ifGlobeSources(), zOn = src.length > 2, { fx, fy } = params, fz = zOn ? Math.round(params.ifFz) : 0;
+  const lam = Math.max(0.01, params.ifLambda ?? 0.4), decay = (params.ifDecay ?? 0.3) * 6, tp = ifTaperK();
+  const key = [JSON.stringify(src), fx, fy, fz, lam, decay, tp, params.ax, params.ay].join('|');
+  if (key !== _igKey) {
+    _igKey = key;
+    const kk = [fx / lam * IF_LUT, fy / lam * IF_LUT, fz / lam], am = [params.ax, params.ay, 1];
+    for (let i = 0, v = 0; i <= NT; i++) {
+      const la = Math.PI / 2 - Math.PI * i / NT, cl = Math.cos(la), sl = Math.sin(la);
+      for (let j = 0; j <= NL; j++, v++) {
+        const lo = -Math.PI + TAU * j / NL, px = cl * Math.cos(lo), py = cl * Math.sin(lo), pz = sl;
+        let n = 0; const a = [0, 0, 0], r = [0, 0, 0];
+        for (let k = 0; k < src.length; k++) {
+          const d = Math.max(-1, Math.min(1, px * src[k][0] + py * src[k][1] + pz * src[k][2]));
+          r[k] = Math.acos(d); a[k] = 1 / (1 + decay * r[k]); n += a[k];
+        }
+        for (let k = 0; k < 3; k++) {
+          _igP[v * 3 + k] = kk[k] * r[k];
+          _igW[v * 3 + k] = k < src.length ? a[k] / n * am[k] * Math.exp(-tp * r[k]) : 0;
+        }
+      }
+    }
+  }
+  const pattern = Math.round(params.ifView) === 1;
+  const lerp = (L, a) => { a %= IF_LUT; if (a < 0) a += IF_LUT; const i = a | 0, f = a - i; return L[i] + (L[i + 1] - L[i]) * f; };
+  const pz = (params.ifPz || 0) * Math.PI;
+  if (!pattern) {
+    const t = phase / 2 * IF_LUT, tx = fx * t, ty = fy * t, tz = fz * phase / 2;
+    for (let v = 0; v < NV; v++) {
+      let s = _igW[v * 3] * lerp(_ifLX, tx - _igP[v * 3]) + _igW[v * 3 + 1] * lerp(_ifLY, ty - _igP[v * 3 + 1]);
+      if (zOn) s += _igW[v * 3 + 2] * Math.sin(TAU * (tz - _igP[v * 3 + 2]) + pz);
+      _igVal[v] = s;
+    }
+  } else {
+    const T = phase / 2 * TAU, k = TAU / IF_LUT;
+    for (let v = 0; v < NV; v++) {
+      const f1 = fx * T - _igP[v * 3] * k, f2 = fy * T - _igP[v * 3 + 1] * k, f3 = fz * T - _igP[v * 3 + 2] * TAU + pz;
+      const w1 = _igW[v * 3], w2 = _igW[v * 3 + 1], w3 = _igW[v * 3 + 2];
+      const re = w1 * Math.cos(f1) + w2 * Math.cos(f2) + w3 * Math.cos(f3), im = w1 * Math.sin(f1) + w2 * Math.sin(f2) + w3 * Math.sin(f3);
+      _igVal[v] = re * re + im * im;
+    }
+  }
+  // Positions: radius 1 swollen by the field, then normals from the neighbours.
+  const H = ifReliefH(), D = mesh.data, P = _igPos;
+  for (let i = 0, v = 0; i <= NT; i++) {
+    const la = Math.PI / 2 - Math.PI * i / NT, cl = Math.cos(la), sl = Math.sin(la);
+    for (let j = 0; j <= NL; j++, v++) {
+      const lo = -Math.PI + TAU * j / NL, rr = 1 + H * ifHeight(_igVal[v], pattern);
+      P[v * 3] = rr * cl * Math.cos(lo); P[v * 3 + 1] = rr * cl * Math.sin(lo); P[v * 3 + 2] = rr * sl;
+    }
+  }
+  for (let i = 0, v = 0; i <= NT; i++) for (let j = 0; j <= NL; j++, v++) {
+    const o = v * 6, x = P[v * 3], y = P[v * 3 + 1], z = P[v * 3 + 2];
+    D[o] = x; D[o + 1] = y; D[o + 2] = z;
+    if (i === 0 || i === NT) { const l = Math.hypot(x, y, z) || 1; D[o + 3] = x / l; D[o + 4] = y / l; D[o + 5] = z / l; continue; }
+    const jl = j > 0 ? v - 1 : v + NL - 1, jr = j < NL ? v + 1 : v - NL + 1, up = v - row, dn = v + row;
+    const ax = P[jr * 3] - P[jl * 3], ay = P[jr * 3 + 1] - P[jl * 3 + 1], az = P[jr * 3 + 2] - P[jl * 3 + 2];
+    const bx = P[up * 3] - P[dn * 3], by = P[up * 3 + 1] - P[dn * 3 + 1], bz = P[up * 3 + 2] - P[dn * 3 + 2];
+    let nx = ay * bz - az * by, ny = az * bx - ax * bz, nz = ax * by - ay * bx;
+    if (nx * x + ny * y + nz * z < 0) { nx = -nx; ny = -ny; nz = -nz; }   // outward
+    const l = Math.hypot(nx, ny, nz) || 1; D[o + 3] = nx / l; D[o + 4] = ny / l; D[o + 5] = nz / l;
+  }
+  return { data: D, ibo: mesh.ibo, n: mesh.n };
+}
+function drawIfRelief(g, w, h, phase, zoom) {
+  const G = ifrGL(); if (!G) return false;
+  const gl = G.gl, dpr = viewDpr || 1, shape = ifShape();
+  const mesh = shape === 2 ? ifGlobeMesh(G, phase) : shape === 1 ? ifRoundMesh(G, phase) : ifSquareMesh(G, phase);
   // Render over the target's whole drawable area, not just the box, so a turned
   // or zoomed slab can spill past the box's edges like every other figure does.
   // left/top/right/bottom are in box units; the box keeps its place via `A`.
@@ -4355,7 +4543,7 @@ function drawIfRelief(g, w, h, phase, zoom) {
     (w / 2 - left) / RW * 2 - 1, 1 - (h / 2 - top) / RH * 2, 0, 1]);
   // Camera.
   const yaw = (params.rotateAngle || 0) * Math.PI / 180;
-  const pitch = Math.max(0, Math.min(85, 55 + (params.tiltAngle || 0))) * Math.PI / 180;
+  const pitch = Math.max(shape === 2 ? -85 : 0, Math.min(85, (shape === 2 ? 20 : 55) + (params.tiltAngle || 0))) * Math.PI / 180;
   const fov = 35 * Math.PI / 180, f = 1 / Math.tan(fov / 2), dist = 1.12 * f + 0.35, near = 0.1, far = 20;
   const P = m4mul(A, new Float32Array([f * h / w, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) / (near - far), -1, 0, 0, 2 * far * near / (near - far), 0]));
   const cz = Math.cos(yaw), sz = Math.sin(yaw), cx = Math.cos(-pitch), sx = Math.sin(-pitch);
@@ -4373,15 +4561,15 @@ function drawIfRelief(g, w, h, phase, zoom) {
   gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE);
   gl.useProgram(G.prog);
   gl.bindBuffer(gl.ARRAY_BUFFER, G.vbo);
-  gl.bufferData(gl.ARRAY_BUFFER, D, gl.DYNAMIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, mesh.data, gl.DYNAMIC_DRAW);
   gl.enableVertexAttribArray(G.loc.aP); gl.vertexAttribPointer(G.loc.aP, 3, gl.FLOAT, false, 24, 0);
   gl.enableVertexAttribArray(G.loc.aN); gl.vertexAttribPointer(G.loc.aN, 3, gl.FLOAT, false, 24, 12);
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, G.ibo);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.ibo);
   gl.uniformMatrix4fv(G.loc.uMVP, false, MVP);
   gl.uniform3f(G.loc.uC, fg[0] / 255, fg[1] / 255, fg[2] / 255);
   gl.uniform3fv(G.loc.uL, ifLightDir());
   gl.uniform3f(G.loc.uV, vw[0] / vl, vw[1] / vl, vw[2] / vl);
-  gl.drawElements(gl.TRIANGLES, G.nIdx, gl.UNSIGNED_INT, 0);
+  gl.drawElements(gl.TRIANGLES, mesh.n, gl.UNSIGNED_INT, 0);
   g.save();
   g.imageSmoothingEnabled = true;
   g.drawImage(G.cv, left, top, RW, RH);
@@ -4504,7 +4692,7 @@ function ifPointerBox(e) {
   return [((e.clientX - figBox.x) / figBox.size * 2 - 1) / z, ((e.clientY - figBox.y) / figBox.size * 2 - 1) / z];
 }
 function ifHit(e) {
-  if (figGeometry() !== GEO_INTERF || m4Active() || columnActive() || ifRelief()) return -1;
+  if (figGeometry() !== GEO_INTERF || m4Active() || columnActive() || ifRelief() || ifGlobe()) return -1;
   if (e.target && e.target.closest && e.target.closest(ORBIT_CHROME)) return -1;
   const z = Math.max(ZOOM_MIN, recZoom);
   let best = -1, bestD = IF_HIT_PX;
@@ -4735,7 +4923,7 @@ function iconSvg(key) {
 const GEO_ICON = ['lat', 'rotp', 'rotm', 'rose', 'knot', 'wave', 'lknot', 'guil', 'embed', 'interf', 'wfall'];
 function figGeometry() { return Math.max(0, Math.min(GEO_MAX, Math.round(params.geometry || 0))); }
 function polarGeometry() { return figGeometry() !== 0; }
-function solidGeometry() { const g = figGeometry(); return g === 4 || g === GEO_LKNOT || (g === GEO_EMBED && Math.round(params.embDim) === 3) || (g === GEO_INTERF && Math.round(params.ifSurface) === 1); }
+function solidGeometry() { const g = figGeometry(); return g === 4 || g === GEO_LKNOT || (g === GEO_EMBED && Math.round(params.embDim) === 3) || (g === GEO_INTERF && (Math.round(params.ifSurface) === 1 || Math.round(params.ifShape) === 2)); }
 function advGeometry() { return figGeometry() >= GEO_ADV0; }
 // WAVES is not a figure at all: the two waves and their sum, plotted flat.
 const GEO_WAVES = 5;
@@ -8776,6 +8964,13 @@ const ADV_SLIDERS = [
   ['if-relief',  'ifRelief',  v => (+v).toFixed(2)],
   ['if-light',   'ifLight',   v => Math.round(v) + '°'],
   ['if-fz',      'ifFz',      v => Math.round(v) ? String(Math.round(v)) : 'off'],
+  ['if-taper',   'ifTaper',   v => +v > 0 ? (+v).toFixed(2) : 'off'],
+  ['if-xlat',    'ifXLat',    v => Math.round(v) + '°'],
+  ['if-xlon',    'ifXLon',    v => Math.round(v) + '°'],
+  ['if-ylat',    'ifYLat',    v => Math.round(v) + '°'],
+  ['if-ylon',    'ifYLon',    v => Math.round(v) + '°'],
+  ['if-zlat',    'ifZLat',    v => Math.round(v) + '°'],
+  ['if-zlon',    'ifZLon',    v => Math.round(v) + '°'],
   ['if-pz',      'ifPz',      v => (+v).toFixed(2) + 'π'],
   ['wf-lines',   'wfLines',   v => String(Math.round(v))],
   ['wf-height',  'wfHeight',  v => (+v).toFixed(1)],
@@ -8783,7 +8978,7 @@ const ADV_SLIDERS = [
 ADV_SLIDERS.forEach(([id, key, fmt]) => {
   const el = document.getElementById(id), out = document.getElementById(id + '-val');
   if (!el) return;
-  el.addEventListener('input', () => { params[key] = +el.value; if (out) out.textContent = fmt(+el.value); clearTrail(); });
+  el.addEventListener('input', () => { params[key] = +el.value; if (out) out.textContent = fmt(+el.value); clearTrail(); if (key === 'ifFz') ifRefreshRows(); });
 });
 document.getElementById('if-reset').addEventListener('click', () => {
   ['ifAx', 'ifAy', 'ifBx', 'ifBy', 'ifCx', 'ifCy'].forEach(k => { params[k] = PARAM_DEFAULTS[k]; });
@@ -8817,15 +9012,33 @@ function refreshAdvControls() {
   setEmbDim(params.embDim ?? 2);
   setIfView(params.ifView ?? 0);
   setIfSurface(params.ifSurface ?? 0);
+  setIfShape(params.ifShape ?? 0);
   setWfMode(params.wfMode ?? 0);
   setWfAxis(params.wfAxis ?? 2);
   setWfLayout(params.wfLayout ?? 0);
 }
 // FLAT / 3D for the interference field. 3D makes it a solid: the canvas drag orbits.
+// Which interference rows apply: Height/Light for any 3D view, the FLAT/3D switch
+// and the drag hint for the plates, latitude/longitude for the globe.
+function ifRefreshRows() {
+  const globe = Math.round(params.ifShape) === 2, set = (id, on) => { const e = document.getElementById(id); if (e) e.hidden = !on; };
+  set('if-3d-rows', params.ifSurface === 1 || globe);
+  set('if-surf-row', !globe);
+  set('if-drag-row', !globe);
+  set('if-globe-rows', globe);
+  set('if-globe-z', globe && Math.round(params.ifFz || 0) > 0);
+}
+function setIfShape(m) {
+  setStageMode('ifShape', 'ifshape', 2, m);
+  ifRefreshRows();
+  document.body.classList.toggle('orbit', orbitable());
+  if (typeof refreshDepthChecks === 'function') refreshDepthChecks();
+  clearTrail();
+}
+document.querySelectorAll('.wave-btn[data-ifshape]').forEach(b => b.addEventListener('click', () => setIfShape(parseInt(b.dataset.ifshape))));
 function setIfSurface(m) {
   setStageMode('ifSurface', 'ifsurf', 1, m);
-  const rows = document.getElementById('if-3d-rows');
-  if (rows) rows.hidden = params.ifSurface !== 1;
+  ifRefreshRows();
   document.body.classList.toggle('orbit', orbitable());
   if (typeof refreshDepthChecks === 'function') refreshDepthChecks();
 }
