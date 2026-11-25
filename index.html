@@ -311,15 +311,17 @@
   /* ── Automation dock (/automate) ── */
   .auto-dock {
     position: absolute; left: 12px; right: 12px; bottom: 10px; z-index: 4;
-    height: var(--auto-h, 210px); display: grid; grid-template-rows: auto minmax(0, 1fr);
+    height: var(--auto-hh); display: grid; grid-template-rows: auto minmax(0, 1fr);
     background: rgba(13,13,17,0.94); border: 1px solid var(--border); border-radius: 6px;
     font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--label); overflow: hidden;
     pointer-events: auto;   /* the canvas area itself lets clicks through to the figure */
   }
   .auto-dock[hidden] { display: none; }
-  body.automate .pin-dock { bottom: calc(var(--auto-h, 210px) + 18px); }
-  body.automate #interval-label { bottom: calc(var(--auto-h, 210px) + 22px) !important; }
-  body.automate.has-dock #interval-label { bottom: calc(var(--auto-h, 210px) + var(--dock-h, 60px) + 26px) !important; }
+  /* The dock's drawn height: what the grip set, but never more than 45% of the screen. */
+  :root { --auto-hh: min(var(--auto-h, 210px), 45dvh); }
+  body.automate .pin-dock { bottom: calc(var(--auto-hh) + 18px); }
+  body.automate #interval-label { bottom: calc(var(--auto-hh) + 22px) !important; }
+  body.automate.has-dock #interval-label { bottom: calc(var(--auto-hh) + var(--dock-h, 60px) + 26px) !important; }
   .ad-grip { position: absolute; left: 0; right: 0; top: 0; height: 6px; cursor: ns-resize; touch-action: none; }
   .ad-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 7px 10px 6px; border-bottom: 1px solid var(--border); }
   .ad-btn { height: 26px; min-width: 26px; padding: 0 8px; border-radius: 4px; border: 1px solid var(--border); background: none; color: var(--text); font: inherit; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
@@ -1891,6 +1893,18 @@ input[type=range] { margin: 0; }
 .pin-btn[aria-pressed="true"] { color: var(--accent); }
 .lock-btn[aria-pressed="true"] { color: var(--accent2); }
 .sidebar { gap: 10px; width: 270px; min-width: 270px; }
+/* …except stacked under the figure on a narrow portrait screen, where the panel
+   takes the full width (the rule above would otherwise pin it to 270px). */
+@media (max-width: 860px) and (orientation: portrait) {
+  .sidebar { width: auto; min-width: 0; }
+  /* The automation dock gets its own band under the figure instead of covering
+     a figure that already has under half the screen. */
+  body.automate .canvas-area {
+    height: calc(clamp(180px, min(46dvh, 94vw), 560px) + var(--auto-hh));
+    padding-bottom: calc(8px + var(--auto-hh));
+  }
+  body.automate .auto-dock { left: 8px; right: 8px; bottom: 6px; }
+}
 
 /* ── Accessibility ───────────────────────────────────────────────────────────
    Small text in Highlight 2 uses a lighter tint of it; fills, borders and
@@ -2060,6 +2074,14 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
               <div class="param-header"><label>Falloff</label><span class="val" id="if-decay-val">0.30</span></div>
               <input type="range" id="if-decay" min="0" max="1" step="0.01" value="0.3">
             </div>
+            <div class="param-row">
+              <div class="param-header"><label>Z frequency</label><span class="val" id="if-fz-val">off</span></div>
+              <input type="range" id="if-fz" min="0" max="12" step="1" value="0" title="A third source, a sine at this frequency; 0 turns it off">
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>Z phase</label><span class="val" id="if-pz-val">0.00π</span></div>
+              <input type="range" id="if-pz" min="0" max="2" step="0.01" value="0">
+            </div>
           </div>
           <div class="adv-block" data-advgeo="10">
             <div class="vel-row"><span class="vel-label">Waterfall</span></div>
@@ -2089,7 +2111,7 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
             </div>
           </div>
           <div class="info-text" data-info-label="advanced geometries">
-            <strong>Lissajous knot</strong> adds a third sine on depth: fx : fy : Z frequency picks the knot; drag to orbit. <strong>Guilloché</strong> repeats the counter-current rosette in turned, shrinking layers. <strong>Delay embedding</strong> plots the X+Y signal against itself one delay later (and two delays later in 3D). <strong>Interference</strong>: X and Y each radiate ripples from a point, and you can drag either point on the canvas; Wavelength is a frequency-1 wave's, so a higher frequency gives shorter ripples. Animate the phase to set them moving. <strong>Pattern</strong> maps where the two arrive in step (bright) and out of step (dark): hyperbolas when fx = fy, ovals otherwise. <strong>3D</strong> raises either one into a lit relief: drag the canvas to orbit (the sources can be moved in FLAT). <strong>Waterfall</strong> stacks the wave's history: every change to the sound adds a line at the front and pushes the older ones back (STEP: one line per settled change; SWEEP: a line every few frames while it changes). The phase scrolls every line sideways and never adds one. Typing <code>/modes</code> in the search hides these again.
+            <strong>Lissajous knot</strong> adds a third sine on depth: fx : fy : Z frequency picks the knot; drag to orbit. <strong>Guilloché</strong> repeats the counter-current rosette in turned, shrinking layers. <strong>Delay embedding</strong> plots the X+Y signal against itself one delay later (and two delays later in 3D). <strong>Interference</strong>: X and Y each radiate ripples from a point, and you can drag either point on the canvas; Wavelength is a frequency-1 wave's, so a higher frequency gives shorter ripples. Animate the phase to set them moving. <strong>Pattern</strong> maps where the two arrive in step (bright) and out of step (dark): hyperbolas when fx = fy, ovals otherwise. <strong>Z frequency</strong> adds a third source, a sine like the Lissajous knot's depth oscillator, which you can drag like the other two. <strong>3D</strong> raises either one into a lit relief: drag the canvas to orbit (the sources can be moved in FLAT). <strong>Waterfall</strong> stacks the wave's history: every change to the sound adds a line at the front and pushes the older ones back (STEP: one line per settled change; SWEEP: a line every few frames while it changes). The phase scrolls every line sideways and never adds one. Typing <code>/modes</code> in the search hides these again.
           </div>
         </div>
         <div class="info-text" data-info-label="figure geometry">
@@ -3221,6 +3243,10 @@ let params = {
   ifAy: 0,
   ifBx: 0.15,      // interference: source B (the Y wave)
   ifBy: 0,
+  ifFz: 0,         // interference: third source Z, a sine at this frequency (0 = off)
+  ifPz: 0,         // interference: Z's phase, in π
+  ifCx: 0,         // interference: Z's position
+  ifCy: -0.3,
   ifLambda: 0.4,   // interference: wavelength of a frequency-1 wave, in half-widths
   ifDecay: 0.3,    // interference: amplitude falloff with distance
   ifView: 0,       // interference: 0 = moving ripples, 1 = still pattern (mean energy)
@@ -4063,14 +4089,19 @@ function drawAdvancedFigure(g, w, h, A, cx, cy, rx, ry, mirrors, shaded, paint, 
 const IF_RES_MAX = 560, IF_RES_MIN = 160, IF_LUT = 2048;
 let _ifCv = null, _ifCtx = null, _ifImg = null, _ifR = 0;
 let _ifP1 = null, _ifP2 = null, _ifW1 = null, _ifW2 = null, _ifGeoKey = '', _ifPatKey = '';
+let _ifP3 = null, _ifW3 = null;   // the third source (Z), when on
 const _ifLX = new Float32Array(IF_LUT + 1), _ifLY = new Float32Array(IF_LUT + 1);
 function hexRgb(hex) {
   const h = String(hex || '#000').replace('#', '');
   const f = h.length === 3 ? h.split('').map(c => c + c).join('') : h.slice(0, 6);
   return [0, 2, 4].map(i => parseInt(f.slice(i, i + 2), 16) || 0);
 }
+// Two sources, or three when Z is on.
+function ifZOn() { return Math.round(params.ifFz || 0) > 0; }
 function ifSources() {
-  return [[params.ifAx ?? -0.15, params.ifAy ?? 0], [params.ifBx ?? 0.15, params.ifBy ?? 0]];
+  const s = [[params.ifAx ?? -0.15, params.ifAy ?? 0], [params.ifBx ?? 0.15, params.ifBy ?? 0]];
+  if (ifZOn()) s.push([params.ifCx ?? 0, params.ifCy ?? -0.3]);
+  return s;
 }
 // The field itself, at R×R points over the box: the signed wave s in −1..1 for
 // WAVE, the in-step map e in 0..1 for PATTERN. Distances and weights are cached
@@ -4082,6 +4113,7 @@ function ifField(R, phase, zoom) {
     _ifCtx = _ifCv.getContext('2d'); _ifImg = _ifCtx.createImageData(R, R);
     _ifP1 = new Float32Array(R * R); _ifP2 = new Float32Array(R * R);
     _ifW1 = new Float32Array(R * R); _ifW2 = new Float32Array(R * R);
+    _ifP3 = new Float32Array(R * R); _ifW3 = new Float32Array(R * R);
     _ifVal = new Float32Array(R * R);
     _ifGeoKey = _ifPatKey = '';
   }
@@ -4093,9 +4125,10 @@ function ifField(R, phase, zoom) {
   }
   _ifLX[IF_LUT] = _ifLX[0]; _ifLY[IF_LUT] = _ifLY[0];
   const { fx, fy } = params, z = Math.max(0.05, zoom || 1);
-  const [[ax, ay], [bx, by]] = ifSources();
+  const src = ifSources(), [[ax, ay], [bx, by]] = src;
+  const zOn = src.length > 2, fz = zOn ? Math.round(params.ifFz) : 0, [cx, cy] = zOn ? src[2] : [0, 0];
   const lam = Math.max(0.01, params.ifLambda ?? 0.4), decay = (params.ifDecay ?? 0.3) * 6;
-  const geoKey = [R, z, ax, ay, bx, by, fx, fy, lam, decay].join();
+  const geoKey = [R, z, ax, ay, bx, by, fx, fy, lam, decay].join() + (zOn ? '|' + [fz, cx, cy].join() : '');
   const N = R * R;
   if (geoKey !== _ifGeoKey) {
     _ifGeoKey = geoKey; _ifPatKey = '';
@@ -4105,8 +4138,17 @@ function ifField(R, phase, zoom) {
       for (let px = 0; px < R; px++, p++) {
         const u = ((px + 0.5) / R * 2 - 1) / z;
         const r1 = Math.hypot(u - ax, v - ay), r2 = Math.hypot(u - bx, v - by);
-        const a1 = 1 / (1 + decay * r1), a2 = 1 / (1 + decay * r2), n = a1 + a2;
-        _ifP1[p] = kx * r1; _ifP2[p] = ky * r2; _ifW1[p] = a1 / n; _ifW2[p] = a2 / n;
+        const a1 = 1 / (1 + decay * r1), a2 = 1 / (1 + decay * r2);
+        if (!zOn) {
+          const n = a1 + a2;
+          _ifP1[p] = kx * r1; _ifP2[p] = ky * r2; _ifW1[p] = a1 / n; _ifW2[p] = a2 / n;
+        } else {
+          // Z: a plain sine at fz, like the Lissajous knot's depth oscillator. Its
+          // phase lag is kept in cycles (fz / λ per unit distance).
+          const r3 = Math.hypot(u - cx, v - cy), a3 = 1 / (1 + decay * r3), n = a1 + a2 + a3;
+          _ifP1[p] = kx * r1; _ifP2[p] = ky * r2; _ifP3[p] = fz / lam * r3;
+          _ifW1[p] = a1 / n; _ifW2[p] = a2 / n; _ifW3[p] = a3 / n;
+        }
       }
     }
   }
@@ -4115,6 +4157,10 @@ function ifField(R, phase, zoom) {
   if (!pattern) {
     const t = phase / 2 * IF_LUT, tx = fx * t, ty = fy * t;   // δπ as a share of one cycle
     for (let p = 0; p < N; p++) _ifVal[p] = _ifW1[p] * lerp(_ifLX, tx - _ifP1[p]) + _ifW2[p] * lerp(_ifLY, ty - _ifP2[p]);
+    if (zOn) {
+      const tz = fz * phase / 2, pz = (params.ifPz || 0) * Math.PI;
+      for (let p = 0; p < N; p++) _ifVal[p] += _ifW3[p] * Math.sin(TAU * (tz - _ifP3[p]) + pz);
+    }
     _ifPatKey = '';
   } else {
     // Where the two arrive in step (bright) and out of step (dark): the phase
@@ -4122,7 +4168,18 @@ function ifField(R, phase, zoom) {
     // fx = fy this is the still interference pattern, hyperbolas round the two
     // sources; with different frequencies it is the family of ovals along which
     // the two keep a fixed phase relation, at the current δ.
-    const patKey = geoKey + '|' + phase.toFixed(4);
+    const patKey = geoKey + '|' + phase.toFixed(4) + (zOn ? '|' + (params.ifPz || 0) : '');
+    if (patKey !== _ifPatKey && zOn) {
+      // Three sources: |Σ wₖ·e^{iφₖ}|², the same in-step measure over three phasors.
+      _ifPatKey = patKey;
+      const T = phase / 2 * TAU, pz = (params.ifPz || 0) * Math.PI, k = TAU / IF_LUT;
+      for (let p = 0; p < N; p++) {
+        const f1 = fx * T - _ifP1[p] * k, f2 = fy * T - _ifP2[p] * k, f3 = fz * T - _ifP3[p] * TAU + pz;
+        const re = _ifW1[p] * Math.cos(f1) + _ifW2[p] * Math.cos(f2) + _ifW3[p] * Math.cos(f3);
+        const im = _ifW1[p] * Math.sin(f1) + _ifW2[p] * Math.sin(f2) + _ifW3[p] * Math.sin(f3);
+        _ifVal[p] = re * re + im * im;
+      }
+    }
     if (patKey !== _ifPatKey) {
       _ifPatKey = patKey;
       const dt = (fx - fy) * phase / 2 * TAU;
@@ -4133,7 +4190,7 @@ function ifField(R, phase, zoom) {
       }
     }
   }
-  return { pattern, z, sources: [[ax, ay], [bx, by]] };
+  return { pattern, z, sources: src };
 }
 // The relief's height at a field point: the wave itself, or the in-step map
 // stretched to −1..1.
@@ -4186,7 +4243,7 @@ function drawInterference(g, w, h, phase, zoom) {
     g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
     g.beginPath(); g.arc(x, y, r * 2.6, 0, TAU); g.stroke();
     g.font = `${Math.max(10, Math.round(w * 0.016))}px 'IBM Plex Mono', monospace`;
-    g.fillText(i ? 'Y' : 'X', x + r * 3.4, y - r * 2);
+    g.fillText('XYZ'[i], x + r * 3.4, y - r * 2);
   });
   g.restore();
 }
@@ -4255,7 +4312,8 @@ function m4mul(a, b) {   // column-major 4×4
 function drawIfRelief(g, w, h, phase, zoom) {
   const G = ifrGL(); if (!G) return false;
   const gl = G.gl, M = IFR_M, dpr = viewDpr || 1;
-  const F = ifField(M, phase, zoom), V = _ifVal, D = G.data;
+  // The slab always carries the whole field; zoom scales the slab itself (below).
+  const F = ifField(M, phase, 1), V = _ifVal, D = G.data;
   const H = ifReliefH(), step = 2 / M;
   const zAt = (i, j) => H * ifHeight(V[j * M + i], F.pattern);
   // Surface. World: x right, y up (the field's v points down the screen), z up.
@@ -4283,13 +4341,23 @@ function drawIfRelief(g, w, h, phase, zoom) {
       D.set([ex, ey, base, nrm[0], nrm[1], 0], o); o += 6;
     }
   });
-  // Camera.
-  const W = Math.max(2, Math.round(w * dpr)), Hh = Math.max(2, Math.round(h * dpr));
+  // Render over the target's whole drawable area, not just the box, so a turned
+  // or zoomed slab can spill past the box's edges like every other figure does.
+  // left/top/right/bottom are in box units; the box keeps its place via `A`.
+  const TF = g.getTransform(), ux = Math.abs(TF.a) || 1, uy = Math.abs(TF.d) || 1, cvW = g.canvas.width, cvH = g.canvas.height;
+  let left = Math.max(-2 * w, Math.min(0, -TF.e / ux)), right = Math.min(3 * w, Math.max(w, (cvW - TF.e) / ux));
+  let top = Math.max(-2 * h, Math.min(0, -TF.f / uy)), bottom = Math.min(3 * h, Math.max(h, (cvH - TF.f) / uy));
+  if (!Number.isFinite(left + right + top + bottom)) { left = 0; right = w; top = 0; bottom = h; }
+  const RW = right - left, RH = bottom - top, px = Math.min(ux, 4096 / Math.max(RW, RH));   // device pixels per box unit
+  const W = Math.max(2, Math.round(RW * px)), Hh = Math.max(2, Math.round(RH * px));
   if (G.cv.width !== W || G.cv.height !== Hh) { G.cv.width = W; G.cv.height = Hh; }
+  const A = new Float32Array([w / RW, 0, 0, 0, 0, h / RH, 0, 0, 0, 0, 1, 0,
+    (w / 2 - left) / RW * 2 - 1, 1 - (h / 2 - top) / RH * 2, 0, 1]);
+  // Camera.
   const yaw = (params.rotateAngle || 0) * Math.PI / 180;
   const pitch = Math.max(0, Math.min(85, 55 + (params.tiltAngle || 0))) * Math.PI / 180;
   const fov = 35 * Math.PI / 180, f = 1 / Math.tan(fov / 2), dist = 1.12 * f + 0.35, near = 0.1, far = 20;
-  const P = new Float32Array([f * Hh / W, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) / (near - far), -1, 0, 0, 2 * far * near / (near - far), 0]);
+  const P = m4mul(A, new Float32Array([f * h / w, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) / (near - far), -1, 0, 0, 2 * far * near / (near - far), 0]));
   const cz = Math.cos(yaw), sz = Math.sin(yaw), cx = Math.cos(-pitch), sx = Math.sin(-pitch);
   const Rz = new Float32Array([cz, sz, 0, 0, -sz, cz, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
   const Rx = new Float32Array([1, 0, 0, 0, 0, cx, sx, 0, 0, -sx, cx, 0, 0, 0, 0, 1]);
@@ -4316,7 +4384,7 @@ function drawIfRelief(g, w, h, phase, zoom) {
   gl.drawElements(gl.TRIANGLES, G.nIdx, gl.UNSIGNED_INT, 0);
   g.save();
   g.imageSmoothingEnabled = true;
-  g.drawImage(G.cv, 0, 0, w, h);
+  g.drawImage(G.cv, left, top, RW, RH);
   g.restore();
   return true;
 }
@@ -4458,7 +4526,9 @@ document.addEventListener('pointerdown', e => {
 window.addEventListener('pointermove', e => {
   if (ifDrag && e.pointerId === ifDrag.id) {
     const [u, v] = ifPointerBox(e), c = x => Math.max(-1.5, Math.min(1.5, x));
-    if (ifDrag.i === 0) { params.ifAx = c(u); params.ifAy = c(v); } else { params.ifBx = c(u); params.ifBy = c(v); }
+    if (ifDrag.i === 0) { params.ifAx = c(u); params.ifAy = c(v); }
+    else if (ifDrag.i === 1) { params.ifBx = c(u); params.ifBy = c(v); }
+    else { params.ifCx = c(u); params.ifCy = c(v); }
     e.preventDefault();
     return;
   }
@@ -7271,8 +7341,10 @@ function resize() {
   const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
   const size = Math.max(80, Math.min(r.width - padX, r.height - padY, 700));
   figBox.size = size;
-  figBox.x = r.left + (r.width - size) / 2;
-  figBox.y = r.top + (r.height - size) / 2;
+  // Centred in the content box (the padding can be uneven: on a phone the
+  // automation dock takes a band at the bottom of the area).
+  figBox.x = r.left + parseFloat(cs.paddingLeft) + (r.width - padX - size) / 2;
+  figBox.y = r.top + parseFloat(cs.paddingTop) + (r.height - padY - size) / 2;
   waveBox.x = r.left + parseFloat(cs.paddingLeft);
   waveBox.y = r.top + parseFloat(cs.paddingTop);
   waveBox.w = size;
@@ -8703,6 +8775,8 @@ const ADV_SLIDERS = [
   ['if-decay',   'ifDecay',   v => v.toFixed(2)],
   ['if-relief',  'ifRelief',  v => (+v).toFixed(2)],
   ['if-light',   'ifLight',   v => Math.round(v) + '°'],
+  ['if-fz',      'ifFz',      v => Math.round(v) ? String(Math.round(v)) : 'off'],
+  ['if-pz',      'ifPz',      v => (+v).toFixed(2) + 'π'],
   ['wf-lines',   'wfLines',   v => String(Math.round(v))],
   ['wf-height',  'wfHeight',  v => (+v).toFixed(1)],
 ];
@@ -8712,7 +8786,7 @@ ADV_SLIDERS.forEach(([id, key, fmt]) => {
   el.addEventListener('input', () => { params[key] = +el.value; if (out) out.textContent = fmt(+el.value); clearTrail(); });
 });
 document.getElementById('if-reset').addEventListener('click', () => {
-  ['ifAx', 'ifAy', 'ifBx', 'ifBy'].forEach(k => { params[k] = PARAM_DEFAULTS[k]; });
+  ['ifAx', 'ifAy', 'ifBx', 'ifBy', 'ifCx', 'ifCy'].forEach(k => { params[k] = PARAM_DEFAULTS[k]; });
 });
 function setEmbDim(m) {
   m = Math.round(+m) === 3 ? 3 : 2;
@@ -12017,7 +12091,7 @@ function tickAutomation(dt) {
 }
 function paintPlayhead() {
   const ph = document.getElementById('ad-playhead'), svg = ph && ph.ownerSVGElement;
-  if (ph && svg) { const x = AT.u * (+svg.getAttribute('width')); ph.setAttribute('x1', x); ph.setAttribute('x2', x); }
+  if (ph && svg) { const x = (+svg.dataset.x0 || 0) + AT.u * (+svg.dataset.tw || +svg.getAttribute('width')); ph.setAttribute('x1', x); ph.setAttribute('x2', x); }
   const pos = document.getElementById('ad-pos');
   if (pos) {
     const beats = AT.u * AUTO.bars * 4;
@@ -12042,7 +12116,7 @@ function buildAutoDock() {
     e.preventDefault(); grip.setPointerCapture(e.pointerId);
     const y0 = e.clientY, h0 = AUTO.dockH;
     grip.onpointermove = ev => { AUTO.dockH = Math.max(120, Math.min(window.innerHeight * 0.6, h0 - (ev.clientY - y0))); document.body.style.setProperty('--auto-h', AUTO.dockH + 'px'); };
-    grip.onpointerup = () => { grip.onpointermove = null; grip.onpointerup = null; autoSave(); buildAutoTimeline(); };
+    grip.onpointerup = () => { grip.onpointermove = null; grip.onpointerup = null; autoSave(); buildAutoTimeline(); resize(); };
   });
   const head = el('div', { class: 'ad-head' });
   const rew = el('button', { type: 'button', class: 'ad-btn', 'aria-label': 'Back to bar 1', title: 'Back to bar 1' }); rew.innerHTML = AD_ICON.rew;
@@ -12103,19 +12177,20 @@ function buildAutoTimeline() {
   // Timeline.
   const NS = 'http://www.w3.org/2000/svg', mk = (t, a) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); return e; };
   const svg = mk('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: 'group', 'aria-label': 'Automation timeline' });
-  const bars = AUTO.bars, bw = W / bars, grid = 'rgba(255,255,255,0.07)', tick = 'rgba(255,255,255,0.16)';
+  const X0 = 8, TW = W - 16;   // inset, so the end points can be grabbed
+  const bars = AUTO.bars, bw = TW / bars, grid = 'rgba(255,255,255,0.07)', tick = 'rgba(255,255,255,0.16)';
   for (let i = 0; i <= bars; i++) {
-    svg.appendChild(mk('line', { x1: i * bw, y1: 0, x2: i * bw, y2: H, stroke: grid }));
-    for (let q = 1; q < 4 && i < bars; q++) svg.appendChild(mk('line', { x1: i * bw + q * bw / 4, y1: AD_RULER - 5, x2: i * bw + q * bw / 4, y2: AD_RULER, stroke: tick }));
-    if (i < bars) { const t = mk('text', { x: i * bw + 5, y: 15, fill: 'currentColor', 'font-size': 10 }); t.textContent = String(i + 1); svg.appendChild(t); }
+    svg.appendChild(mk('line', { x1: X0 + i * bw, y1: 0, x2: X0 + i * bw, y2: H, stroke: grid }));
+    for (let q = 1; q < 4 && i < bars; q++) svg.appendChild(mk('line', { x1: X0 + i * bw + q * bw / 4, y1: AD_RULER - 5, x2: X0 + i * bw + q * bw / 4, y2: AD_RULER, stroke: tick }));
+    if (i < bars) { const t = mk('text', { x: X0 + i * bw + 5, y: 15, fill: 'currentColor', 'font-size': 10 }); t.textContent = String(i + 1); svg.appendChild(t); }
   }
   const ruler = mk('rect', { x: 0, y: 0, width: W, height: AD_RULER, fill: 'transparent', style: 'cursor:pointer' });
-  ruler.addEventListener('pointerdown', e => { const r = svg.getBoundingClientRect(); autoSeek((e.clientX - r.left) / W); });
+  ruler.addEventListener('pointerdown', e => { const r = svg.getBoundingClientRect(); autoSeek((e.clientX - r.left - X0) / TW); });
   svg.appendChild(ruler);
   for (let j = 0; j <= AUTO.lanes.length; j++) svg.appendChild(mk('line', { x1: 0, y1: AD_RULER + j * AD_LANE_H, x2: W, y2: AD_RULER + j * AD_LANE_H, stroke: grid }));
   // Pads.
   AUTO.pads.forEach((p, i) => {
-    const x = p.start * bw, w = Math.max(10, p.len * bw), y = AD_RULER + 5, h = AD_LANE_H - 10;
+    const x = X0 + p.start * bw, w = Math.max(10, p.len * bw), y = AD_RULER + 5, h = AD_LANE_H - 10;
     const g = mk('g', { tabindex: 0, role: 'button', style: 'cursor:grab', 'aria-label': `${p.name} at bar ${(p.start + 1).toFixed(2)}, ${p.len} bars. Enter recalls it, Delete removes it.` });
     g.appendChild(mk('rect', { x: x + 1, y, width: w - 2, height: h, rx: 4, fill: accent, 'fill-opacity': AT.sel === i ? 0.95 : 0.6, stroke: AT.sel === i ? '#fff' : 'none', 'stroke-width': 1.5 }));
     if (p.morph > 0) g.appendChild(mk('path', { d: `M${x + 1} ${y + h} L${x + Math.min(w - 2, p.morph * bw)} ${y} L${x + Math.min(w - 2, p.morph * bw)} ${y + h} Z`, fill: '#000', 'fill-opacity': 0.22 }));
@@ -12151,25 +12226,26 @@ function buildAutoTimeline() {
     const bg = mk('rect', { x: 0, y: top, width: W, height: AD_LANE_H, fill: 'transparent', style: 'cursor:copy' });
     bg.addEventListener('pointerdown', e => {
       const r = svg.getBoundingClientRect();
-      l.pts.push([(e.clientX - r.left) / W, laneClamp(key, fromY(e.clientY - r.top))]);
+      l.pts.push([Math.max(0, Math.min(1, (e.clientX - r.left - X0) / TW)), laneClamp(key, fromY(e.clientY - r.top))]);
       l.pts.sort((a, b) => a[0] - b[0]); buildAutoTimeline(); autoSave();
     });
     svg.appendChild(bg);
-    const d = 'M0 ' + y(l.pts[0][1]).toFixed(1) + l.pts.map(([u, v]) => 'L' + (u * W).toFixed(1) + ' ' + y(v).toFixed(1)).join('') + 'L' + W + ' ' + y(l.pts[l.pts.length - 1][1]).toFixed(1);
+    const d = 'M0 ' + y(l.pts[0][1]).toFixed(1) + l.pts.map(([u, v]) => 'L' + (X0 + u * TW).toFixed(1) + ' ' + y(v).toFixed(1)).join('') + 'L' + W + ' ' + y(l.pts[l.pts.length - 1][1]).toFixed(1);
     svg.appendChild(mk('path', { d: d + `L${W} ${top + AD_LANE_H}L0 ${top + AD_LANE_H}Z`, fill: accent, 'fill-opacity': 0.1, 'pointer-events': 'none' }));
     svg.appendChild(mk('path', { d, fill: 'none', stroke: accent, 'stroke-width': 1.6, 'pointer-events': 'none' }));
     l.pts.forEach((pt, k) => {
-      const c = mk('circle', { cx: pt[0] * W, cy: y(pt[1]), r: 4.5, fill: '#0c0c0e', stroke: accent, 'stroke-width': 1.6, style: 'cursor:grab' });
+      const c = mk('circle', { cx: X0 + pt[0] * TW, cy: y(pt[1]), r: 4.5, fill: '#0c0c0e', stroke: accent, 'stroke-width': 1.6, style: 'cursor:grab' });
       c.addEventListener('pointerdown', e => {
         e.preventDefault(); e.stopPropagation(); c.setPointerCapture(e.pointerId);
         const r = svg.getBoundingClientRect();
-        c.onpointermove = ev => { pt[0] = Math.max(0, Math.min(1, (ev.clientX - r.left) / W)); pt[1] = laneClamp(key, fromY(ev.clientY - r.top)); c.setAttribute('cx', pt[0] * W); c.setAttribute('cy', y(pt[1])); };
+        c.onpointermove = ev => { pt[0] = Math.max(0, Math.min(1, (ev.clientX - r.left - X0) / TW)); pt[1] = laneClamp(key, fromY(ev.clientY - r.top)); c.setAttribute('cx', X0 + pt[0] * TW); c.setAttribute('cy', y(pt[1])); };
         c.onpointerup = () => { c.onpointermove = null; c.onpointerup = null; l.pts.sort((a, b) => a[0] - b[0]); buildAutoTimeline(); autoSave(); };
       });
       c.addEventListener('dblclick', e => { e.stopPropagation(); if (l.pts.length > 1) { l.pts.splice(k, 1); buildAutoTimeline(); autoSave(); } });
       svg.appendChild(c);
     });
   });
+  svg.dataset.x0 = X0; svg.dataset.tw = TW;
   svg.appendChild(mk('line', { id: 'ad-playhead', x1: 0, y1: 0, x2: 0, y2: H, stroke: '#ff8c7a', 'stroke-width': 1.5, 'pointer-events': 'none' }));
   lanesEl.textContent = ''; lanesEl.appendChild(svg);
   paintPlayhead();
@@ -12182,6 +12258,7 @@ function setAutomate(on, reveal) {
   const dock = document.getElementById('auto-dock');
   if (dock) dock.hidden = !autoOn;
   if (!autoOn) setAutoPlaying(false);
+  if (typeof resize === 'function' && typeof canvas !== 'undefined') resize();   // the phone layout gives the dock its own band
   if (autoOn) {
     // First visit with nothing saved: one example lane, so the dock shows what it does.
     if (!AUTO.lanes.length && !AUTO.pads.length && !localStorage.getItem(AUTO_KEY)) {
