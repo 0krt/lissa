@@ -2795,7 +2795,11 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
             The figure at evenly spaced phase positions, stacked bottom to top: one full δ rotation becomes a column. Drag to orbit. Replaces the construction view while on; works in every flat geometry.
           </div>
           <div class="info-text tc-keep tc-only" data-info-label="the torus slices">
-            On the torus the column becomes the tube's cross-sections: the shape Y traces through the hole, placed round the ring and turned a little further at each step, so the slices roll along the donut. Turns sets how far they roll in one lap.
+            On the torus the column becomes the tube's cross-sections, placed along the knot: X (its frequency, waveform and the phase) sets where each slice sits round the ring, so animating the phase slides them along the donut. Each slice is the shape Y traces through the hole, starting where the knot passes; Turns rolls them further.
+          </div>
+          <div class="checkbox-row tc-keep tc-only">
+            <input type="checkbox" id="col-knot" checked>
+            <label for="col-knot">Show knot</label>
           </div>
           <div class="param-row tc-keep">
             <div class="param-header"><label>Slices</label><span class="val" id="col-slices-val">48</span></div>
@@ -3285,6 +3289,7 @@ let params = {
   wavesMode: 0,    // Waves geometry: 0 = the waves, 1 = the waterfall of their history
   ifTaperCurve: 0, // interference taper: 0 exponential, 1 gaussian, 2 linear
   ifTaperStart: 0, // interference taper: distance before the fade begins
+  colKnot: 1,      // torus column: draw the knot through its slices
   guiLayers: 24,   // guilloché: copies of the rosette
   guiTwist: 0.08,  // guilloché: total turn across all layers, in turns
   guiShrink: 0.15, // guilloché: how much smaller the last layer is than the first
@@ -4098,40 +4103,68 @@ function advPoints(geo, sx, sxq, sy, syq, res, periodFactor, cyclesX, cap, base)
   return { n, breaks, x: X, y: Y, z: Z };
 }
 const ADV_YAW = 0.6;
-// Torus column: the tube's cross-sections rolling round the ring. Each slice is
-// one whole cycle of Y (the shape Y traces through the hole: a circle for a sine,
-// bent by Y's waveform and synthesis), placed at ring angle θ = 2πk/n with the X
-// rotor pinned there, and started Turns·k/n of a cycle further on than the slice
-// before, so the slices roll along the donut.
-const TORUS_SLICE_N = 256, TC_TILT = 0.95, TC_TC = Math.cos(TC_TILT), TC_TS = Math.sin(TC_TILT);
+// Torus column: the tube's cross-sections, placed along the torus knot itself.
+// Slice k sits where the figure is at t_k = k/n of its period: X's rotor (with
+// its waveform, frequency and the phase δ) sets the ring position, so X winds the
+// slices round the donut and δ slides them along it. Each slice is one whole
+// cycle of Y (the shape Y traces through the hole: a circle for a sine), started
+// at the knot's own Y phase there plus Turns·k/n of a cycle, so the slices roll.
+// The knot is drawn through them unless Show knot is off.
+const TORUS_SLICE_N = 256, TC_TILT = 0.95, TC_TC = Math.cos(TC_TILT), TC_TS = Math.sin(TC_TILT), TC_KNOT_N = 2400;
 function drawTorusSlices(g, w, h, phase, zoom) {
+  const { fx, fy } = params, ph = (phase || 0) * Math.PI;
+  const periodFactor = lcm(fx, fy) / Math.min(fx, fy) * lapDiv(), span = TAU * periodFactor;
   const N = TORUS_SLICE_N, ys = new Float64Array(N), yq = new Float64Array(N);
   for (let i = 0; i < N; i++) { const t = TAU * i / N; ys[i] = processWave(t, t, waveTypeY, 'y'); yq[i] = processWave(t + Math.PI / 2, t, waveTypeY, 'y'); }
-  if (filterIsOn() && onAxis('filterAxis', 'y')) {
-    const wY = TAU * Math.min(0.49, filterHarmonics() / N), c = biquadCoeffs(filterType, wY, params.filterQ);
+  const filtY = filterIsOn() && onAxis('filterAxis', 'y');
+  if (filtY) {
+    const c = biquadCoeffs(filterType, TAU * Math.min(0.49, filterHarmonics() / N), params.filterQ);
     filterPeriodic(ys, N, c, filterAxisMix('y')); filterPeriodic(yq, N, c, filterAxisMix('y'));
   }
+  // The knot over one period (it also gives each slice its ring position).
+  const K = TC_KNOT_N, kx = new Float64Array(K + 1), kxq = new Float64Array(K + 1), ky = new Float64Array(K + 1), kyq = new Float64Array(K + 1);
+  for (let i = 0; i <= K; i++) {
+    const t = i / K * span;
+    kx[i] = processWave(fx * t + ph, fx * t, waveTypeX, 'x'); kxq[i] = processWave(fx * t + ph + Math.PI / 2, fx * t, waveTypeX, 'x');
+    ky[i] = processWave(fy * t, fy * t, waveTypeY, 'y'); kyq[i] = processWave(fy * t + Math.PI / 2, fy * t, waveTypeY, 'y');
+  }
+  if (filterIsOn()) {
+    if (onAxis('filterAxis', 'x')) { const c = biquadCoeffs(filterType, TAU * Math.min(0.49, filterHarmonics() * fx * periodFactor / K), params.filterQ); filterPeriodic(kx, K + 1, c, filterAxisMix('x')); filterPeriodic(kxq, K + 1, c, filterAxisMix('x')); }
+    if (filtY) { const c = biquadCoeffs(filterType, TAU * Math.min(0.49, filterHarmonics() * fy * periodFactor / K), params.filterQ); filterPeriodic(ky, K + 1, c, filterAxisMix('y')); filterPeriodic(kyq, K + 1, c, filterAxisMix('y')); }
+  }
+  const tilt = (o, X, Y, Z, ax, ay, az) => { ax[o] = X; ay[o] = Y * TC_TC - Z * TC_TS; az[o] = Y * TC_TS + Z * TC_TC; };
+  // Slices.
   const n = Math.max(2, Math.min(160, Math.round(params.colSlices || 48))), turns = +params.colTurns || 0;
   const per = N + 1, total = n * per;
   if (_advX.length < total) { _advX = new Float64Array(total); _advY = new Float64Array(total); _advZ = new Float64Array(total); }
   const breaks = [];
   for (let k = 0, o = 0; k < n; k++) {
-    const th = TAU * k / n, xs = Math.sin(th), xq = Math.cos(th), sh = Math.round(turns * k / n * N + (phase || 0) / 2 * N);
+    const ik = Math.round(k / n * K), xs = kx[ik], xq = kxq[ik];
+    const yStart = (fy * (k / n) * periodFactor) % 1;   // the knot's Y phase here, in cycles
+    const sh = Math.round((yStart + turns * k / n) * N);
     breaks.push(o);
     for (let i = 0; i <= N; i++, o++) {
       const j = (((i + sh) % N) + N) % N;
       geoPoint(4, xs, xq, ys[j], yq[j], _G);
-      // Tipped back so the upright cross-sections read as rings, not edges.
-      _advX[o] = _G.x; _advY[o] = _G.y * TC_TC - _G.z * TC_TS; _advZ[o] = _G.y * TC_TS + _G.z * TC_TC;
+      tilt(o, _G.x, _G.y, _G.z, _advX, _advY, _advZ);
     }
   }
   const pad = Math.min(w, h) * 0.034, z = zoom || 1, rx = (w / 2 - pad) * z, ry = (h / 2 - pad) * z;
   beginFigureXform(phase, false, rx / ry);
-  const paint = figPaint(g, w, h), lw = params.lineWidth;
+  const paint = figPaint(g, w, h), lw = params.lineWidth, mirrors = figureMirrors(), shaded = !!params.depthShade && !_eraseMode;
   g.strokeStyle = paint; g.lineWidth = lw; g.lineJoin = 'round'; g.lineCap = 'round';
   const dashOn = !!applyDotDash(g, params.dotsLine ?? 1, lw);
-  drawAdvancedFigure(g, w, h, { n: total, breaks, x: _advX, y: _advY, z: _advZ }, w / 2, h / 2, rx, ry,
-                     figureMirrors(), !!params.depthShade && !_eraseMode, paint, lw);
+  const knot = params.colKnot ?? 1;
+  g.save();
+  if (knot) g.globalAlpha *= 0.5;   // the slices recede so the knot through them reads
+  drawAdvancedFigure(g, w, h, { n: total, breaks, x: _advX, y: _advY, z: _advZ }, w / 2, h / 2, rx, ry, mirrors, shaded, paint, lw);
+  g.restore();
+  if (knot) {
+    const KX = new Float64Array(K + 1), KY = new Float64Array(K + 1), KZ = new Float64Array(K + 1);
+    for (let i = 0; i <= K; i++) { geoPoint(4, kx[i], kxq[i], ky[i], kyq[i], _G); tilt(i, _G.x, _G.y, _G.z, KX, KY, KZ); }
+    g.lineWidth = lw * 1.4;
+    drawAdvancedFigure(g, w, h, { n: K + 1, breaks: [0], x: KX, y: KY, z: KZ }, w / 2, h / 2, rx, ry, mirrors, shaded, paint, lw * 1.4);
+  }
   if (dashOn) { g.setLineDash([]); g.lineWidth = lw; }
 }
 // Stroke an advPoints() list through the shared view transform, with mirrors and,
@@ -9483,6 +9516,7 @@ document.getElementById('column-view').addEventListener('change', e => {
   clearTrail();
 });
 document.getElementById('col-hide').addEventListener('change', e => { params.colHide = e.target.checked ? 1 : 0; });
+document.getElementById('col-knot').addEventListener('change', e => { params.colKnot = e.target.checked ? 1 : 0; clearTrail(); });
 document.getElementById('col-core').addEventListener('change', e => { params.colCore = e.target.checked ? 1 : 0; refreshVisibility(); });
 COLUMN_SLIDERS.forEach(([id, key, fmt]) => {
   document.getElementById(id).addEventListener('input', e => {
@@ -10711,6 +10745,7 @@ function refreshAllControls() {
   document.getElementById('column-view').checked = !!params.columnView;
   document.getElementById('col-hide').checked = !!params.colHide;
   document.getElementById('col-core').checked = !!params.colCore;
+  document.getElementById('col-knot').checked = (params.colKnot ?? 1) !== 0;
   COLUMN_SLIDERS.forEach(([id, key, fmt]) => setS(id, params[key] ?? PARAM_DEFAULTS[key], id + '-val', fmt));
   setColSurface(params.colSurface ?? 0);
   setColAxis(params.colAxis ?? 0);
