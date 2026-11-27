@@ -204,6 +204,9 @@
     content: ''; position: absolute; left: -5px; top: 9px; bottom: 11px; width: 1px; background: var(--border);
   }
   .tab-panel { display: flex; flex-direction: column; gap: 16px; }
+  body.torus-col #column-controls > :not(.tc-keep) { display: none !important; }
+  body:not(.torus-col) #column-controls > .tc-only { display: none !important; }
+  #gui-block[hidden], #gui-rows[hidden], #waves-mode-row[hidden], #wf-block[hidden] { display: none !important; }
   .tab-panel[hidden], .sidebar .section[hidden], .view-tg[hidden], .adv-only[hidden], .adv-block[hidden], #wf-layout-row[hidden], #if-3d-rows[hidden], #if-surf-row[hidden], #if-drag-row[hidden], #if-globe-rows[hidden], #if-globe-z[hidden] { display: none !important; }
   body.if-hover, body.if-hover * { cursor: grab; }
   body.if-dragging, body.if-dragging * { cursor: grabbing !important; user-select: none; }
@@ -1993,27 +1996,25 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
           <div class="param-header" style="margin-bottom:4px"><label>Advanced</label></div>
           <div class="wave-toggle geo-toggle" style="margin-bottom:6px" role="group" aria-label="Advanced geometry">
             <button class="wave-btn" data-geo="6" title="Lissajous knot — X, Y and a third sine on depth (3D)" aria-label="Lissajous knot"></button>
-            <button class="wave-btn" data-geo="7" title="Guilloché — counter-current rosette repeated in turned layers" aria-label="Guilloché"></button>
             <button class="wave-btn" data-geo="8" title="Delay embedding — the X+Y signal plotted against its own delayed copy" aria-label="Delay embedding"></button>
             <button class="wave-btn" data-geo="9" title="Interference — X and Y radiate ripples from two points" aria-label="Interference"></button>
-            <button class="wave-btn" data-geo="10" title="Waterfall — the wave's history as stacked lines" aria-label="Waterfall"></button>
           </div>
         </div>
         <div id="geo-hint" style="font-size:10.5px;color:var(--label);margin-bottom:10px;line-height:1.45"></div>
-        <div class="mod-group adv-only" id="adv-params" hidden>
-          <div class="adv-block" data-advgeo="6">
-            <div class="vel-row"><span class="vel-label">Lissajous knot</span></div>
-            <div class="param-row">
-              <div class="param-header"><label>Z frequency</label><span class="val" id="knot-fz-val">5</span></div>
-              <input type="range" id="knot-fz" min="1" max="12" step="1" value="5">
-            </div>
-            <div class="param-row">
-              <div class="param-header"><label>Z phase</label><span class="val" id="knot-pz-val">0.50π</span></div>
-              <input type="range" id="knot-pz" min="0" max="2" step="0.01" value="0.5">
-            </div>
+        <div id="depthsrc-block">
+          <div class="param-header" style="margin-bottom:4px"><label>Lateral</label></div>
+          <div class="wave-toggle" style="margin-bottom:8px" role="group" aria-label="Lateral figure: flat or lifted into 3D">
+            <button class="wave-btn active" data-depthsrc="0" aria-pressed="true">2D</button>
+            <button class="wave-btn" data-depthsrc="1" aria-pressed="false" title="Lift the figure into 3D: X and its quadrature become a cylinder; drag to orbit">3D</button>
           </div>
-          <div class="adv-block" data-advgeo="7">
-            <div class="vel-row"><span class="vel-label">Guilloché</span></div>
+        </div>
+        <div class="mod-group" id="gui-block" hidden>
+          <div class="vel-row"><span class="vel-label">Guilloché</span></div>
+          <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="Guilloché">
+            <button class="wave-btn active" data-guion="0" aria-pressed="true">OFF</button>
+            <button class="wave-btn" data-guion="1" aria-pressed="false" title="Repeat the figure in turned, shrinking layers">ON</button>
+          </div>
+          <div id="gui-rows" hidden>
             <div class="param-row">
               <div class="param-header"><label>Layers</label><span class="val" id="gui-layers-val">24</span></div>
               <input type="range" id="gui-layers" min="2" max="48" step="1" value="24">
@@ -2025,6 +2026,56 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
             <div class="param-row">
               <div class="param-header"><label>Shrink</label><span class="val" id="gui-shrink-val">0.15</span></div>
               <input type="range" id="gui-shrink" min="0" max="0.5" step="0.01" value="0.15">
+            </div>
+          </div>
+        </div>
+        <div id="waves-mode-row" hidden>
+          <div class="wave-toggle" style="margin-bottom:8px" role="group" aria-label="Waves or waterfall">
+            <button class="wave-btn active" data-wavesmode="0" aria-pressed="true">WAVES</button>
+            <button class="wave-btn" data-wavesmode="1" aria-pressed="false" title="The wave's history as stacked lines">WATERFALL</button>
+          </div>
+        </div>
+        <div class="mod-group" id="wf-block" hidden>
+          <div class="vel-row"><span class="vel-label">Waterfall</span></div>
+            <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="Waterfall wave">
+              <button class="wave-btn" data-wfaxis="0" aria-pressed="false">X</button>
+              <button class="wave-btn" data-wfaxis="1" aria-pressed="false">Y</button>
+              <button class="wave-btn active" data-wfaxis="2" aria-pressed="true">BOTH</button>
+              <button class="wave-btn" data-wfaxis="3" aria-pressed="false" title="X and Y added, as one line">SUM</button>
+            </div>
+            <div class="wave-toggle" id="wf-layout-row" style="margin-bottom:6px" role="group" aria-label="Waterfall layout for both waves">
+              <button class="wave-btn active" data-wflayout="0" aria-pressed="true">SIDE BY SIDE</button>
+              <button class="wave-btn" data-wflayout="1" aria-pressed="false">INTERLEAVED</button>
+            </div>
+            <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="When a new line is added">
+              <button class="wave-btn active" data-wfmode="0" aria-pressed="true" title="One line once a change settles">STEP</button>
+              <button class="wave-btn" data-wfmode="1" aria-pressed="false" title="Lines keep coming while something changes">SWEEP</button>
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>Lines</label><span class="val" id="wf-lines-val">32</span></div>
+              <input type="range" id="wf-lines" min="8" max="80" step="1" value="32">
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>Height</label><span class="val" id="wf-height-val">2.5</span></div>
+              <input type="range" id="wf-height" min="0.5" max="6" step="0.1" value="2.5">
+            </div>
+            <div class="param-row">
+              <button class="btn-outline" type="button" id="wf-clear" style="width:100%">Clear lines</button>
+            </div>
+          <div class="info-text" data-info-label="the waterfall">
+            Every change to the sound adds a line at the front and pushes the older ones back (STEP: one line per settled change; SWEEP: a line every few frames while it changes). The phase scrolls every line sideways and never adds one. SUM plots X and Y added together.
+          </div>
+        </div>
+        <div class="mod-group adv-only" id="adv-params" hidden>
+          <div class="adv-block" data-advgeo="6">
+            <div class="vel-row"><span class="vel-label">Lissajous knot</span></div>
+            <div class="param-row">
+              <div class="param-header"><label>Z frequency</label><span class="val" id="knot-fz-val">5</span></div>
+              <input type="range" id="knot-fz" min="1" max="12" step="1" value="5">
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>Z phase</label><span class="val" id="knot-pz-val">0.50π</span></div>
+              <input type="range" id="knot-pz" min="0" max="2" step="0.01" value="0.5">
             </div>
           </div>
           <div class="adv-block" data-advgeo="8">
@@ -2093,6 +2144,15 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
               <div class="param-header"><label>Taper</label><span class="val" id="if-taper-val">off</span></div>
               <input type="range" id="if-taper" min="0" max="1" step="0.01" value="0" title="Waves die away with distance from their emitter, leaving the plate flat">
             </div>
+            <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="Taper curve">
+              <button class="wave-btn active" data-iftcurve="0" aria-pressed="true" title="Fades fast at first, then slowly">EXP</button>
+              <button class="wave-btn" data-iftcurve="1" aria-pressed="false" title="Holds near the emitter, then falls away smoothly">GAUSS</button>
+              <button class="wave-btn" data-iftcurve="2" aria-pressed="false" title="Fades in a straight line to flat">LINEAR</button>
+            </div>
+            <div class="param-row">
+              <div class="param-header"><label>Taper start</label><span class="val" id="if-tstart-val">0.00</span></div>
+              <input type="range" id="if-tstart" min="0" max="1.5" step="0.01" value="0" title="How far from the emitter the waves keep full height before the taper begins">
+            </div>
             <div class="param-row">
               <div class="param-header"><label>Z frequency</label><span class="val" id="if-fz-val">off</span></div>
               <input type="range" id="if-fz" min="0" max="12" step="1" value="0" title="A third source, a sine at this frequency; 0 turns it off">
@@ -2102,35 +2162,8 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
               <input type="range" id="if-pz" min="0" max="2" step="0.01" value="0">
             </div>
           </div>
-          <div class="adv-block" data-advgeo="10">
-            <div class="vel-row"><span class="vel-label">Waterfall</span></div>
-            <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="Waterfall wave">
-              <button class="wave-btn" data-wfaxis="0" aria-pressed="false">X</button>
-              <button class="wave-btn" data-wfaxis="1" aria-pressed="false">Y</button>
-              <button class="wave-btn active" data-wfaxis="2" aria-pressed="true">BOTH</button>
-            </div>
-            <div class="wave-toggle" id="wf-layout-row" style="margin-bottom:6px" role="group" aria-label="Waterfall layout for both waves">
-              <button class="wave-btn active" data-wflayout="0" aria-pressed="true">SIDE BY SIDE</button>
-              <button class="wave-btn" data-wflayout="1" aria-pressed="false">INTERLEAVED</button>
-            </div>
-            <div class="wave-toggle" style="margin-bottom:6px" role="group" aria-label="When a new line is added">
-              <button class="wave-btn active" data-wfmode="0" aria-pressed="true" title="One line once a change settles">STEP</button>
-              <button class="wave-btn" data-wfmode="1" aria-pressed="false" title="Lines keep coming while something changes">SWEEP</button>
-            </div>
-            <div class="param-row">
-              <div class="param-header"><label>Lines</label><span class="val" id="wf-lines-val">32</span></div>
-              <input type="range" id="wf-lines" min="8" max="80" step="1" value="32">
-            </div>
-            <div class="param-row">
-              <div class="param-header"><label>Height</label><span class="val" id="wf-height-val">2.5</span></div>
-              <input type="range" id="wf-height" min="0.5" max="6" step="0.1" value="2.5">
-            </div>
-            <div class="param-row">
-              <button class="btn-outline" type="button" id="wf-clear" style="width:100%">Clear lines</button>
-            </div>
-          </div>
           <div class="info-text" data-info-label="advanced geometries">
-            <strong>Lissajous knot</strong> adds a third sine on depth: fx : fy : Z frequency picks the knot; drag to orbit. <strong>Guilloché</strong> repeats the counter-current rosette in turned, shrinking layers. <strong>Delay embedding</strong> plots the X+Y signal against itself one delay later (and two delays later in 3D). <strong>Interference</strong>: X and Y each radiate ripples from a point, and you can drag either point on the canvas; Wavelength is a frequency-1 wave's, so a higher frequency gives shorter ripples. Animate the phase to set them moving. <strong>Pattern</strong> maps where the two arrive in step (bright) and out of step (dark): hyperbolas when fx = fy, ovals otherwise. <strong>Round</strong> and <strong>Globe</strong> change the plate; on the globe the waves travel over the sphere and its sources are placed by latitude and longitude. <strong>Taper</strong> lets each wave die away with distance, so the plate settles flat; each wave's height follows its axis Amplitude. <strong>Z frequency</strong> adds a third source, a sine like the Lissajous knot's depth oscillator, which you can drag like the other two. <strong>3D</strong> raises either one into a lit relief: drag the canvas to orbit (the sources can be moved in FLAT). <strong>Waterfall</strong> stacks the wave's history: every change to the sound adds a line at the front and pushes the older ones back (STEP: one line per settled change; SWEEP: a line every few frames while it changes). The phase scrolls every line sideways and never adds one. Typing <code>/modes</code> in the search hides these again.
+            <strong>Lissajous knot</strong> adds a third sine on depth: fx : fy : Z frequency picks the knot; drag to orbit. <strong>Delay embedding</strong> plots the X+Y signal against itself one delay later (and two delays later in 3D). <strong>Interference</strong>: X and Y each radiate ripples from a point, and you can drag either point on the canvas; Wavelength is a frequency-1 wave's, so a higher frequency gives shorter ripples. Animate the phase to set them moving. <strong>Pattern</strong> maps where the two arrive in step (bright) and out of step (dark): hyperbolas when fx = fy, ovals otherwise. <strong>Round</strong> and <strong>Globe</strong> change the plate; on the globe the waves travel over the sphere and its sources are placed by latitude and longitude. <strong>Taper</strong> lets each wave die away with distance, so the plate settles flat; each wave's height follows its axis Amplitude. <strong>Z frequency</strong> adds a third source, a sine like the Lissajous knot's depth oscillator, which you can drag like the other two. <strong>3D</strong> raises either one into a lit relief: drag the canvas to orbit (the sources can be moved in FLAT). Typing <code>/modes</code> in the search hides these again.
           </div>
         </div>
         <div class="info-text" data-info-label="figure geometry">
@@ -2549,13 +2582,6 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
         <div class="section-label">3D</div>
         <div class="mod-group">
           <div class="vel-row"><span class="vel-label">Depth</span></div>
-          <div id="depthsrc-block">
-          <div class="param-header" style="margin-bottom:4px"><label>Depth source</label></div>
-          <div class="wave-toggle" style="margin-bottom:6px">
-            <button class="wave-btn active" data-depthsrc="0" aria-pressed="true">FLAT</button>
-            <button class="wave-btn" data-depthsrc="1" aria-pressed="false">PHASE LIFT</button>
-          </div>
-          </div>
           <div class="param-row">
             <div class="param-header"><label id="az-label">Depth</label><span class="val" id="az-val">0%</span></div>
             <input type="range" id="az" min="0" max="1" step="0.01" value="0">
@@ -2768,11 +2794,14 @@ header h1:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; 
           <div class="info-text" data-info-label="the column">
             The figure at evenly spaced phase positions, stacked bottom to top: one full δ rotation becomes a column. Drag to orbit. Replaces the construction view while on; works in every flat geometry.
           </div>
-          <div class="param-row">
+          <div class="info-text tc-keep tc-only" data-info-label="the torus slices">
+            On the torus the column becomes the tube's cross-sections: the shape Y traces through the hole, placed round the ring and turned a little further at each step, so the slices roll along the donut. Turns sets how far they roll in one lap.
+          </div>
+          <div class="param-row tc-keep">
             <div class="param-header"><label>Slices</label><span class="val" id="col-slices-val">48</span></div>
             <input type="range" id="col-slices" min="4" max="160" step="1" value="48">
           </div>
-          <div class="param-row">
+          <div class="param-row tc-keep">
             <div class="param-header"><label>Turns</label><span class="val" id="col-turns-val">1.00</span></div>
             <input type="range" id="col-turns" min="0.25" max="4" step="0.25" value="1">
           </div>
@@ -3252,6 +3281,10 @@ let params = {
   // Advanced geometries (6–9, hidden until "/modes"):
   knotFz: 5,       // Lissajous knot: depth frequency, in the same units as fx / fy
   knotPz: 0.5,     // Lissajous knot: depth phase, in π
+  guiOn: 0,        // con-current / counter-current / rose drawn as a guilloché
+  wavesMode: 0,    // Waves geometry: 0 = the waves, 1 = the waterfall of their history
+  ifTaperCurve: 0, // interference taper: 0 exponential, 1 gaussian, 2 linear
+  ifTaperStart: 0, // interference taper: distance before the fade begins
   guiLayers: 24,   // guilloché: copies of the rosette
   guiTwist: 0.08,  // guilloché: total turn across all layers, in turns
   guiShrink: 0.15, // guilloché: how much smaller the last layer is than the first
@@ -3760,6 +3793,7 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
   // Interference is a field, not a curve: it paints every pixel of the box itself.
   if (figGeometry() === GEO_INTERF) { drawInterference(targetCtx, w, h, phase, zoom); return; }
   if (figGeometry() === GEO_WFALL) { drawWaterfall(targetCtx, w, h, phase, zoom); return; }
+  if (torusColumn()) { drawTorusSlices(targetCtx, w, h, phase, zoom); return; }
 
   const cx = w / 2, cy = h / 2;
   const pad = Math.min(w, h) * 0.034;
@@ -3936,8 +3970,8 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
   const shaded = !!params.depthShade && (lift || solid) && !_eraseMode;
 
   // The advanced geometries build their own point list from the same samples.
-  if (geo >= GEO_ADV0) {
-    const A = advPoints(geo, sxArr, szArr, syArr, syqArr, resolution, periodFactor, cyclesX, 60000);
+  if (geo >= GEO_ADV0 || guiActive()) {
+    const A = advPoints(guiActive() ? GEO_GUIL : geo, sxArr, szArr, syArr, syqArr, resolution, periodFactor, cyclesX, 60000, geo);
     drawAdvancedFigure(targetCtx, w, h, A, cx, cy, rx, ry, mirrors, shaded, paint, lineWidth);
     if (dashOn) { targetCtx.setLineDash([]); targetCtx.lineWidth = lineWidth; }
     return;
@@ -4011,7 +4045,7 @@ function drawLissajous(targetCtx, w, h, phase, resolution, zoom, noBg, resCap) {
 // `cap` bounds the total point count; the guilloché thins its layers to stay
 // under it, since it multiplies the curve by its layer count.
 let _advX = new Float64Array(0), _advY = new Float64Array(0), _advZ = new Float64Array(0);
-function advPoints(geo, sx, sxq, sy, syq, res, periodFactor, cyclesX, cap) {
+function advPoints(geo, sx, sxq, sy, syq, res, periodFactor, cyclesX, cap, base) {
   const ax = params.ax, ay = params.ay;
   const L = geo === GEO_GUIL ? Math.max(1, Math.round(params.guiLayers || 1)) : 1;
   const stride = Math.max(1, Math.ceil(L * (res + 1) / (cap || 60000)));
@@ -4039,8 +4073,10 @@ function advPoints(geo, sx, sxq, sy, syq, res, periodFactor, cyclesX, cap) {
       X[k] = ax * S(i); Y[k] = ay * S(i - d); Z[k] = three ? zs * S(i - 2 * d) : 0;
     }
   } else {
-    // Guilloché: the counter-current rosette (rotor X plus a counter-turning
-    // rotor Y), repeated in layers that each turn a little further and shrink.
+    // Guilloché: the figure of the base geometry (counter-current by default;
+    // also con-current and rose), repeated in layers that each turn a little
+    // further and shrink.
+    const bg = base >= 1 && base <= 3 ? base : 2;
     const twist = (params.guiTwist || 0) * TAU, shrink = params.guiShrink || 0;
     let k = 0;
     for (let l = 0; l < L; l++) {
@@ -4048,7 +4084,7 @@ function advPoints(geo, sx, sxq, sy, syq, res, periodFactor, cyclesX, cap) {
       if (l) breaks.push(k);
       for (let q = 0; q < per; q++, k++) {
         const i = Math.min(res, q * stride);
-        geoPoint(2, sx[i], sxq[i], sy[i], syq[i], _G);
+        geoPoint(bg, sx[i], sxq[i], sy[i], syq[i], _G);
         X[k] = _G.x * c - _G.y * s; Y[k] = _G.x * s + _G.y * c; Z[k] = 0;
       }
     }
@@ -4062,6 +4098,42 @@ function advPoints(geo, sx, sxq, sy, syq, res, periodFactor, cyclesX, cap) {
   return { n, breaks, x: X, y: Y, z: Z };
 }
 const ADV_YAW = 0.6;
+// Torus column: the tube's cross-sections rolling round the ring. Each slice is
+// one whole cycle of Y (the shape Y traces through the hole: a circle for a sine,
+// bent by Y's waveform and synthesis), placed at ring angle θ = 2πk/n with the X
+// rotor pinned there, and started Turns·k/n of a cycle further on than the slice
+// before, so the slices roll along the donut.
+const TORUS_SLICE_N = 256, TC_TILT = 0.95, TC_TC = Math.cos(TC_TILT), TC_TS = Math.sin(TC_TILT);
+function drawTorusSlices(g, w, h, phase, zoom) {
+  const N = TORUS_SLICE_N, ys = new Float64Array(N), yq = new Float64Array(N);
+  for (let i = 0; i < N; i++) { const t = TAU * i / N; ys[i] = processWave(t, t, waveTypeY, 'y'); yq[i] = processWave(t + Math.PI / 2, t, waveTypeY, 'y'); }
+  if (filterIsOn() && onAxis('filterAxis', 'y')) {
+    const wY = TAU * Math.min(0.49, filterHarmonics() / N), c = biquadCoeffs(filterType, wY, params.filterQ);
+    filterPeriodic(ys, N, c, filterAxisMix('y')); filterPeriodic(yq, N, c, filterAxisMix('y'));
+  }
+  const n = Math.max(2, Math.min(160, Math.round(params.colSlices || 48))), turns = +params.colTurns || 0;
+  const per = N + 1, total = n * per;
+  if (_advX.length < total) { _advX = new Float64Array(total); _advY = new Float64Array(total); _advZ = new Float64Array(total); }
+  const breaks = [];
+  for (let k = 0, o = 0; k < n; k++) {
+    const th = TAU * k / n, xs = Math.sin(th), xq = Math.cos(th), sh = Math.round(turns * k / n * N + (phase || 0) / 2 * N);
+    breaks.push(o);
+    for (let i = 0; i <= N; i++, o++) {
+      const j = (((i + sh) % N) + N) % N;
+      geoPoint(4, xs, xq, ys[j], yq[j], _G);
+      // Tipped back so the upright cross-sections read as rings, not edges.
+      _advX[o] = _G.x; _advY[o] = _G.y * TC_TC - _G.z * TC_TS; _advZ[o] = _G.y * TC_TS + _G.z * TC_TC;
+    }
+  }
+  const pad = Math.min(w, h) * 0.034, z = zoom || 1, rx = (w / 2 - pad) * z, ry = (h / 2 - pad) * z;
+  beginFigureXform(phase, false, rx / ry);
+  const paint = figPaint(g, w, h), lw = params.lineWidth;
+  g.strokeStyle = paint; g.lineWidth = lw; g.lineJoin = 'round'; g.lineCap = 'round';
+  const dashOn = !!applyDotDash(g, params.dotsLine ?? 1, lw);
+  drawAdvancedFigure(g, w, h, { n: total, breaks, x: _advX, y: _advY, z: _advZ }, w / 2, h / 2, rx, ry,
+                     figureMirrors(), !!params.depthShade && !_eraseMode, paint, lw);
+  if (dashOn) { g.setLineDash([]); g.lineWidth = lw; }
+}
 // Stroke an advPoints() list through the shared view transform, with mirrors and,
 // for the solid ones, the same depth-binned shading the torus knot gets.
 function drawAdvancedFigure(g, w, h, A, cx, cy, rx, ry, mirrors, shaded, paint, lineWidth) {
@@ -4156,7 +4228,7 @@ function ifField(R, phase, zoom) {
   const zOn = src.length > 2, fz = zOn ? Math.round(params.ifFz) : 0, [cx, cy] = zOn ? src[2] : [0, 0];
   const lam = Math.max(0.01, params.ifLambda ?? 0.4), decay = (params.ifDecay ?? 0.3) * 6;
   const tp = ifTaperK(), amX = params.ax, amY = params.ay, mod = tp > 0 || amX !== 1 || amY !== 1;
-  const geoKey = [R, z, ax, ay, bx, by, fx, fy, lam, decay].join() + (zOn ? '|' + [fz, cx, cy].join() : '') + (mod ? '|' + [tp, amX, amY].join() : '');
+  const geoKey = [R, z, ax, ay, bx, by, fx, fy, lam, decay].join() + (zOn ? '|' + [fz, cx, cy].join() : '') + (mod ? '|' + [tp, amX, amY, params.ifTaperCurve || 0, params.ifTaperStart || 0].join() : '');
   const N = R * R;
   if (geoKey !== _ifGeoKey) {
     _ifGeoKey = geoKey; _ifPatKey = '';
@@ -4180,8 +4252,8 @@ function ifField(R, phase, zoom) {
         if (mod) {
           // Amplitude sets each wave's height; the taper flattens a wave out with
           // its distance from the emitter, so far from all three the plate is calm.
-          _ifW1[p] *= amX * Math.exp(-tp * r1); _ifW2[p] *= amY * Math.exp(-tp * r2);
-          if (zOn) _ifW3[p] *= Math.exp(-tp * Math.hypot(u - cx, v - cy));
+          _ifW1[p] *= amX * ifTaperEnv(r1); _ifW2[p] *= amY * ifTaperEnv(r2);
+          if (zOn) _ifW3[p] *= ifTaperEnv(Math.hypot(u - cx, v - cy));
         }
       }
     }
@@ -4233,6 +4305,14 @@ function ifRelief() { return Math.round(params.ifSurface) === 1; }
 function ifShape() { return Math.max(0, Math.min(2, Math.round(params.ifShape || 0))); }   // 0 square, 1 round, 2 globe
 function ifGlobe() { return ifShape() === 2; }
 function ifTaperK() { return Math.max(0, +params.ifTaper || 0) * 6; }
+// How much of a wave is left at distance r from its emitter. The fade begins at
+// Taper start and follows the chosen curve: EXP fades fast then slowly, GAUSS
+// holds near the emitter then falls away smoothly, LINEAR runs straight to flat.
+function ifTaperEnv(r) {
+  const k = ifTaperK(); if (!(k > 0)) return 1;
+  const d = Math.max(0, r - (+params.ifTaperStart || 0)), c = Math.round(params.ifTaperCurve || 0);
+  return c === 1 ? Math.exp(-(k * d) * (k * d) / 2) : c === 2 ? Math.max(0, 1 - k * d / 3) : Math.exp(-k * d);
+}
 // Relief height in world units. It scales with the shortest ripple wavelength, so
 // the swell keeps the same gentle proportion to its spacing at any frequency.
 function ifReliefH() {
@@ -4464,7 +4544,7 @@ function ifGlobeMesh(G, phase) {
   ifFillLUT();
   const src = ifGlobeSources(), zOn = src.length > 2, { fx, fy } = params, fz = zOn ? Math.round(params.ifFz) : 0;
   const lam = Math.max(0.01, params.ifLambda ?? 0.4), decay = (params.ifDecay ?? 0.3) * 6, tp = ifTaperK();
-  const key = [JSON.stringify(src), fx, fy, fz, lam, decay, tp, params.ax, params.ay].join('|');
+  const key = [JSON.stringify(src), fx, fy, fz, lam, decay, tp, params.ax, params.ay, params.ifTaperCurve || 0, params.ifTaperStart || 0].join('|');
   if (key !== _igKey) {
     _igKey = key;
     const kk = [fx / lam * IF_LUT, fy / lam * IF_LUT, fz / lam], am = [params.ax, params.ay, 1];
@@ -4479,7 +4559,7 @@ function ifGlobeMesh(G, phase) {
         }
         for (let k = 0; k < 3; k++) {
           _igP[v * 3 + k] = kk[k] * r[k];
-          _igW[v * 3 + k] = k < src.length ? a[k] / n * am[k] * Math.exp(-tp * r[k]) : 0;
+          _igW[v * 3 + k] = k < src.length ? a[k] / n * am[k] * ifTaperEnv(r[k]) : 0;
         }
       }
     }
@@ -4630,7 +4710,7 @@ function wfTrack() {
 function waterfallLines(w, h, phase, zoom) {
   if (!_wfHist.length) _wfHist.push(wfCurrent());
   const z = Math.max(0.05, zoom || 1), axisSel = Math.round(params.wfAxis ?? 2), inter = axisSel === 2 && Math.round(params.wfLayout) === 1;
-  const cols = axisSel === 2 && !inter ? [['x', 0], ['y', 1]] : [[axisSel === 1 ? 'y' : 'x', 0]];
+  const cols = axisSel === 2 && !inter ? [['x', 0], ['y', 1]] : [[axisSel === 3 ? 's' : axisSel === 1 ? 'y' : 'x', 0]];
   const nCols = cols.length, cap = Math.max(2, Math.round(params.wfLines || 32));
   const mx = w * 0.06, my = h * 0.06, gap = nCols > 1 ? w * 0.04 : 0;
   const colW = (w - 2 * mx - gap * (nCols - 1)) / nCols;
@@ -4651,11 +4731,13 @@ function waterfallLines(w, h, phase, zoom) {
   items.sort((a, b) => b[3] - a[3]);   // farthest row first
   return items.map(([k, ax, c, row]) => {
     const e = _wfHist[k], T = ax === 'x' ? e.x : e.y, cyc = ax === 'x' ? e.cx : e.cy;
+    // SUM: X and Y added, each read at its own cycle count (the Waves mode's sum).
+    const val = ax === 's' ? (u => (lerp(e.x, u * e.cx + shift) + lerp(e.y, u * e.cy + shift)) / 2) : (u => lerp(T, u * cyc + shift));
     const x0 = mx + c * (colW + gap), base = bottom - row * spacing;
     const pts = new Float32Array((P + 1) * 2);
     let d = '';
     for (let i = 0; i <= P; i++) {
-      const u = i / P, x = zx(x0 + u * colW), y = zy(base - lerp(T, u * cyc + shift) * amp);
+      const u = i / P, x = zx(x0 + u * colW), y = zy(base - val(u) * amp);
       pts[2 * i] = x; pts[2 * i + 1] = y;
       d += (i ? 'L' : 'M') + x.toFixed(2) + ',' + y.toFixed(2);
     }
@@ -4925,6 +5007,12 @@ function figGeometry() { return Math.max(0, Math.min(GEO_MAX, Math.round(params.
 function polarGeometry() { return figGeometry() !== 0; }
 function solidGeometry() { const g = figGeometry(); return g === 4 || g === GEO_LKNOT || (g === GEO_EMBED && Math.round(params.embDim) === 3) || (g === GEO_INTERF && (Math.round(params.ifSurface) === 1 || Math.round(params.ifShape) === 2)); }
 function advGeometry() { return figGeometry() >= GEO_ADV0; }
+// Con-current, counter-current and rose drawn as a guilloché (layers of the figure).
+function guiActive() { const g = figGeometry(); return !!params.guiOn && g >= 1 && g <= 3; }
+// The torus column: tube cross-sections rolling round the ring.
+function torusColumn() { return figGeometry() === 4 && !!params.columnView; }
+// The Waves geometry showing the waterfall of their history instead.
+function wavesWaterfall() { return figGeometry() === GEO_WAVES && Math.round(params.wavesMode || 0) === 1; }
 // WAVES is not a figure at all: the two waves and their sum, plotted flat.
 const GEO_WAVES = 5;
 function waveGeometry() { return figGeometry() === GEO_WAVES; }
@@ -4936,11 +5024,11 @@ const TORUS_TUBE = 0.6;     // tube radius over major radius at ay = 1
 // drawConstructionRot). WAVES is already its own explanation.
 // The two are alternatives (the checkboxes turn each other off); should both ever
 // be set at once, the construction view wins and the column stands down.
-function m4Active() { return constructionView && !waveGeometry() && !liftActive() && !advGeometry(); }
+function m4Active() { return constructionView && !waveGeometry() && !liftActive() && !advGeometry() && !guiActive(); }
 // The lateral construction's own layout (strips, RINGS) applies only there.
 function m4Lateral() { return m4Active() && !polarGeometry(); }
 // The column view stacks the flat figure; the solids and WAVES have no flat slice.
-function columnActive() { const g = figGeometry(); return !!params.columnView && !solidGeometry() && g !== GEO_WAVES && g < GEO_ADV0 && !m4Active(); }
+function columnActive() { const g = figGeometry(); return !!params.columnView && !solidGeometry() && g !== GEO_WAVES && g < GEO_ADV0 && !guiActive() && !m4Active(); }
 // Combine the samples into the figure point (normalised, before the view
 // transform). xs/ys are the wave values, xq/yq their quarter-period-ahead copies.
 // out.z is view depth (positive = away from the viewer), 0 for the flat ones.
@@ -5568,7 +5656,8 @@ function drawFigureInto(target, phase, res, zoom, phaseBack, resCap) {
   if (waveGeometry()) {
     target.save();
     target.translate(waveBox.x, waveBox.y);
-    drawWaveStack(target, waveBox.w, waveBox.h, phase, res, zoom, WS_CURVES);
+    if (wavesWaterfall()) drawWaterfall(target, waveBox.w, waveBox.h, phase, zoom);
+    else drawWaveStack(target, waveBox.w, waveBox.h, phase, res, zoom, WS_CURVES);
     target.restore();
     return;
   }
@@ -7039,7 +7128,7 @@ function render(now) {
   }
 
   // The diagram's own furniture, always fresh — never trailed, never faded.
-  if (waveGeometry()) {
+  if (waveGeometry() && !wavesWaterfall()) {
     ctx.save();
     ctx.translate(waveBox.x, waveBox.y);
     drawWaveStack(ctx, waveBox.w, waveBox.h, drawPhase, res, zoom, WS_CHROME);
@@ -7302,7 +7391,7 @@ document.getElementById('btn-export').addEventListener('click', () => {
       j = i % steps;
       idx = (j + Math.floor(i * DP.slip)) % steps;
     }
-    if (geo >= GEO_ADV0) break;   // the advanced geometries build their own path below
+    if (geo >= GEO_ADV0 || guiActive()) break;   // these build their own path below
     let sx = SX[idx], sy = SY[j];
     if (geo) { geoPoint(geo, sx, SXQ[idx], sy, SYQ[j], _G); sx = _G.x; sy = _G.y; }
     const x = cx + rx * a * (visualSwap ? sy : sx);
@@ -7311,8 +7400,8 @@ document.getElementById('btn-export').addEventListener('click', () => {
   }
   // Lissajous knot / guilloché / embedding: the canvas's own point list, through
   // the same view transform (so an orbited knot exports as it is seen).
-  if (geo >= GEO_ADV0 && geo !== GEO_INTERF && geo !== GEO_WFALL) {
-    const A = advPoints(geo, SX, SXQ, SY, SYQ, steps, periodFactor, fx * periodFactor, 200000);
+  if ((geo >= GEO_ADV0 && geo !== GEO_INTERF && geo !== GEO_WFALL) || guiActive()) {
+    const A = advPoints(guiActive() ? GEO_GUIL : geo, SX, SXQ, SY, SYQ, steps, periodFactor, fx * periodFactor, 200000, geo);
     beginFigureXform(phase, false, 1);
     let bi = 1;
     for (let k = 0; k < A.n; k++) {
@@ -7345,7 +7434,7 @@ document.getElementById('btn-export').addEventListener('click', () => {
     `<path d="${L.d}" fill="${bgColor}" stroke="${L.color}" stroke-width="${lineWidth}" stroke-linejoin="round" stroke-linecap="round"/>`).join('\n  ');
   const body = column ? columnSvg(w, h, phase)
     : geo === GEO_INTERF ? fieldSvg()
-    : geo === GEO_WFALL ? wfSvg()
+    : geo === GEO_WFALL || (wave && wavesWaterfall()) ? wfSvg()
     : `${defs}<path d="${points.join(' ')}" fill="none" stroke="${paint}" stroke-width="${lineWidth}" stroke-linejoin="round" stroke-linecap="round"/>`;
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
@@ -7743,6 +7832,9 @@ const VEL_RANGES = {
   crushRate: [0, 1],
   unisonDetune: [0, 50],
   unisonMix: [0, 1],
+  guiLayers: [2, 48],
+  guiTwist:  [0, 1],
+  guiShrink: [0, 0.5],
   filterCutoff: [0, 1],
   filterQ:   [0.1, 20],
   ax:        [0.1, 1],
@@ -8900,6 +8992,10 @@ const GEO_HINTS = [
 ];
 function setGeometry(g) {
   g = Math.max(0, Math.min(GEO_MAX, Math.round(g)));
+  // Guilloché and Waterfall are options of their parent modes now; the old
+  // geometry numbers (in saved patches) open in the new place.
+  if (g === GEO_GUIL) { g = 2; params.guiOn = 1; }
+  if (g === GEO_WFALL) { g = GEO_WAVES; params.wavesMode = 1; }
   const changed = figGeometry() !== g;
   params.geometry = g;
   document.querySelectorAll('.wave-btn[data-geo]').forEach(b => {
@@ -8914,7 +9010,8 @@ function setGeometry(g) {
   // WAVES has no construction view: hide its section there.
   const cs = document.getElementById('section-construct');
   if (cs) cs.hidden = g === GEO_WAVES || g >= GEO_ADV0;
-  const colOk = !solidGeometry() && g !== GEO_WAVES && g < GEO_ADV0;
+  const colOk = (!solidGeometry() || g === 4) && g !== GEO_WAVES && g < GEO_ADV0;
+  setModeBlocks(g);
   // The advanced geometries' own controls: only the active one's block shows.
   document.querySelectorAll('.adv-block').forEach(b => { b.hidden = parseInt(b.dataset.advgeo) !== g; });
   const ap = document.getElementById('adv-params');
@@ -8930,6 +9027,23 @@ document.querySelectorAll('.wave-btn[data-geo]').forEach(btn => {
   btn.innerHTML = iconSvg(GEO_ICON[parseInt(btn.dataset.geo)]);
   btn.addEventListener('click', () => setGeometry(parseInt(btn.dataset.geo)));
 });
+
+// The mode options that live under the geometry buttons: the guilloché switch
+// (con-current, counter-current, rose) and the waves/waterfall switch.
+function setModeBlocks(g) {
+  if (g === undefined) g = figGeometry();
+  const show = (id, on) => { const e = document.getElementById(id); if (e) e.hidden = !on; };
+  const gui = g >= 1 && g <= 3;
+  show('gui-block', gui); show('gui-rows', gui && !!params.guiOn);
+  show('waves-mode-row', g === GEO_WAVES); show('wf-block', g === GEO_WAVES && Math.round(params.wavesMode || 0) === 1);
+  setStageMode('guiOn', 'guion', 1, params.guiOn || 0);
+  setStageMode('wavesMode', 'wavesmode', 1, params.wavesMode || 0);
+}
+function setGuiOn(m) { params.guiOn = m ? 1 : 0; setModeBlocks(); document.body.classList.toggle('orbit', orbitable()); clearTrail(); if (typeof syncViewToggles === 'function' && _uiReady) syncViewToggles(); }
+function setWavesMode(m) { params.wavesMode = m ? 1 : 0; setModeBlocks(); clearTrail(); }
+document.querySelectorAll('.wave-btn[data-guion]').forEach(b => b.addEventListener('click', () => setGuiOn(parseInt(b.dataset.guion))));
+document.querySelectorAll('.wave-btn[data-wavesmode]').forEach(b => b.addEventListener('click', () => setWavesMode(parseInt(b.dataset.wavesmode))));
+document.querySelectorAll('.wave-btn[data-iftcurve]').forEach(b => b.addEventListener('click', () => setStageMode('ifTaperCurve', 'iftcurve', 2, parseInt(b.dataset.iftcurve))));
 
 // ── Advanced geometries: "/modes" shows or hides them ───────────────────────
 function setAdvModes(on, reveal) {
@@ -8965,6 +9079,7 @@ const ADV_SLIDERS = [
   ['if-light',   'ifLight',   v => Math.round(v) + '°'],
   ['if-fz',      'ifFz',      v => Math.round(v) ? String(Math.round(v)) : 'off'],
   ['if-taper',   'ifTaper',   v => +v > 0 ? (+v).toFixed(2) : 'off'],
+  ['if-tstart',  'ifTaperStart', v => (+v).toFixed(2)],
   ['if-xlat',    'ifXLat',    v => Math.round(v) + '°'],
   ['if-xlon',    'ifXLon',    v => Math.round(v) + '°'],
   ['if-ylat',    'ifYLat',    v => Math.round(v) + '°'],
@@ -9013,6 +9128,7 @@ function refreshAdvControls() {
   setIfView(params.ifView ?? 0);
   setIfSurface(params.ifSurface ?? 0);
   setIfShape(params.ifShape ?? 0);
+  setStageMode('ifTaperCurve', 'iftcurve', 2, params.ifTaperCurve ?? 0);
   setWfMode(params.wfMode ?? 0);
   setWfAxis(params.wfAxis ?? 2);
   setWfLayout(params.wfLayout ?? 0);
@@ -9046,7 +9162,7 @@ document.querySelectorAll('.wave-btn[data-ifsurf]').forEach(b => b.addEventListe
 // Waterfall toggles. They are stepped params like the synthesis curve selectors.
 function setWfMode(m) { setStageMode('wfMode', 'wfmode', 1, m); }
 function setWfAxis(m) {
-  setStageMode('wfAxis', 'wfaxis', 2, m);
+  setStageMode('wfAxis', 'wfaxis', 3, m);
   const row = document.getElementById('wf-layout-row');
   if (row) row.hidden = params.wfAxis !== 2;   // the layout only matters with both waves
 }
@@ -9900,6 +10016,9 @@ const MAP_TARGETS = {
 
   trailAmt:  { label:'Trail',         min:0,    max:0.97,           apply:v => setSliderParam('trailAmt','trail-amt','trail-amt-val',x=>(x<0.01?'off':Math.round(x*100)+'%'),v) },
   geometry:  { label:'Geometry',       min:0,    max:5,   step:1,    apply:v => setGeometry(v) },
+  guiLayers: { label:'Guilloché Layers', min:2,  max:48,  step:1,    apply:v => setSliderParam('guiLayers','gui-layers','gui-layers-val',x=>String(Math.round(x)),v) },
+  guiTwist:  { label:'Guilloché Twist', min:0,    max:1,              apply:v => setSliderParam('guiTwist','gui-twist','gui-twist-val',x=>x.toFixed(3),v) },
+  guiShrink: { label:'Guilloché Shrink', min:0,   max:0.5,            apply:v => setSliderParam('guiShrink','gui-shrink','gui-shrink-val',x=>x.toFixed(2),v) },
   mirrorMode:{ label:'Mirror Mode',   min:0,    max:3,   step:1,    apply:v => setMirrorMode(v) },
   m4Rotate:{ label:'Straight Generators', toggle:true, apply:b => setM4Rotate(b) },
   trailMode:{ label:'Trail Mode',     min:0,    max:1,   step:1,    apply:v => setTrailMode(v) },
@@ -10035,7 +10154,7 @@ const MAP_DEFAULTS = {
   ...Object.fromEntries(AXIS_GROUPS.map(([k]) => [k, 0])),
   syncAmt:1, foldDrive:1, amAmt:0, amRatio:2, noiseAmt:0, waveX:0, waveY:0,
   crossFm:0, ringAmt:0, fbAmt:0, foldBias:0, crushBits:16, crushRate:0,
-  shapeMode:0, warpMode:0, foldMode:0,
+  shapeMode:0, warpMode:0, foldMode:0, guiLayers:24, guiTwist:0.08, guiShrink:0.15,
   unisonDetune:0, unisonMix:0, fmRef:0, amRef:0, damp:0,
   geometry:0, trailAmt:0, trailMode:0, trailCount:4, trailSpacing:0.08, mirrorMode:0, m4Rotate:1, az:0,
   lfo0Rate:0.5, lfo0Depth:0.5, lfo1Rate:1.0, lfo1Depth:0.5,
@@ -11692,12 +11811,14 @@ const VT_GEO = [
   { g: 4, lift: 0, icon: 'knot',  name: 'torus knot' },
   { g: 5, lift: 0, icon: 'wave',  name: 'waves' },
   { g: 6, lift: 0, icon: 'lknot', name: 'Lissajous knot', adv: true },
-  { g: 7, lift: 0, icon: 'guil',  name: 'guilloché',      adv: true },
   { g: 8, lift: 0, icon: 'embed', name: 'delay embedding', adv: true },
   { g: 9, lift: 0, icon: 'interf', name: 'interference',  adv: true },
-  { g: 10, lift: 0, icon: 'wfall', name: 'waterfall',      adv: true },
 ];
-function vtGeoIndex() { const g = figGeometry(); return g === 0 ? (liftActive() ? 1 : 0) : g + 1; }
+function vtGeoIndex() {
+  const g = figGeometry(), lift = g === 0 && liftActive() ? 1 : 0;
+  const i = VT_GEO.findIndex(e => e.g === g && e.lift === lift);
+  return i < 0 ? 0 : i;
+}
 // Construction: off, then the three generator styles.
 const VT_CON = [
   { icon: 'cstraight', name: 'off' },
@@ -11817,7 +11938,8 @@ function refreshVisibility() {
   const col = columnActive(), con = m4Active(), lift = liftActive(), polar = polarGeometry();
   const deep = lift || solidGeometry();
   setVis('construction-controls', con);
-  setVis('column-controls', col);
+  setVis('column-controls', col || torusColumn());
+  document.body.classList.toggle('torus-col', torusColumn());
   setVis('col-hide-row', col && colSurfaceMode() === COL_SURF_OFF && !params.colCore);
   setVis('col-core-row', col && colSurfaceMode() === COL_SURF_OFF);
   // The column is its own picture: mirrors, the dash morph, the surface fill and
@@ -11837,12 +11959,12 @@ function refreshVisibility() {
   // The toolbar greys out what cannot apply rather than hiding it, so the
   // buttons never move.
   setVtEnabled('vt-frame', !waveGeometry() && !col);
-  setVtEnabled('vt-construct', !waveGeometry() && !lift && !advGeometry());
+  setVtEnabled('vt-construct', !waveGeometry() && !lift && !advGeometry() && !guiActive());
   // 3D lateral (the phase lift) has no construction: the lifted figure is its own explanation.
-  setVis('section-construct', !waveGeometry() && !lift && !advGeometry());
+  setVis('section-construct', !waveGeometry() && !lift && !advGeometry() && !guiActive());
   setVis('m4-gen-block', con && !polar);
   setVis('rot-con-info', con && polar);
-  setVtEnabled('vt-column', !solidGeometry() && !waveGeometry() && !advGeometry());
+  setVtEnabled('vt-column', (!solidGeometry() || figGeometry() === 4) && !waveGeometry() && !advGeometry() && !guiActive());
   const azLbl = document.getElementById('az-label');
   if (azLbl) { const t = (lift || col) ? 'Perspective' : 'Depth'; if (azLbl.textContent !== t) azLbl.textContent = t; }
 }
@@ -11880,6 +12002,7 @@ const TARGET_CONTROL = {
   fmAmount: 'fm-amount', fmRatio: 'fm-ratio', amAmt: 'am-amt', amRatio: 'am-ratio', crossFm: 'cross-fm', ringAmt: 'ring-amt',
   shapeAmt: 'shape-amt', fbAmt: 'fb-amt', warp: 'warp', foldDrive: 'fold-drive', foldBias: 'fold-bias',
   shapeMode: '[data-shapemode]', warpMode: '[data-warpmode]', foldMode: '[data-foldmode]',
+  guiLayers: 'gui-layers', guiTwist: 'gui-twist', guiShrink: 'gui-shrink',
   crushBits: 'crush-bits', crushRate: 'crush-rate', noiseAmt: 'noise-amt', filterCutoff: 'filter-freq', filterQ: 'filter-res',
   syncAmt: 'sync-amt', unisonDetune: 'unison-detune', unisonMix: 'unison-mix', volume: 'audio-vol',
   fmRef: '[data-modref="fm"]', amRef: '[data-modref="am"]', damp: 'damp',
